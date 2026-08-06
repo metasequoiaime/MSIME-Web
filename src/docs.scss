@@ -4,13 +4,15 @@
   padding: 3.5rem 0 2rem;
 }
 
-.about-page {
+.about-page,
+.price-page {
   width: 100%;
   min-height: calc(100vh - var(--fixed-header-height));
   padding: 4.5rem 1.5rem 2rem;
 }
 
-.about-content {
+.about-content,
+.price-content {
   width: min(90%, 780px);
   margin: 0 auto;
 }
@@ -53,6 +55,11 @@
 .docs-toc a:hover,
 .docs-toc a:focus-visible {
   color: var(--primary-color);
+}
+
+.docs-toc-subitem {
+  padding-left: 0.8rem;
+  font-size: 13px !important;
 }
 
 .docs-content {
@@ -99,6 +106,16 @@
 .docs-content ul,
 .docs-content ol {
   padding-left: 1.5rem;
+}
+
+.docs-content ul,
+.docs-content ul li {
+  list-style-type: disc;
+}
+
+.docs-content ol,
+.docs-content ol li {
+  list-style-type: decimal;
 }
 
 .docs-content li + li {
@@ -170,11 +187,13 @@
 }
 
 @media screen and (max-width: 768px) {
-  .about-page {
+  .about-page,
+  .price-page {
     padding-top: 2.5rem;
   }
 
-  .about-content {
+  .about-content,
+  .price-content {
     width: 100%;
   }
 

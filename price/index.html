@@ -5,8 +5,8 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/x-icon" href="/msime.ico" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="水杉输入法文档" />
-  <title>文档 | 水杉输入法</title>
+  <meta name="description" content="水杉输入法价格说明" />
+  <title>价格 | 水杉输入法</title>
 
   <script>
     (() => {
@@ -52,11 +52,11 @@
 
       <ul class="nav-list">
         <li class="nav-item">
-          <a href="/docs/" class="nav-link" aria-current="page">
+          <a href="/docs/" class="nav-link">
             <img src="/img/icons/nav/docs.svg" alt="" class="nav-link-icon" />文档</a>
         </li>
         <li class="nav-item">
-          <a href="/price/" class="nav-link">
+          <a href="/price/" class="nav-link" aria-current="page">
             <img src="/img/icons/nav/price.svg" alt="" class="nav-link-icon" />价格</a>
         </li>
         <li class="nav-item">
@@ -85,15 +85,8 @@
     </div>
   </div>
 
-  <main class="docs-page">
-    <div class="container docs-shell">
-      <aside class="docs-sidebar" aria-label="文档导航">
-        <p class="docs-kicker">文档目录</p>
-        <nav class="docs-toc" id="docs-toc"></nav>
-      </aside>
-
-      <article class="docs-content" id="docs-content" aria-live="polite"></article>
-    </div>
+  <main class="price-page">
+    <article class="docs-content price-content" id="price-content" aria-live="polite"></article>
   </main>
 
   <footer>
@@ -102,7 +95,7 @@
     <span>@<span class="lxl">乱序楼</span></span>
   </footer>
 
-  <script type="module" src="/src/docs.ts"></script>
+  <script type="module" src="/src/price.ts"></script>
 </body>
 
 </html>
