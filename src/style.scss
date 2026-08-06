@@ -572,6 +572,28 @@ button {
   background-color: transparent;
 }
 
+.hero-media-light {
+  display: none !important;
+}
+
+:root[data-theme="light"] .hero-media-dark {
+  display: none !important;
+}
+
+:root[data-theme="light"] .hero-media-light {
+  display: block !important;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .hero-media-dark {
+    display: none !important;
+  }
+
+  :root:not([data-theme="dark"]) .hero-media-light {
+    display: block !important;
+  }
+}
+
 .hero-screenshot::after {
   content: "";
   position: absolute;
@@ -678,6 +700,8 @@ footer a:hover {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     transition:
       opacity 0.2s ease,
       visibility 0.2s ease;
@@ -719,11 +743,18 @@ footer a:hover {
     position: static;
     margin-top: 10px;
     box-shadow: none;
+    display: flex;
+    flex-wrap: nowrap;
+    width: min(260px, calc(100vw - 2rem));
+    min-width: 0;
   }
 
   .theme-option {
+    flex: 1 1 0;
     font-size: 16px;
     text-align: center;
+    padding-left: 6px;
+    padding-right: 6px;
   }
 
   .btn-close {
