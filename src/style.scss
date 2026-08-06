@@ -20,19 +20,99 @@
   --text-content: #9aa9c5;
   --text-body: #c8d2e4;
   --bg: #202020;
+  --header-bg: #303030;
+  --menu-bg: #2a2a2a;
+  --footer-bg: #191919;
+  --footer-border: #6565655d;
+  --footer-link: #447aaf;
+  --btn-primary: #5699ce;
+  --btn-primary-hover: #428fcf;
+  --btn-secondary-bg: #505356;
+  --btn-secondary-hover: #484a4c;
+  --nav-underline-start: #7fb0ff;
+  --nav-underline-end: #b8d4ff;
+  --video-shadow: rgba(8, 8, 8, 1);
   --surface: #121a2f;
   --icon-color: #8fb0ff;
-  --btn-secondary-bg: #1b2745;
   --btn-secondary-text: #cfe0ff;
   --card-bg: #323232;
   --card-border: rgba(255, 255, 255, 0.06);
   --card-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
   --menu-shadow: 0 0.5rem 1.5rem rgba(3, 7, 16, 0.6);
+  --theme-hover-bg: rgba(110, 160, 255, 0.12);
+  --nav-icon-filter: none;
+  --nav-control-filter: none;
   --fixed-header-height: 3.5rem;
   --font-size-body-text: clamp(14px, 1.6vw, 16px);
   --h1-font-size: calc(var(--font-size-body-text) * 2.4);
   --h2-font-size: calc(var(--h1-font-size) - 15px);
   --h3-font-size: calc(var(--h2-font-size) - 8px);
+}
+
+:root[data-theme="light"] {
+  --primary-color: #0f6cbd;
+  --link-color: #315b83;
+  --btn-hover-color: #0a5da8;
+  --lg-heading: #202020;
+  --text-content: #5f6368;
+  --text-body: #3f454b;
+  --bg: #f3f5f7;
+  --header-bg: #ffffff;
+  --menu-bg: #ffffff;
+  --footer-bg: #e7eaee;
+  --footer-border: #c8d0d8;
+  --footer-link: #0f6cbd;
+  --btn-primary: #0f6cbd;
+  --btn-primary-hover: #0a5da8;
+  --btn-secondary-bg: #e1e5e9;
+  --btn-secondary-text: #202020;
+  --btn-secondary-hover: #d5dbe1;
+  --nav-underline-start: #0f6cbd;
+  --nav-underline-end: #4f9bd2;
+  --video-shadow: rgba(0, 0, 0, 0.28);
+  --surface: #ffffff;
+  --icon-color: #0f6cbd;
+  --card-bg: #ffffff;
+  --card-border: rgba(0, 0, 0, 0.1);
+  --card-shadow: 0 12px 28px rgba(15, 23, 32, 0.12);
+  --menu-shadow: 0 0.5rem 1.5rem rgba(15, 23, 32, 0.18);
+  --theme-hover-bg: rgba(15, 108, 189, 0.1);
+  --nav-icon-filter: brightness(0.58) saturate(1.2);
+  --nav-control-filter: invert(1);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --primary-color: #0f6cbd;
+    --link-color: #315b83;
+    --btn-hover-color: #0a5da8;
+    --lg-heading: #202020;
+    --text-content: #5f6368;
+    --text-body: #3f454b;
+    --bg: #f3f5f7;
+    --header-bg: #ffffff;
+    --menu-bg: #ffffff;
+    --footer-bg: #e7eaee;
+    --footer-border: #c8d0d8;
+    --footer-link: #0f6cbd;
+    --btn-primary: #0f6cbd;
+    --btn-primary-hover: #0a5da8;
+    --btn-secondary-bg: #e1e5e9;
+    --btn-secondary-text: #202020;
+    --btn-secondary-hover: #d5dbe1;
+    --nav-underline-start: #0f6cbd;
+    --nav-underline-end: #4f9bd2;
+    --video-shadow: rgba(0, 0, 0, 0.28);
+    --surface: #ffffff;
+    --icon-color: #0f6cbd;
+    --card-bg: #ffffff;
+    --card-border: rgba(0, 0, 0, 0.1);
+    --card-shadow: 0 12px 28px rgba(15, 23, 32, 0.12);
+    --menu-shadow: 0 0.5rem 1.5rem rgba(15, 23, 32, 0.18);
+    --theme-hover-bg: rgba(15, 108, 189, 0.1);
+    --nav-icon-filter: brightness(0.58) saturate(1.2);
+    --nav-control-filter: invert(1);
+  }
 }
 
 /* ==== RESET HTML ==== */
@@ -108,7 +188,7 @@ button {
   width: 100%;
   height: var(--fixed-header-height);
   z-index: 60;
-  background-color: #303030;
+  background-color: var(--header-bg);
   transition: transform 0.25s ease;
   will-change: transform;
 }
@@ -181,6 +261,79 @@ button {
   height: 1.15em;
   margin-right: 3px;
   transform: translateY(1px);
+  filter: var(--nav-icon-filter);
+}
+
+.theme-switcher {
+  position: relative;
+  pointer-events: auto;
+}
+
+.theme-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 0 3px;
+  color: var(--text-body);
+  font-size: 16px;
+  line-height: 24px;
+  transition: color 0.2s ease;
+}
+
+.theme-button:hover,
+.theme-button:focus-visible {
+  color: var(--primary-color);
+}
+
+.theme-icon {
+  font-size: 1.05em;
+  line-height: 1;
+}
+
+.theme-options {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 120px;
+  display: grid;
+  gap: 2px;
+  padding: 6px;
+  background: var(--menu-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  box-shadow: var(--menu-shadow);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease,
+    transform 0.2s ease;
+}
+
+.theme-switcher.is-open .theme-options {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.theme-option {
+  padding: 7px 10px;
+  border-radius: 5px;
+  color: var(--text-body);
+  background: transparent;
+  text-align: left;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.theme-option:hover,
+.theme-option:focus-visible,
+.theme-option.is-selected {
+  color: var(--primary-color);
+  background: var(--theme-hover-bg);
 }
 
 @media screen and (min-width: 768px) {
@@ -191,7 +344,7 @@ button {
     bottom: 0;
     width: 100%;
     height: 2px;
-    background: linear-gradient(90deg, #7fb0ff, #b8d4ff);
+    background: linear-gradient(90deg, var(--nav-underline-start), var(--nav-underline-end));
     transform: scaleX(0);
     transform-origin: left;
     transition: transform 0.2s ease;
@@ -225,6 +378,7 @@ button {
   display: block;
   width: 32px;
   height: 32px;
+  filter: var(--nav-control-filter);
 }
 
 .btn-toggle::after {
@@ -234,7 +388,7 @@ button {
   top: 50%;
   width: 140%;
   padding-top: 140%;
-  background: rgba(110, 160, 255, 0.28);
+  background: var(--theme-hover-bg);
   border-radius: 50%;
   transform: translate(-50%, -50%) scale(0);
   opacity: 0;
@@ -330,7 +484,7 @@ button {
 .btn {
   width: 110px;
   height: 50px;
-  background-color: #5699ce;
+  background-color: var(--btn-primary);
   display: block;
   font-size: 16px;
   color: #fff;
@@ -349,7 +503,7 @@ button {
   width: 160px;
   height: 55px;
   display: flex;
-  background-color: #5699ce;
+  background-color: var(--btn-primary);
   align-items: center;
   justify-content: center;
   font-size: 18px;
@@ -371,7 +525,7 @@ button {
   transition:
     box-shadow 0.25s ease,
     transform 0.25s ease;
-  background-color: #428fcf;
+  background-color: var(--btn-primary-hover);
 }
 
 .btn-docs {
@@ -383,13 +537,13 @@ button {
   font-size: 18px;
   font-weight: 500;
   letter-spacing: 0;
-  background-color: #505356;
+  background-color: var(--btn-secondary-bg);
   color: var(--btn-secondary-text);
   box-shadow: 0 0.5rem 1.5rem rgba(22, 28, 45, 0.1);
 }
 
 .btn-docs:hover {
-  background-color: #484a4c;
+  background-color: var(--btn-secondary-hover);
   transition:
     box-shadow 0.25s ease,
     transform 0.25s ease;
@@ -423,7 +577,7 @@ button {
   position: absolute;
   inset: 0;
   /* 用阴影来遮掩 webm 的边缘，从而让窗口圆角更好看 */
-  box-shadow: 0 10px 20px rgba(8, 8, 8, 1);
+  box-shadow: 0 10px 20px var(--video-shadow);
   pointer-events: none;
   z-index: -1;
 }
@@ -439,12 +593,12 @@ footer {
   gap: 0.4rem;
   color: var(--text-body);
   text-align: center;
-  background: rgb(25, 25, 25);
-  border-top: #6565655d solid 1px;
+  background: var(--footer-bg);
+  border-top: var(--footer-border) solid 1px;
 }
 
 footer a {
-  color: #447aaf;
+  color: var(--footer-link);
   text-decoration: none;
 }
 
@@ -475,6 +629,10 @@ footer a:hover {
   }
 
   .nav-menu .nav-link {
+    pointer-events: auto;
+  }
+
+  .nav-menu .theme-switcher {
     pointer-events: auto;
   }
 }
@@ -514,7 +672,7 @@ footer a:hover {
     flex-direction: column;
     align-items: center;
     justify-content: right;
-    background-color: #2a2a2a;
+    background-color: var(--menu-bg);
     padding: 3rem;
     z-index: 50;
     opacity: 0;
@@ -546,6 +704,28 @@ footer a:hover {
     font-size: 18px;
   }
 
+  .theme-switcher {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .theme-button {
+    font-size: 18px;
+    padding: 0;
+  }
+
+  .theme-options {
+    position: static;
+    margin-top: 10px;
+    box-shadow: none;
+  }
+
+  .theme-option {
+    font-size: 16px;
+    text-align: center;
+  }
+
   .btn-close {
     display: flex;
     align-items: center;
@@ -563,10 +743,11 @@ footer a:hover {
     display: block;
     width: 26px;
     height: 26px;
+    filter: var(--nav-control-filter);
   }
 
   .btn-close:hover {
-    color: #fff;
+    color: var(--lg-heading);
   }
 
   .wrapper {
