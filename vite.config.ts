@@ -1,0 +1,17 @@
+import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
+import { defineConfig } from "vite";
+
+const projectRoot = fileURLToPath(new URL(".", import.meta.url));
+
+export default defineConfig({
+  build: {
+    rolldownOptions: {
+      input: {
+        main: resolve(projectRoot, "index.html"),
+        docs: resolve(projectRoot, "docs/index.html"),
+        about: resolve(projectRoot, "about/index.html"),
+      },
+    },
+  },
+});

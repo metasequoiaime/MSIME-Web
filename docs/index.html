@@ -1,11 +1,12 @@
 <!doctype html>
-<html lang="en" class="preload">
+<html lang="zh-CN" class="preload">
 
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/x-icon" href="/msime.ico" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MSIME | 水杉输入法</title>
+  <meta name="description" content="水杉输入法文档" />
+  <title>文档 | 水杉输入法</title>
 
   <script>
     (() => {
@@ -38,20 +39,20 @@
           <h2>水杉输入法</h2>
         </a>
 
-        <button class="btn-toggle" id="btn-toggle">
+        <button class="btn-toggle" id="btn-toggle" type="button" aria-label="打开导航菜单">
           <img src="/img/icons/Menu.svg" alt="menu" class="nav-icon" />
         </button>
       </nav>
     </header>
 
     <div class="nav-menu" id="nav-menu">
-      <button class="btn-close" id="btn-close">
+      <button class="btn-close" id="btn-close" type="button" aria-label="关闭导航菜单">
         <img src="/img/icons/Close_round.svg" alt="close" class="nav-icon" />
       </button>
 
       <ul class="nav-list">
         <li class="nav-item">
-          <a href="/docs/" class="nav-link">
+          <a href="/docs/" class="nav-link" aria-current="page">
             <img src="/img/icons/nav/docs.svg" alt="" class="nav-link-icon" />文档</a>
         </li>
         <li class="nav-item">
@@ -59,7 +60,7 @@
             <img src="/img/icons/nav/price.svg" alt="" class="nav-link-icon" />价格</a>
         </li>
         <li class="nav-item">
-          <a href="https://github.com/metasequoiaime/MetasequoiaImeTsf" class="nav-link">
+          <a href="https://github.com/metasequoiaime/MetasequoiaImeTsf" class="nav-link" target="_blank" rel="noreferrer">
             <img src="/img/icons/nav/code.svg" alt="" class="nav-link-icon" />开源代码</a>
         </li>
         <li class="nav-item">
@@ -84,39 +85,21 @@
     </div>
   </div>
 
-  <section class="wrapper">
-    <div class="container">
-      <div class="hero">
-        <div class="hero-content">
-          <h1 class="hero-title">
-            改善 Windows 的中英文输入体验
-          </h1>
-          <p class="hero-desc">
-            墨池飞出北溟鱼，笔锋杀尽中山兔。
-          </p>
+  <main class="docs-page">
+    <div class="container docs-shell">
+      <aside class="docs-sidebar" aria-label="文档导航">
+        <p class="docs-kicker">水杉输入法</p>
+        <nav class="docs-toc">
+          <a href="#introduction">项目简介</a>
+          <a href="#download">下载安装</a>
+          <a href="#project-structure">项目组成</a>
+          <a href="#links">相关链接</a>
+        </nav>
+      </aside>
 
-          <div class="hero-buttons">
-            <a class="btn btn-download" href="https://github.com/metasequoiaime/MetasequoiaImeTsf/releases" target="_blank" rel="noreferrer">
-              下载
-              <img src="/img/icons/Download.svg" alt="download" class="btn-icon" />
-            </a>
-
-            <a class="btn btn-docs" href="/docs/">
-              文档
-            </a>
-          </div>
-        </div>
-
-        <div class="hero-image">
-          <div class="hero-screenshot">
-            <video class="hero-media" autoplay muted loop playsinline preload="metadata" aria-label="ime-img">
-              <source src="/img/typing_words_padded.webm" type="video/webm" />
-            </video>
-          </div>
-        </div>
-      </div>
+      <article class="docs-content" id="docs-content" aria-live="polite"></article>
     </div>
-  </section>
+  </main>
 
   <footer>
     <span>Copyright © 2026-present</span>
@@ -124,7 +107,7 @@
     <span>@<span class="lxl">乱序楼</span></span>
   </footer>
 
-  <script type="module" src="/src/main.ts"></script>
+  <script type="module" src="/src/docs.ts"></script>
 </body>
 
 </html>
