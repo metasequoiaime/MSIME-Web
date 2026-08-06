@@ -140,8 +140,8 @@
 .docs-content code {
   padding: 0.15em 0.35em;
   border-radius: 4px;
-  background: var(--surface);
-  color: var(--primary-color);
+  background: var(--docs-code-bg);
+  color: var(--docs-code-text);
   font-size: 0.9em;
 }
 
@@ -150,13 +150,13 @@
   padding: 1rem 1.1rem;
   border: 1px solid var(--card-border);
   border-radius: 7px;
-  background: var(--surface);
+  background: var(--docs-code-bg);
 }
 
 .docs-content pre code {
   padding: 0;
   background: transparent;
-  color: var(--text-body);
+  color: var(--docs-code-text);
 }
 
 .docs-content blockquote {
@@ -181,8 +181,8 @@
 }
 
 .docs-content th {
-  color: var(--lg-heading);
-  background: var(--surface);
+  color: var(--docs-table-head-text);
+  background: var(--docs-table-head-bg);
   font-weight: 500;
 }
 
