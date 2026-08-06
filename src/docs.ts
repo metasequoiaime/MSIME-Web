@@ -6,6 +6,18 @@ import "./site";
 
 const docsContent = document.getElementById("docs-content");
 const docsToc = document.getElementById("docs-toc");
+const docsSidebar = document.querySelector<HTMLElement>(".docs-sidebar");
+const docsTocToggle = document.getElementById("docs-toc-toggle");
+
+const closeDocsToc = () => {
+  docsSidebar?.classList.remove("is-open");
+  docsTocToggle?.setAttribute("aria-expanded", "false");
+};
+
+docsTocToggle?.addEventListener("click", () => {
+  const isOpen = docsSidebar?.classList.toggle("is-open") ?? false;
+  docsTocToggle.setAttribute("aria-expanded", String(isOpen));
+});
 
 if (docsContent) {
   const markdown = new MarkdownIt({
@@ -40,6 +52,12 @@ if (docsContent) {
       if (heading.tagName === "H3") {
         link.classList.add("docs-toc-subitem");
       }
+
+      link.addEventListener("click", () => {
+        if (window.matchMedia("(max-width: 768px)").matches) {
+          closeDocsToc();
+        }
+      });
 
       docsToc.appendChild(link);
     });
