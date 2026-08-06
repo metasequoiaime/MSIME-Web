@@ -28,8 +28,8 @@ if (headerWrap) {
   const updateHeader = () => {
     const currentY = window.scrollY;
     const delta = currentY - lastScrollY;
-    const shouldHide = delta > 8 && currentY > 60;
-    const shouldShow = delta < -8 || currentY <= 10;
+    const shouldHide = delta > 2 && currentY > 4;
+    const shouldShow = delta < -2 || currentY <= 4;
 
     if (shouldHide) {
       headerWrap.classList.add("header--hidden");
