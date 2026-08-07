@@ -141,6 +141,16 @@
   color: var(--lg-heading);
 }
 
+.docs-content img {
+  display: block;
+  width: 100%;
+  max-width: 620px;
+  height: auto;
+  margin: 1.5rem auto;
+  border: 1px solid var(--card-border);
+  border-radius: 7px;
+}
+
 .docs-content code {
   padding: 0.15em 0.35em;
   border-radius: 4px;
