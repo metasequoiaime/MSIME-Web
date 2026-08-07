@@ -34,7 +34,7 @@
     <header class="container header">
       <nav class="nav">
         <a class="logo" href="/">
-          <img src="/msime.svg" alt="logo" />
+          <img src="/msime-logo.png" width="40" height="40" decoding="async" alt="logo" />
           <h2>水杉输入法</h2>
         </a>
 
@@ -43,45 +43,45 @@
         </button>
       </nav>
     </header>
+  </div>
 
-    <div class="nav-menu" id="nav-menu">
-      <button class="btn-close" id="btn-close">
-        <img src="/img/icons/Close_round.svg" alt="close" class="nav-icon" />
-      </button>
+  <div class="nav-menu" id="nav-menu">
+    <button class="btn-close" id="btn-close">
+      <img src="/img/icons/Close_round.svg" alt="close" class="nav-icon" />
+    </button>
 
-      <ul class="nav-list">
-        <li class="nav-item">
-          <a href="/docs/" class="nav-link">
-            <img src="/img/icons/nav/docs.svg" alt="" class="nav-link-icon" />文档</a>
-        </li>
-        <li class="nav-item">
-          <a href="/price/" class="nav-link">
-            <img src="/img/icons/nav/price.svg" alt="" class="nav-link-icon" />价格</a>
-        </li>
-        <li class="nav-item">
-          <a href="https://github.com/metasequoiaime/MetasequoiaImeTsf" class="nav-link">
-            <img src="/img/icons/nav/code.svg" alt="" class="nav-link-icon" />开源代码</a>
-        </li>
-        <li class="nav-item">
-          <a href="https://github.com/metasequoiaime/MetasequoiaImeTsf/releases" class="nav-link" target="_blank" rel="noreferrer">
-            <img src="/img/icons/nav/download.svg" alt="" class="nav-link-icon" />下载</a>
-        </li>
-        <li class="nav-item">
-          <a href="/about/" class="nav-link">
-            <img src="/img/icons/nav/about.svg" alt="" class="nav-link-icon" />关于</a>
-        </li>
-        <li class="nav-item theme-switcher" id="theme-switcher">
-          <button class="theme-button" id="theme-button" type="button" aria-haspopup="true" aria-expanded="false">
-            <span class="theme-icon" aria-hidden="true">◐</span><span>主题</span>
-          </button>
-          <div class="theme-options" id="theme-options" role="menu" aria-label="主题模式">
-            <button class="theme-option" type="button" role="menuitemradio" data-theme-choice="light">亮色</button>
-            <button class="theme-option" type="button" role="menuitemradio" data-theme-choice="dark">暗色</button>
-            <button class="theme-option" type="button" role="menuitemradio" data-theme-choice="system">跟随系统</button>
-          </div>
-        </li>
-      </ul>
-    </div>
+    <ul class="nav-list">
+      <li class="nav-item">
+        <a href="/docs/" class="nav-link">
+          <img src="/img/icons/nav/docs.svg" alt="" class="nav-link-icon" />文档</a>
+      </li>
+      <li class="nav-item">
+        <a href="/price/" class="nav-link">
+          <img src="/img/icons/nav/price.svg" alt="" class="nav-link-icon" />价格</a>
+      </li>
+      <li class="nav-item">
+        <a href="https://github.com/metasequoiaime/MetasequoiaImeTsf" class="nav-link">
+          <img src="/img/icons/nav/code.svg" alt="" class="nav-link-icon" />开源代码</a>
+      </li>
+      <li class="nav-item">
+        <a href="https://github.com/metasequoiaime/MetasequoiaImeTsf/releases" class="nav-link" target="_blank" rel="noreferrer">
+          <img src="/img/icons/nav/download.svg" alt="" class="nav-link-icon" />下载</a>
+      </li>
+      <li class="nav-item">
+        <a href="/about/" class="nav-link">
+          <img src="/img/icons/nav/about.svg" alt="" class="nav-link-icon" />关于</a>
+      </li>
+      <li class="nav-item theme-switcher" id="theme-switcher">
+        <button class="theme-button" id="theme-button" type="button" aria-haspopup="true" aria-expanded="false">
+          <span class="theme-icon" aria-hidden="true">◐</span><span>主题</span>
+        </button>
+        <div class="theme-options" id="theme-options" role="menu" aria-label="主题模式">
+          <button class="theme-option" type="button" role="menuitemradio" data-theme-choice="light">亮色</button>
+          <button class="theme-option" type="button" role="menuitemradio" data-theme-choice="dark">暗色</button>
+          <button class="theme-option" type="button" role="menuitemradio" data-theme-choice="system">跟随系统</button>
+        </div>
+      </li>
+    </ul>
   </div>
 
   <section class="wrapper">
@@ -109,10 +109,13 @@
 
         <div class="hero-image">
           <div class="hero-screenshot">
-            <video class="hero-media hero-media-dark" autoplay muted loop playsinline preload="metadata" aria-label="ime-img">
+            <video class="hero-media hero-media-dark" muted loop playsinline preload="metadata" poster="/img/typing_words_poster.jpg" aria-label="ime-img">
+              <source src="/img/typing_words_padded.mp4" type="video/mp4" />
               <source src="/img/typing_words_padded.webm" type="video/webm" />
             </video>
-            <img class="hero-media hero-media-light" src="/img/typing_words_light.gif" alt="输入法打字演示" />
+            <video class="hero-media hero-media-light" muted loop playsinline preload="metadata" poster="/img/typing_words_light_poster.jpg" aria-label="ime-img-light">
+              <source src="/img/typing_words_light.mp4" type="video/mp4" />
+            </video>
           </div>
         </div>
       </div>

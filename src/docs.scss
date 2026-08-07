@@ -1,13 +1,13 @@
 .docs-page {
   width: 100%;
-  min-height: calc(100vh - var(--fixed-header-height));
+  min-height: calc(100% - var(--fixed-header-height));
   padding: 3.5rem 0 2rem;
 }
 
 .about-page,
 .price-page {
   width: 100%;
-  min-height: calc(100vh - var(--fixed-header-height));
+  min-height: calc(100% - var(--fixed-header-height));
   padding: 4.5rem 1.5rem 2rem;
 }
 
@@ -151,6 +151,7 @@
 
 .docs-content pre {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 1rem 1.1rem;
   border: 1px solid var(--card-border);
   border-radius: 7px;
@@ -174,6 +175,7 @@
   border-collapse: collapse;
   display: block;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .docs-content th,

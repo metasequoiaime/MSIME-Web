@@ -39,6 +39,87 @@ const getStoredTheme = (): ThemeChoice => {
   }
 };
 
+const isLightThemeActive = () => {
+  const theme = document.documentElement.dataset.theme;
+  if (theme === "light") return true;
+  if (theme === "dark") return false;
+  return window.matchMedia("(prefers-color-scheme: light)").matches;
+};
+
+const heroVideos = document.querySelectorAll<HTMLVideoElement>(".hero-screenshot video");
+const heroMediaInView = new WeakSet<Element>();
+let heroScrollPaused = false;
+let heroScrollResumeTimer = 0;
+
+const isHeroVideoForActiveTheme = (video: HTMLVideoElement) => {
+  const light = isLightThemeActive();
+  if (video.classList.contains("hero-media-light")) return light;
+  if (video.classList.contains("hero-media-dark")) return !light;
+  return true;
+};
+
+const playHeroVideo = (video: HTMLVideoElement) => {
+  if (heroScrollPaused || !heroMediaInView.has(video) || !isHeroVideoForActiveTheme(video)) {
+    return;
+  }
+  void video.play().catch(() => {});
+};
+
+const pauseHeroVideo = (video: HTMLVideoElement) => {
+  video.pause();
+};
+
+const syncHeroMediaForTheme = () => {
+  heroVideos.forEach((video) => {
+    if (isHeroVideoForActiveTheme(video)) {
+      playHeroVideo(video);
+    } else {
+      pauseHeroVideo(video);
+      video.currentTime = 0;
+    }
+  });
+};
+
+if (heroVideos.length) {
+  const mediaObserver = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        const target = entry.target;
+        if (!(target instanceof HTMLVideoElement)) continue;
+
+        if (entry.isIntersecting) {
+          heroMediaInView.add(target);
+          playHeroVideo(target);
+        } else {
+          heroMediaInView.delete(target);
+          pauseHeroVideo(target);
+        }
+      }
+    },
+    { rootMargin: "64px 0px", threshold: 0.05 }
+  );
+
+  heroVideos.forEach((video) => mediaObserver.observe(video));
+
+  // 手指滑动时先暂停解码，停滑后再播，兼顾演示动画和滚动流畅
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (!heroScrollPaused) {
+        heroScrollPaused = true;
+        heroVideos.forEach(pauseHeroVideo);
+      }
+
+      window.clearTimeout(heroScrollResumeTimer);
+      heroScrollResumeTimer = window.setTimeout(() => {
+        heroScrollPaused = false;
+        syncHeroMediaForTheme();
+      }, 140);
+    },
+    { passive: true }
+  );
+}
+
 const applyTheme = (theme: ThemeChoice) => {
   document.documentElement.dataset.theme = theme;
   document.documentElement.style.colorScheme =
@@ -51,6 +132,7 @@ const applyTheme = (theme: ThemeChoice) => {
   });
 
   themeButton?.setAttribute("aria-label", `主题：${themeLabels[theme]}`);
+  syncHeroMediaForTheme();
 };
 
 const closeThemeOptions = () => {
@@ -59,6 +141,12 @@ const closeThemeOptions = () => {
 };
 
 applyTheme(getStoredTheme());
+
+window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", () => {
+  if (document.documentElement.dataset.theme === "system") {
+    syncHeroMediaForTheme();
+  }
+});
 
 themeButton?.addEventListener("click", (event) => {
   event.stopPropagation();
@@ -92,24 +180,42 @@ document.addEventListener("click", (event) => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
     closeThemeOptions();
+    if (navId?.classList.contains("show")) {
+      navId.classList.remove("show");
+      document.body.classList.remove("menu-open");
+    }
   }
 });
 
 const headerWrap = document.querySelector<HTMLElement>(".header-wrap");
 if (headerWrap) {
-  let lastScrollY = window.scrollY;
+  let lastScrollY = Math.max(0, window.scrollY);
   let ticking = false;
+  let hidden = false;
 
   const updateHeader = () => {
-    const currentY = window.scrollY;
+    // 菜单打开时保持顶栏可见
+    if (document.body.classList.contains("menu-open")) {
+      if (hidden) {
+        headerWrap.classList.remove("header--hidden");
+        hidden = false;
+      }
+      lastScrollY = Math.max(0, window.scrollY);
+      ticking = false;
+      return;
+    }
+
+    const currentY = Math.max(0, window.scrollY);
     const delta = currentY - lastScrollY;
     const shouldHide = delta > 2 && currentY > 4;
     const shouldShow = delta < -2 || currentY <= 4;
 
-    if (shouldHide) {
+    if (shouldHide && !hidden) {
       headerWrap.classList.add("header--hidden");
-    } else if (shouldShow) {
+      hidden = true;
+    } else if (shouldShow && hidden) {
       headerWrap.classList.remove("header--hidden");
+      hidden = false;
     }
 
     lastScrollY = currentY;
