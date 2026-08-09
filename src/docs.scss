@@ -159,6 +159,14 @@
   font-size: 0.9em;
 }
 
+.docs-content :not(pre) > code {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
 .docs-content pre {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
