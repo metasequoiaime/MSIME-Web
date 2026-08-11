@@ -12,6 +12,7 @@ export default defineConfig({
         docs: resolve(projectRoot, "docs/index.html"),
         about: resolve(projectRoot, "about/index.html"),
         price: resolve(projectRoot, "price/index.html"),
+        resume: resolve(projectRoot, "resume/index.html"),
       },
     },
   },

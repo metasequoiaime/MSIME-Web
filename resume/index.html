@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN" class="preload">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/x-icon" href="/msime.ico" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="陆凡的软件工程师个人简历" />
+  <meta name="robots" content="noindex, nofollow, noarchive" />
+  <title>陆凡 | 软件工程师 / 独立开发者</title>
+
+  <script>
+    (() => {
+      try {
+        const theme = localStorage.getItem("msime-theme");
+        document.documentElement.dataset.theme = ["light", "dark", "system"].includes(theme) ? theme : "system";
+      } catch {
+        document.documentElement.dataset.theme = "system";
+      }
+    })();
+  </script>
+</head>
+
+<body class="resume-body">
+  <main class="resume-page">
+    <article class="resume-content" id="resume-content" aria-live="polite"></article>
+  </main>
+
+  <script type="module" src="/src/resume.ts"></script>
+</body>
+
+</html>
