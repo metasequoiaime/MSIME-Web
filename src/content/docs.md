@@ -4,7 +4,7 @@
 
 ## 下载安装
 
-请前往 [GitHub Releases](https://github.com/metasequoiaime/MetasequoiaImeTsf/releases) 下载最新版本，并按对应版本的发布说明完成安装。不同版本的安装方式和功能可能会有变化，以发布说明为准。
+请前往[官网下载页面](/download/)获取最新版本，并按对应版本的 GitHub Release 说明完成安装。不同版本的安装方式和功能可能会有变化，以发布说明为准。
 
 ![安装完成截图](/screenshots/install-finish.png)
 
