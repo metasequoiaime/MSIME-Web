@@ -311,6 +311,7 @@ github	GitHub	15000
 
 - 输入 `rq`、`riqi` 或 `date`，选择当前日期。
 - 输入 `sj`、`shijian` 或 `time`，选择当前时间。
+- 输入 `xq`、`xingqi` 或 `week`，选择当前星期（中文与英文）。
 
 #### Unicode 便捷录入（U 模式）
 
