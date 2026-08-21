@@ -168,12 +168,12 @@
 
 双拼双码辅助的大小写规则如下：
 
-| 第一码 | 第二码 | 结果 |
-|---|---|---|
-| 小写 | 小写 | 不触发双码辅助 |
-| 小写 | 大写 | 触发，按正常顺序匹配 |
-| 大写 | 小写 | 触发，按反转顺序匹配 |
-| 大写 | 大写 | 触发，按反转顺序匹配 |
+| 第一码 | 第二码 | 结果                 |
+| ------ | ------ | -------------------- |
+| 小写   | 小写   | 不触发双码辅助       |
+| 小写   | 大写   | 触发，按正常顺序匹配 |
+| 大写   | 小写   | 触发，按反转顺序匹配 |
+| 大写   | 大写   | 触发，按反转顺序匹配 |
 
 当第一码为大写时，第二码无论大小写都会触发双码辅助，输入顺序按“第二辅助码 → 第一辅助码”解释。因此 `Ke` 和 `KE` 都可以反向匹配实际辅助码 `ek`。
 
@@ -392,3 +392,7 @@ mail	example@example.com	10
 - [MetasequoiaImeHelpCode](https://github.com/metasequoiaime/MetasequoiaImeHelpCode)：辅助码。
 
 文档会随功能继续更新。如果发现说明和实际行为不一致，欢迎在 [GitHub Issues](https://github.com/metasequoiaime/MetasequoiaImeTsf/issues) 中反馈。
+
+## 一些可能有用的链接
+
+- [Windows 中文输入法杂谈](https://seekhue.is-a.dev/posts/2018/input-method-windows/)
