@@ -5,6 +5,7 @@
 }
 
 .about-page,
+.code-page,
 .price-page {
   width: 100%;
   min-height: calc(100% - var(--fixed-header-height));
@@ -12,6 +13,7 @@
 }
 
 .about-content,
+.code-content,
 .price-content {
   width: min(90%, 780px);
   margin: 0 auto;
@@ -212,11 +214,13 @@
 
 @media screen and (max-width: 768px) {
   .about-page,
+  .code-page,
   .price-page {
     padding-top: 2.5rem;
   }
 
   .about-content,
+  .code-content,
   .price-content {
     width: 100%;
   }

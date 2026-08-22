@@ -10,6 +10,15 @@
   box-sizing: border-box;
 }
 
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.12s;
+}
+
 /* ==== CSS VARIABLES ==== */
 :root {
   --primary-color: #6ea0ff;
@@ -135,7 +144,9 @@
 /* ==== RESET HTML ==== */
 body {
   width: 100%;
-  min-height: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   background-color: var(--bg);
   color: var(--text-body);
   padding-top: var(--fixed-header-height);
@@ -228,6 +239,11 @@ button {
   .nav-menu {
     transition: none;
   }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
 }
 
 /* ==== NAV ==== */
@@ -265,7 +281,7 @@ button {
 .nav-list {
   display: flex;
   align-items: center;
-  gap: 2.0rem;
+  gap: clamp(1rem, 1.8vw, 2rem);
   color: var(--text-body);
 }
 
@@ -387,8 +403,15 @@ button {
   }
 
   .nav-item .nav-link:hover::after,
-  .nav-item .nav-link:focus-visible::after {
+  .nav-item .nav-link:focus-visible::after,
+  .nav-item .nav-link[aria-current="page"]::after {
     transform: scaleX(1);
+  }
+}
+
+@media screen and (min-width: 821px) and (max-width: 1250px) {
+  .logo h2 {
+    display: none;
   }
 }
 
@@ -526,11 +549,12 @@ button {
   text-transform: capitalize;
   border-radius: 7px;
   letter-spacing: 1px;
-  transition: 0.4s;
+  transition:
+    background-color 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 .btn:hover {
-  transform: translateY(-3px);
   background-color: var(--btn-hover-color);
 }
 
@@ -557,9 +581,6 @@ button {
 }
 
 .btn-download:hover {
-  transition:
-    box-shadow 0.25s ease,
-    transform 0.25s ease;
   background-color: var(--btn-primary-hover);
 }
 
@@ -579,9 +600,6 @@ button {
 
 .btn-docs:hover {
   background-color: var(--btn-secondary-hover);
-  transition:
-    box-shadow 0.25s ease,
-    transform 0.25s ease;
 }
 
 .hero-screenshot {
@@ -663,7 +681,8 @@ button {
 
 footer {
   width: 100%;
-  margin-top: 6rem;
+  margin-top: auto;
+  flex-shrink: 0;
   min-height: 60px;
   font-size: 14px;
   display: flex;
@@ -769,6 +788,7 @@ footer a:hover {
   .nav-list {
     flex-direction: column;
     align-items: center;
+    gap: 0;
     margin-top: 2rem;
   }
 

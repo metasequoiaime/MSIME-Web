@@ -10,6 +10,7 @@ export default defineConfig({
       input: {
         main: resolve(projectRoot, "index.html"),
         docs: resolve(projectRoot, "docs/index.html"),
+        code: resolve(projectRoot, "code/index.html"),
         about: resolve(projectRoot, "about/index.html"),
         download: resolve(projectRoot, "download/index.html"),
         price: resolve(projectRoot, "price/index.html"),

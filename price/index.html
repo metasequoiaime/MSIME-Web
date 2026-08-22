@@ -20,8 +20,14 @@
   </script>
 
   <style>
+    html { background-color: #202020; color-scheme: dark; }
+    html[data-theme="light"] { background-color: #f3f5f7; color-scheme: light; }
+    @media (prefers-color-scheme: light) {
+      html[data-theme="system"] { background-color: #f3f5f7; color-scheme: light; }
+    }
+
     body {
-      background-color: var(--bg);
+      background-color: inherit;
     }
 
     html.preload body {
@@ -53,6 +59,10 @@
 
     <ul class="nav-list">
       <li class="nav-item">
+        <a href="/" class="nav-link">
+          <img src="/img/icons/nav/home.svg" alt="" class="nav-link-icon" />首页</a>
+      </li>
+      <li class="nav-item">
         <a href="/docs/" class="nav-link">
           <img src="/img/icons/nav/docs.svg" alt="" class="nav-link-icon" />文档</a>
       </li>
@@ -61,7 +71,7 @@
           <img src="/img/icons/nav/price.svg" alt="" class="nav-link-icon" />价格</a>
       </li>
       <li class="nav-item">
-        <a href="https://github.com/metasequoiaime/MetasequoiaImeTsf" class="nav-link" target="_blank" rel="noreferrer">
+        <a href="/code/" class="nav-link">
           <img src="/img/icons/nav/code.svg" alt="" class="nav-link-icon" />开源代码</a>
       </li>
       <li class="nav-item">

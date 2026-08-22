@@ -1,5 +1,3 @@
-document.documentElement.classList.remove("preload");
-
 const navId = document.getElementById("nav-menu");
 const toggleBtnId = document.getElementById("btn-toggle");
 const closeBtnId = document.getElementById("btn-close");
@@ -141,6 +139,7 @@ const closeThemeOptions = () => {
 };
 
 applyTheme(getStoredTheme());
+document.documentElement.classList.remove("preload");
 
 window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", () => {
   if (document.documentElement.dataset.theme === "system") {

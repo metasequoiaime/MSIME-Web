@@ -19,6 +19,15 @@
       }
     })();
   </script>
+  <style>
+    html { background-color: #202020; color-scheme: dark; }
+    html[data-theme="light"] { background-color: #f3f5f7; color-scheme: light; }
+    @media (prefers-color-scheme: light) {
+      html[data-theme="system"] { background-color: #f3f5f7; color-scheme: light; }
+    }
+    body { background-color: inherit; }
+    html.preload body { visibility: hidden; }
+  </style>
 </head>
 
 <body class="resume-body">
