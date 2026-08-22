@@ -31,6 +31,8 @@
   --nav-underline-start: #7fb0ff;
   --nav-underline-end: #b8d4ff;
   --video-shadow: rgba(8, 8, 8, 1);
+  --hero-corner-top: rgb(19, 19, 14);
+  --hero-corner-bottom: rgb(20, 20, 19);
   --surface: #121a2f;
   --icon-color: #8fb0ff;
   --btn-secondary-text: #cfe0ff;
@@ -73,6 +75,8 @@
   --nav-underline-start: #0f6cbd;
   --nav-underline-end: #4f9bd2;
   --video-shadow: rgba(0, 0, 0, 0.28);
+  --hero-corner-top: rgb(232, 230, 226);
+  --hero-corner-bottom: rgb(244, 244, 244);
   --surface: #ffffff;
   --icon-color: #0f6cbd;
   --card-bg: #ffffff;
@@ -110,6 +114,8 @@
     --nav-underline-start: #0f6cbd;
     --nav-underline-end: #4f9bd2;
     --video-shadow: rgba(0, 0, 0, 0.28);
+    --hero-corner-top: rgb(232, 230, 226);
+    --hero-corner-bottom: rgb(244, 244, 244);
     --surface: #ffffff;
     --icon-color: #0f6cbd;
     --card-bg: #ffffff;
@@ -634,8 +640,17 @@ button {
   content: "";
   position: absolute;
   inset: 0;
-  /* 与页面同色的内描边，盖住 Chrome 合成发丝缝 */
-  box-shadow: inset 0 0 0 2px var(--bg);
+  /* 直边向内覆盖 3px，仅用短 L 形描边将四个转角加厚到 5px */
+  background:
+    linear-gradient(var(--hero-corner-top), var(--hero-corner-top)) top left / 10px 5px no-repeat,
+    linear-gradient(var(--hero-corner-top), var(--hero-corner-top)) top left / 5px 10px no-repeat,
+    linear-gradient(var(--hero-corner-top), var(--hero-corner-top)) top right / 10px 5px no-repeat,
+    linear-gradient(var(--hero-corner-top), var(--hero-corner-top)) top right / 5px 10px no-repeat,
+    linear-gradient(var(--hero-corner-bottom), var(--hero-corner-bottom)) bottom left / 10px 5px no-repeat,
+    linear-gradient(var(--hero-corner-bottom), var(--hero-corner-bottom)) bottom left / 5px 10px no-repeat,
+    linear-gradient(var(--hero-corner-bottom), var(--hero-corner-bottom)) bottom right / 10px 5px no-repeat,
+    linear-gradient(var(--hero-corner-bottom), var(--hero-corner-bottom)) bottom right / 5px 10px no-repeat;
+  box-shadow: inset 0 0 0 3px var(--bg);
   pointer-events: none;
   z-index: 1;
 }
