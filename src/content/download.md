@@ -6,7 +6,7 @@
 
 当前最新版本：**v{{version}}**
 
-- [阿里云盘下载](https://www.alipan.com/s/YDCyyfHFicU)（提取码：`fr20`）
+- [阿里云盘下载](https://www.alipan.com/s/wKbWStNYVLZ)（提取码：`27qi`）
 - [GitHub Release 下载]({{releaseUrl}})
 
 ## 安装说明
