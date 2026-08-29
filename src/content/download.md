@@ -17,7 +17,7 @@
 
 ### 必备运行环境
 
-水杉输入法的 Server 和设置程序均为 64 位程序，需要安装最新的 **Microsoft Visual C++ 2015–2022 Redistributable（x64）**，对应安装文件为 `vc_redist.x64.exe`。
+水杉输入法的 Server 和设置程序均为 64 位程序，需要安装最新的 **Microsoft Visual C++ 2015–2022 Redistributable（x64）**。请前往[微软官方下载页面](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)，在最新支持版本中选择 x64 架构，对应安装文件为 `vc_redist.x64.exe`。
 
 请特别注意：`vc_redist.x86.exe` 与 `vc_redist.x64.exe` 是两套独立的运行库。即使电脑已经安装了新版 x86 运行库，也不能代替水杉输入法所需的 x64 版本。
 
