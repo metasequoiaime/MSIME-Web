@@ -10,6 +10,23 @@
 
 安装完成后，请确认 Metasequoia IME Server 和 Metasequoia IME Watchdog 已经启动。按 `Win + Space` 切换到水杉输入法后即可开始使用。
 
+### 安装后无法使用或设置窗口闪退
+
+如果安装完成后无法正常切换到水杉输入法，或者打开设置窗口后立即退出，请先检查 Microsoft Visual C++ 运行库。水杉输入法的 Server 和设置程序均为 64 位程序，需要安装最新的 **Microsoft Visual C++ 2015–2022 Redistributable（x64）**。
+
+请注意，64 位 Windows 可以同时安装 x86 和 x64 两套 Visual C++ 运行库。只安装或更新 `vc_redist.x86.exe` 不能满足水杉输入法的运行要求；即使“已安装的应用”中已经出现 Microsoft Visual C++ Redistributable，也要确认名称中包含 **x64**。
+
+典型现象包括：
+
+- 使用 `Win + Space` 切换后输入法没有响应；
+- Metasequoia IME Server 启动后反复退出；
+- 设置窗口打开后立即消失；
+- Windows 事件查看器记录 `MetasequoiaImeServer.exe` 或 `MetasequoiaImeSettings.exe` 在 `MSVCP140.dll` 中以 `0xc0000005` 异常退出。
+
+遇到上述情况时，请下载并安装 `vc_redist.x64.exe`。如果安装程序提供“修复”选项，请执行修复；安装完成后建议重新启动 Windows，再运行水杉输入法。不要用 `vc_redist.x86.exe` 代替 x64 版本。
+
+如果安装最新 x64 运行库并重启后仍无法使用，请在卸载水杉输入法之前运行诊断脚本并将生成的报告提交给开发者。卸载后安装文件和部分诊断信息会被清理，不利于继续定位问题。
+
 ## 设置窗口
 
 下面按照设置窗口左侧功能区从上到下的顺序逐项说明。配置修改后会自动保存，一般不需要再点“应用”或“确定”。
@@ -429,3 +446,4 @@ mail	example@example.com	10
 ## 一些可能有用的链接
 
 - [Windows 中文输入法杂谈](https://seekhue.is-a.dev/posts/2018/input-method-windows/)
+- [【双拼输入法】自然码辅助码入门教程（辅助码表）](https://www.liuchuo.net/archives/2847)
