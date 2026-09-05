@@ -19,6 +19,19 @@ export const setPageKicker = (text: string) => {
   if (kicker) kicker.textContent = text;
 };
 
+const SITE_ORIGIN = "https://msime.app";
+
+/** Docs 是独立仓库，正文里写的是绝对地址，便于在别处引用。渲染到本站时换回站内路径，否则自己的图片和链接要绕一圈生产域名，本地预览和非生产部署都会走外网。 */
+const localizeSiteLinks = (root: HTMLElement) => {
+  const strip = (element: Element, attribute: string) => {
+    const value = element.getAttribute(attribute);
+    if (value?.startsWith(`${SITE_ORIGIN}/`)) element.setAttribute(attribute, value.slice(SITE_ORIGIN.length));
+  };
+
+  root.querySelectorAll("a[href]").forEach((element) => strip(element, "href"));
+  root.querySelectorAll("img[src]").forEach((element) => strip(element, "src"));
+};
+
 /** 一级标题与首段属于页头 hero，正文继续由 markdown 驱动 */
 const liftHero = (article: HTMLElement) => {
   const heading = article.querySelector("h1");
@@ -60,6 +73,7 @@ export const renderContentPage = ({ target, source, sectioned = false }: RenderO
   if (!target) return;
 
   target.innerHTML = markdown.render(source);
+  localizeSiteLinks(target);
   liftHero(target);
 
   if (sectioned) groupSections(target);
