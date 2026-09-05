@@ -1,4 +1,5 @@
 import MarkdownIt from "markdown-it";
+import { observeReveals } from "./reveal";
 
 const markdown = new MarkdownIt({
   html: false,
@@ -45,6 +46,7 @@ const groupSections = (article: HTMLElement) => {
     if (current === null || (node instanceof HTMLElement && node.tagName === "H2")) {
       current = document.createElement("section");
       current.className = "card doc-card";
+      current.setAttribute("data-reveal", "");
       cards.push(current);
     }
 
@@ -61,4 +63,9 @@ export const renderContentPage = ({ target, source, sectioned = false }: RenderO
   liftHero(target);
 
   if (sectioned) groupSections(target);
+
+  // 页头的文字到位了，入场动画才放行
+  document.querySelector(".page-hero")?.classList.add("is-ready");
+
+  observeReveals();
 };
