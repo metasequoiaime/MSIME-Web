@@ -1,6 +1,6 @@
 # 关于水杉输入法
 
-水杉输入法（Metasequoia IME）是一个开源的中文输入法项目，致力于改善桌面端的中英文输入体验。它从 Windows 上的纯 TSF 实现起步，现在各平台前端共用同一套 C++ 输入引擎：Windows 处于公开内测，macOS 与 Linux 已发布，iOS 前端正在开发中。
+水杉输入法（Metasequoia IME）是一个开源的中文输入法项目，致力于改善桌面端的中英文输入体验。它从 Windows 上的纯 TSF 实现起步，现在各平台前端共用同一套 C++ 输入引擎：Windows 处于公开内测，macOS、Linux 与 iOS 前端仍在开发中。
 
 ## 背景
 

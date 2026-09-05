@@ -17,6 +17,12 @@
       } catch {
         document.documentElement.dataset.theme = "system";
       }
+      // preload 只是给 dev 兜底：那时样式由脚本注入，得先把整页遮住。构建产物的样式表是
+      // head 里的阻塞资源，首帧就有样式，再遮一层只会让每次换页先画一帧空白。
+      // dev server 会把 /@vite/client 插在 head 最前面，用它区分两种环境。
+      if (!document.querySelector('script[src*="/@vite/client"]')) {
+        document.documentElement.classList.remove("preload");
+      }
     })();
   </script>
   <style>

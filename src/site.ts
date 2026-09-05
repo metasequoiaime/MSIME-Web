@@ -1,3 +1,5 @@
+import "./reveal";
+
 const navId = document.getElementById("nav-menu");
 const toggleBtnId = document.getElementById("btn-toggle");
 const closeBtnId = document.getElementById("btn-close");
@@ -146,6 +148,9 @@ const closeThemeOptions = () => {
 
 applyTheme(getStoredTheme());
 document.documentElement.classList.remove("preload");
+// 要两帧：单帧的回调跑在本帧样式计算之前，is-dark 和 is-ready 会落进同一次样式变更，
+// 过渡照样会启动 —— 那正是这个开关要拦掉的首帧淡入。
+requestAnimationFrame(() => requestAnimationFrame(() => themeButton?.classList.add("is-ready")));
 
 window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", () => {
   if (document.documentElement.dataset.theme === "system") {
