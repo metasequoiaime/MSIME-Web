@@ -37,6 +37,14 @@
 </head>
 
 <body>
+  <script>
+    // 生产构建的样式表是 head 里的阻塞资源，首帧就已经有样式，不需要再用 preload 遮挡整页
+    // —— 那会让每次换页先闪一帧空白。dev 下样式由脚本注入，仍然要等 site.ts 摘掉标记。
+    if (document.querySelector('link[rel="stylesheet"]')) {
+      document.documentElement.classList.remove("preload");
+    }
+  </script>
+
   <div class="header-wrap">
     <header class="container header">
       <a class="logo" href="/">
@@ -102,10 +110,10 @@
   </nav>
 
   <div class="page-hero">
-    <div class="container page-hero-inner">
-      <p class="page-hero-kicker" id="page-kicker">Metasequoia IME</p>
-      <h1 class="page-hero-title" id="page-title"></h1>
-      <p class="page-hero-lead" id="page-lead"></p>
+    <div class="container page-hero-inner" data-reveal-stagger>
+      <p class="page-hero-kicker" id="page-kicker" data-reveal>Metasequoia IME</p>
+      <h1 class="page-hero-title" id="page-title" data-reveal></h1>
+      <p class="page-hero-lead" id="page-lead" data-reveal></p>
     </div>
   </div>
   <main class="content-page">

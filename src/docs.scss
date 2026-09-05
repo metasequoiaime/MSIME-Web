@@ -115,6 +115,8 @@
   line-height: 1.35;
   font-weight: 600;
   letter-spacing: -0.015em;
+  /* 平滑滚动到锚点时别被固定顶栏盖住 */
+  scroll-margin-top: calc(var(--fixed-header-height) + 1rem);
 }
 
 .docs-content h1 {

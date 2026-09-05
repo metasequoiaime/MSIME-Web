@@ -37,6 +37,14 @@
 </head>
 
 <body>
+  <script>
+    // 生产构建的样式表是 head 里的阻塞资源，首帧就已经有样式，不需要再用 preload 遮挡整页
+    // —— 那会让每次换页先闪一帧空白。dev 下样式由脚本注入，仍然要等 site.ts 摘掉标记。
+    if (document.querySelector('link[rel="stylesheet"]')) {
+      document.documentElement.classList.remove("preload");
+    }
+  </script>
+
   <div class="header-wrap">
     <header class="container header">
       <a class="logo" href="/">
@@ -164,23 +172,23 @@
     </div>
 
     <section class="container section">
-      <div class="section-eyebrow">
+      <div class="section-eyebrow" data-reveal>
         <span>01 · 能力</span>
         <span class="section-rule"></span>
       </div>
 
-      <div class="feature-grid">
-        <div class="card card-lift feature-card">
+      <div class="feature-grid" data-reveal-stagger>
+        <div class="card card-lift feature-card" data-reveal>
           <div class="feature-kicker">输入方案</div>
           <div class="feature-title">全拼 · 双拼 · 五笔</div>
           <div class="feature-desc">双拼支持小鹤、自然码、首道与微软方案，五笔提供 86 版。辅助码可选蓝天小雨点、自然码、首右 2.0、首右 Plus 和小鹤，把同音候选缩小到更容易挑选的范围。</div>
         </div>
-        <div class="card card-lift feature-card">
+        <div class="card card-lift feature-card" data-reveal>
           <div class="feature-kicker">云候选与 AI</div>
           <div class="feature-title">本地优先，云端可选</div>
           <div class="feature-desc">谷歌云候选插入第一页第 2 项，DeepSeek AI 联想插入第 3 项。两者都需要网络，接口异常时不影响本地候选；API Token 只保存在本机配置里。</div>
         </div>
-        <div class="card card-lift feature-card">
+        <div class="card card-lift feature-card" data-reveal>
           <div class="feature-kicker">界面与工具</div>
           <div class="feature-title">候选窗之外的部分</div>
           <div class="feature-desc">候选窗支持横排与纵排、自定义字体与皮肤，另有悬浮工具栏、语音输入、手写识别板和屏幕键盘，各界面主题都可以单独设置。</div>
@@ -189,12 +197,12 @@
     </section>
 
     <section class="container section">
-      <div class="section-eyebrow">
+      <div class="section-eyebrow" data-reveal>
         <span>02 · 开源</span>
         <span class="section-rule"></span>
       </div>
 
-      <div class="card open-card">
+      <div class="card open-card" data-reveal>
         <h2>100% 开源，GPL-3.0</h2>
         <p>输入法能看到用户输入的一切，隐私边界不该只靠承诺保证，而该能被任何人读代码检查。桌面工具软件长期由少数大厂主导，我们想留一个用户可以自己改、自己分发的选择。</p>
         <p>项目长期招募贡献者，方向不限于写代码 —— 词库、文档、本地化、兼容性测试同样算贡献。主仓的 Issue 已经按可接手程度分类，<code>no-code</code> 完全不需要写代码。</p>
@@ -206,15 +214,15 @@
     </section>
 
     <section class="container section">
-      <div class="section-eyebrow">
+      <div class="section-eyebrow" data-reveal>
         <span>03 · 平台与下载</span>
         <span class="section-rule"></span>
       </div>
 
-      <h2 class="section-title">四个平台，一套引擎</h2>
-      <p class="section-lead">前端各自原生实现，下载与安装说明统一在下载页。</p>
+      <h2 class="section-title" data-reveal>四个平台，一套引擎</h2>
+      <p class="section-lead" data-reveal>前端各自原生实现，下载与安装说明统一在下载页。</p>
 
-      <div class="platform-list">
+      <div class="platform-list" data-reveal>
         <div class="platform-row">
           <span class="platform-name">Windows 10 / 11</span>
           <span class="platform-desc">纯 TSF 前端 + 常驻 Server</span>
@@ -237,7 +245,7 @@
         </div>
       </div>
 
-      <div class="btn-row platform-cta">
+      <div class="btn-row platform-cta" data-reveal>
         <a class="btn btn-primary" href="/download/">前往下载页<img src="/img/icons/Download.svg" alt="" class="btn-icon" /></a>
         <a class="btn btn-ghost" href="/code/">查看仓库</a>
       </div>
