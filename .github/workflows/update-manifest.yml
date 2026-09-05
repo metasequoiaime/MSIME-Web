@@ -1,0 +1,84 @@
+name: Sync update manifest
+
+# public/update.json is what the download page and the in-app "检查更新" both read, so a release that
+# is not mirrored here is invisible to users. This job keeps the file in step with MSIME-Windows
+# instead of relying on someone remembering to edit it by hand after every release.
+#
+# The newest non-draft release wins, prereleases included. /releases/latest is deliberately not used:
+# it skips prereleases, and every published release of this product is currently a prerelease, so it
+# answers 404 here.
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+  repository_dispatch:
+    types: [update-manifest]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-manifest
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Mirror the newest published release
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      SOURCE_REPOSITORY: metasequoiaime/MSIME-Windows
+      MANIFEST: public/update.json
+    steps:
+      - name: Check out the site
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: true
+
+      - name: Resolve the newest published release
+        id: release
+        run: |
+          set -euo pipefail
+          release=$(gh api "repos/$SOURCE_REPOSITORY/releases?per_page=50" --jq '[.[] | select(.draft == false)] | sort_by(.published_at) | reverse | .[0] // empty')
+          if [ -z "$release" ]; then
+            echo "::error::$SOURCE_REPOSITORY has no published release to mirror"
+            exit 1
+          fi
+          tag=$(printf '%s' "$release" | jq -r '.tag_name')
+          url=$(printf '%s' "$release" | jq -r '.html_url')
+          version=${tag#v}
+          # download.ts rejects anything that is not dot-separated digits and falls back silently, so a
+          # malformed tag has to fail the job rather than reach the site.
+          if ! printf '%s' "$version" | grep -Eq '^[0-9]+(\.[0-9]+)*$'; then
+            echo "::error::Tag $tag does not produce a version the download page accepts"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Write the manifest
+        id: write
+        run: |
+          set -euo pipefail
+          jq -n --arg version '${{ steps.release.outputs.version }}' --arg releaseUrl '${{ steps.release.outputs.url }}' \
+            '{version: $version, releaseUrl: $releaseUrl}' > "$MANIFEST.new"
+          if cmp -s "$MANIFEST" "$MANIFEST.new"; then
+            rm "$MANIFEST.new"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Manifest already points at ${{ steps.release.outputs.version }}"
+          else
+            mv "$MANIFEST.new" "$MANIFEST"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit the manifest
+        if: steps.write.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$MANIFEST"
+          git commit -m "chore(release): point the update manifest at ${{ steps.release.outputs.version }}"
+          git push
