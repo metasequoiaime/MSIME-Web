@@ -33,7 +33,7 @@
 - [MSIME-Docs](https://github.com/metasequoiaime/MSIME-Docs)：使用与开发文档。
 - [.github](https://github.com/metasequoiaime/.github)：组织级公共文件，包含贡献指南、行为准则、安全策略和参与方向说明。
 - [msime-installer](https://github.com/metasequoiaime/msime-installer)：Windows 安装包的构建流程，涵盖产物收集、签名与 Inno Setup 打包。
-- [metasequoiaime.github.io](https://github.com/metasequoiaime/metasequoiaime.github.io)：水杉输入法官方网站的源代码。
+- [MSIME-Web](https://github.com/metasequoiaime/MSIME-Web)：水杉输入法官方网站的源代码。
 
 ## 早期与实验项目
 
