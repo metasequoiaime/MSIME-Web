@@ -16,6 +16,12 @@
       } catch {
         document.documentElement.dataset.theme = "system";
       }
+      // preload 只是给 dev 兜底：那时样式由脚本注入，得先把整页遮住。构建产物的样式表是
+      // head 里的阻塞资源，首帧就有样式，再遮一层只会让每次换页先画一帧空白。
+      // dev server 会把 /@vite/client 插在 head 最前面，用它区分两种环境。
+      if (!document.querySelector('script[src*="/@vite/client"]')) {
+        document.documentElement.classList.remove("preload");
+      }
     })();
   </script>
 
@@ -37,14 +43,6 @@
 </head>
 
 <body>
-  <script>
-    // 生产构建的样式表是 head 里的阻塞资源，首帧就已经有样式，不需要再用 preload 遮挡整页
-    // —— 那会让每次换页先闪一帧空白。dev 下样式由脚本注入，仍然要等 site.ts 摘掉标记。
-    if (document.querySelector('link[rel="stylesheet"]')) {
-      document.documentElement.classList.remove("preload");
-    }
-  </script>
-
   <div class="header-wrap">
     <header class="container header">
       <a class="logo" href="/">
@@ -109,11 +107,29 @@
     </ul>
   </nav>
 
+  <script>
+    // 当前 tab 的胶囊从上一页的位置滑过来。在解析阶段就把偏移算好，首帧不会先画到终点再跳回去。
+    (() => {
+      try {
+        const here = location.pathname;
+        const from = sessionStorage.getItem("msime-nav-from");
+        sessionStorage.setItem("msime-nav-from", here);
+        if (!from || from === here || !/^\/[a-z]*\/?$/.test(from)) return;
+        const list = document.querySelector(".nav-list");
+        const to = list && list.querySelector('.nav-link[aria-current="page"]');
+        const prev = list && list.querySelector('.nav-link[href="' + from + '"]');
+        if (!to || !prev) return;
+        list.style.setProperty("--pill-from", prev.offsetLeft - to.offsetLeft + "px");
+        list.classList.add("is-sliding");
+      } catch {}
+    })();
+  </script>
+
   <div class="page-hero">
-    <div class="container page-hero-inner" data-reveal-stagger>
-      <p class="page-hero-kicker" id="page-kicker" data-reveal>GPL-3.0</p>
-      <h1 class="page-hero-title" id="page-title" data-reveal></h1>
-      <p class="page-hero-lead" id="page-lead" data-reveal></p>
+    <div class="container page-hero-inner">
+      <p class="page-hero-kicker" id="page-kicker">GPL-3.0</p>
+      <h1 class="page-hero-title" id="page-title"></h1>
+      <p class="page-hero-lead" id="page-lead"></p>
     </div>
   </div>
   <main class="content-page">

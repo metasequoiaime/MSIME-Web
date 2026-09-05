@@ -10,8 +10,9 @@
   box-sizing: border-box;
 }
 
-/* 跨文档 view transition 会把新旧两页整屏交叉淡入。内容页正文是脚本渲染的，
-   新页快照常常拍到还没填好的状态，切页时表现为整屏闪一下，所以不开。 */
+/* 跨文档 view transition 在这套站点上不可用：内容页正文由脚本渲染，新页快照可能拍到
+   空正文；给正文脚本加 blocking="render" 又会让点击跳转后渲染永久阻塞。换页动画改用
+   页头自己的入场动画 + 导航胶囊滑动，行为确定，也不依赖浏览器支持。 */
 
 /* ==== THEME TOKENS ==== */
 @mixin theme-dark {
@@ -381,6 +382,8 @@ html {
 .nav-link,
 .nav-link:link,
 .nav-link:visited {
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -401,9 +404,35 @@ html {
 }
 
 .nav-link[aria-current="page"] {
+  /* 压在其它标签下面，胶囊滑过时从文字底下经过 */
+  z-index: 0;
+  isolation: isolate;
   color: var(--lg-heading);
+}
+
+.nav-link[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 999px;
   background: var(--card-2);
   box-shadow: var(--card-soft), inset 0 0 0 1px var(--hair);
+}
+
+/* 换 tab 时从上一页那个位置滑过来，偏移由导航后面的内联脚本在解析阶段写好 */
+.nav-list.is-sliding .nav-link[aria-current="page"]::before {
+  animation: navPill 0.32s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes navPill {
+  from {
+    transform: translateX(var(--pill-from, 0));
+  }
+
+  to {
+    transform: none;
+  }
 }
 
 .nav-link-icon {
@@ -1060,9 +1089,11 @@ html {
   font-size: 12.5px;
   letter-spacing: 0.14em;
   color: var(--icon-color);
+  animation: riseIn 0.62s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
 .page-hero-title {
+  animation: riseIn 0.62s cubic-bezier(0.2, 0.7, 0.2, 1) 0.06s both;
   margin: 14px 0 10px;
   font-size: clamp(28px, 4vw, 42px);
   font-weight: 600;
@@ -1071,6 +1102,7 @@ html {
 }
 
 .page-hero-lead {
+  animation: riseIn 0.62s cubic-bezier(0.2, 0.7, 0.2, 1) 0.12s both;
   margin: 0;
   max-width: 62ch;
   font-size: 17px;
