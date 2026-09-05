@@ -427,7 +427,7 @@ mail	example@example.com	10
 
 ### 反馈
 
-- **GitHub Issues**：适合提交能够复现的问题、功能建议和开发讨论：[提交 Issue](https://github.com/metasequoiaime/MetasequoiaImeTsf/issues)。
+- **GitHub Issues**：适合提交能够复现的问题、功能建议和开发讨论：[提交 Issue](https://github.com/metasequoiaime/MSIME-Windows/issues)。
 - **QQ 交流群**：群号 `829919142`，页面中可以直接复制。
 - **Telegram 群组**：适合即时交流：[t.me/msimegroup](https://t.me/msimegroup)。
 
@@ -435,13 +435,16 @@ mail	example@example.com	10
 
 ## 项目结构
 
-- [MetasequoiaImeTsf](https://github.com/metasequoiaime/MetasequoiaImeTsf)：核心 TSF。
-- [MetasequoiaImeServer](https://github.com/metasequoiaime/MetasequoiaImeServer)：服务端，负责输入算法和窗口渲染。
-- [MetasequoiaImeUiHtml](https://github.com/metasequoiaime/MetasequoiaImeUiHtml)：界面。
-- [MetasequoiaImeDict](https://github.com/metasequoiaime/MetasequoiaImeDict)：词库。
-- [MetasequoiaImeHelpCode](https://github.com/metasequoiaime/MetasequoiaImeHelpCode)：辅助码。
+- [MSIME-Windows](https://github.com/metasequoiaime/MSIME-Windows)：Windows TSF 前端。
+- [MSIME-Server](https://github.com/metasequoiaime/MSIME-Server)：Windows 常驻后端，负责引擎调度和窗口渲染。
+- [MSIME-Engine](https://github.com/metasequoiaime/MSIME-Engine)：跨平台输入引擎，各平台前端共用。
+- [MSIME-UiHtml](https://github.com/metasequoiaime/MSIME-UiHtml)：WebView2 界面资源。
+- [MSIME-UI](https://github.com/metasequoiaime/MSIME-UI)：自研原生 GUI 框架。
+- [MSIME-Dict](https://github.com/metasequoiaime/MSIME-Dict)：词库。
+- [MSIME-HelpCode](https://github.com/metasequoiaime/MSIME-HelpCode)：辅助码。
+- [MSIME-Apple](https://github.com/metasequoiaime/MSIME-Apple) / [MSIME-Linux](https://github.com/metasequoiaime/MSIME-Linux)：macOS、iOS 与 Linux 前端。
 
-文档会随功能继续更新。如果发现说明和实际行为不一致，欢迎在 [GitHub Issues](https://github.com/metasequoiaime/MetasequoiaImeTsf/issues) 中反馈。
+文档会随功能继续更新。如果发现说明和实际行为不一致，欢迎在 [GitHub Issues](https://github.com/metasequoiaime/MSIME-Windows/issues) 中反馈。
 
 ## 一些可能有用的链接
 

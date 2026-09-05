@@ -4,7 +4,7 @@ import "./style.scss";
 import "./docs.scss";
 import "./site";
 
-const RELEASES_PAGE_URL = "https://github.com/metasequoiaime/MetasequoiaImeTsf/releases";
+const RELEASES_PAGE_URL = "https://github.com/metasequoiaime/MSIME-Windows/releases";
 
 type UpdateManifest = {
   version?: unknown;
