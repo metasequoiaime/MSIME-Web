@@ -118,10 +118,16 @@ if (heroVideos.length) {
   );
 }
 
+const syncThemeIcon = () => {
+  themeButton?.classList.toggle("is-dark", !isLightThemeActive());
+};
+
 const applyTheme = (theme: ThemeChoice) => {
   document.documentElement.dataset.theme = theme;
   document.documentElement.style.colorScheme =
     theme === "light" ? "light" : theme === "dark" ? "dark" : "light dark";
+
+  syncThemeIcon();
 
   themeOptionButtons.forEach((button) => {
     const isSelected = button.dataset.themeChoice === theme;
@@ -143,6 +149,7 @@ document.documentElement.classList.remove("preload");
 
 window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", () => {
   if (document.documentElement.dataset.theme === "system") {
+    syncThemeIcon();
     syncHeroMediaForTheme();
   }
 });

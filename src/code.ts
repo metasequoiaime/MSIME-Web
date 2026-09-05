@@ -1,17 +1,11 @@
-import MarkdownIt from "markdown-it";
 import codeSource from "./content/code.md?raw";
+import { renderContentPage } from "./content-page";
 import "./style.scss";
 import "./docs.scss";
 import "./site";
 
-const codeContent = document.getElementById("code-content");
-
-if (codeContent) {
-  const markdown = new MarkdownIt({
-    html: false,
-    linkify: true,
-    typographer: true,
-  });
-
-  codeContent.innerHTML = markdown.render(codeSource);
-}
+renderContentPage({
+  target: document.getElementById("code-content"),
+  source: codeSource,
+  sectioned: true,
+});

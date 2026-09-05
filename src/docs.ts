@@ -1,5 +1,5 @@
-import MarkdownIt from "markdown-it";
 import docsSource from "./content/docs.md?raw";
+import { renderContentPage } from "./content-page";
 import "./style.scss";
 import "./docs.scss";
 import "./site";
@@ -20,13 +20,7 @@ docsTocToggle?.addEventListener("click", () => {
 });
 
 if (docsContent) {
-  const markdown = new MarkdownIt({
-    html: false,
-    linkify: true,
-    typographer: true,
-  });
-
-  docsContent.innerHTML = markdown.render(docsSource);
+  renderContentPage({ target: docsContent, source: docsSource });
 
   if (docsToc) {
     const usedIds = new Map<string, number>();
@@ -54,7 +48,7 @@ if (docsContent) {
       }
 
       link.addEventListener("click", () => {
-        if (window.matchMedia("(max-width: 768px)").matches) {
+        if (window.matchMedia("(max-width: 900px)").matches) {
           closeDocsToc();
         }
       });
