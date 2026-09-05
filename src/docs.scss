@@ -102,14 +102,9 @@
 /* ==== CONTENT TYPOGRAPHY ==== */
 .docs-content {
   min-width: 0;
-  max-width: 960px;
   color: var(--text-body);
   font-size: 15.5px;
   line-height: 1.85;
-}
-
-.code-content {
-  max-width: none;
 }
 
 .docs-content h1,
