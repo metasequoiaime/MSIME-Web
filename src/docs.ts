@@ -136,8 +136,7 @@ if (docsContent && docsToc) {
     updateActive();
   });
 
-  // 中途自己滚就交还控制权。键盘翻页和拖滚动条都不产生 wheel / touchstart，没有 scrollend
-  // 的浏览器上就只能等 2 秒超时，高亮会一直卡住，所以 keydown 和 pointerdown 也要放行
+  // 中途自己滚就交还控制权。键盘翻页和拖滚动条都不产生 wheel / touchstart，没有 scrollend 的浏览器上就只能等 2 秒超时，高亮会一直卡住，所以 keydown 和 pointerdown 也要放行
   window.addEventListener("wheel", releaseLock, { passive: true });
   window.addEventListener("touchstart", releaseLock, { passive: true });
   window.addEventListener("keydown", releaseLock);
