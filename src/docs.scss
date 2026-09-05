@@ -55,6 +55,11 @@
   background: var(--card-3);
 }
 
+.docs-toc a.is-active {
+  color: var(--lg-heading);
+  background: var(--accent-soft);
+}
+
 .docs-toc-subitem {
   padding-left: 26px !important;
   font-weight: 400 !important;
