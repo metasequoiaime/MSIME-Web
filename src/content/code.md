@@ -1,6 +1,6 @@
 # 开源代码
 
-水杉输入法由多个相互协作的开源项目组成。这里汇总与输入法有关的平台前端、引擎、词库、界面组件和早期探索项目，便于查阅、构建与参与开发。
+水杉输入法由多个相互协作的开源项目组成。这里汇总与输入法有关的平台前端、引擎、词库、界面组件和基础设施，便于查阅、构建与参与开发。
 
 ## 平台前端
 
@@ -34,14 +34,6 @@
 - [.github](https://github.com/metasequoiaime/.github)：组织级公共文件，包含贡献指南、行为准则、安全策略和参与方向说明。
 - [msime-installer](https://github.com/metasequoiaime/msime-installer)：Windows 安装包的构建流程，涵盖产物收集、签名与 Inno Setup 打包。
 - [MSIME-Web](https://github.com/metasequoiaime/MSIME-Web)：水杉输入法官方网站的源代码。
-
-## 早期与实验项目
-
-- [Metasequoia-n-gram](https://github.com/metasequoiaime/Metasequoia-n-gram)：用于收集词汇、处理语料并构建输入法 n-gram 数据的项目。
-- [TsfEditControl](https://github.com/metasequoiaime/TsfEditControl)：基于 Win32 TSF 的编辑控件实验，涵盖组合串显示、候选框定位和基础编辑逻辑。
-- [pinyin_cpp](https://github.com/metasequoiaime/pinyin_cpp)：全拼与双拼候选查询的 C++ 早期原型，基于 SQLite 词库。
-- [pinyin_python](https://github.com/metasequoiaime/pinyin_python)：拼音切分与候选查询的 Python 早期原型。
-- [FullIME](https://github.com/fanlusky/FullIME)：早期基于 Windows Hook、Direct2D 和 DirectWrite 实现的 Windows 输入法实验项目。
 
 ## 参与开发
 

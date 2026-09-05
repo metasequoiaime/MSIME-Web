@@ -64,5 +64,8 @@ export const renderContentPage = ({ target, source, sectioned = false }: RenderO
 
   if (sectioned) groupSections(target);
 
+  // 页头的文字到位了，入场动画才放行
+  document.querySelector(".page-hero")?.classList.add("is-ready");
+
   observeReveals();
 };

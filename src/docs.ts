@@ -91,11 +91,13 @@ if (docsContent && docsToc) {
     keepInView(link);
   };
 
+  // 顶栏是固定的，判定线要压到它下面。顶栏是静态节点，高度只跟 CSS 变量走，查一次就够了
+  const headerWrap = document.querySelector<HTMLElement>(".header-wrap");
+
   const updateActive = () => {
     if (locked) return;
 
-    // 顶栏是固定的，判定线要压到它下面
-    const offset = (document.querySelector<HTMLElement>(".header-wrap")?.offsetHeight ?? 68) + 24;
+    const offset = (headerWrap?.offsetHeight ?? 68) + 24;
     let index = 0;
 
     for (let i = 0; i < sections.length; i += 1) {
@@ -134,9 +136,12 @@ if (docsContent && docsToc) {
     updateActive();
   });
 
-  // 中途自己滚就交还控制权
+  // 中途自己滚就交还控制权。键盘翻页和拖滚动条都不产生 wheel / touchstart，没有 scrollend
+  // 的浏览器上就只能等 2 秒超时，高亮会一直卡住，所以 keydown 和 pointerdown 也要放行
   window.addEventListener("wheel", releaseLock, { passive: true });
   window.addEventListener("touchstart", releaseLock, { passive: true });
+  window.addEventListener("keydown", releaseLock);
+  window.addEventListener("pointerdown", releaseLock);
 
   let ticking = false;
   window.addEventListener(

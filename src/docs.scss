@@ -281,20 +281,18 @@
   list-style: none;
   background: var(--card-2);
   box-shadow: inset 0 0 0 1px var(--hair);
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--text-content);
   transition: box-shadow 0.18s ease;
 }
 
-.code-content .repo-name a {
+/* 排版挂在 li 上：拆行只认「链接开头 + 说明」这一种条目，其它形状的条目照样有正常样式 */
+.code-content .doc-card li a {
   font-family: var(--mono);
   font-size: 14px;
   text-decoration: none;
   overflow-wrap: anywhere;
-}
-
-.code-content .repo-desc {
-  font-size: 14.5px;
-  line-height: 1.7;
-  color: var(--text-content);
 }
 
 .code-content .doc-card li:hover {

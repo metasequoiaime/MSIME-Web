@@ -404,9 +404,9 @@ html {
 }
 
 .nav-link[aria-current="page"] {
-  /* 压在其它标签下面，胶囊滑过时从文字底下经过 */
+  /* 压在其它标签下面，胶囊滑过时从文字底下经过。z-index 非 auto 已经建了层叠上下文，
+     ::before 的 z-index: -1 只会落到本元素内容之下，不会掉到 .nav-list 的背景后面 */
   z-index: 0;
-  isolation: isolate;
   color: var(--lg-heading);
 }
 
@@ -1036,7 +1036,7 @@ html {
   transition: background-color 0.18s ease;
 }
 
-.platform-list:hover .platform-row:hover {
+.platform-row:hover {
   background-color: var(--card-3);
 }
 
@@ -1085,15 +1085,36 @@ html {
   padding-bottom: 2.875rem;
 }
 
+/* 标题和摘要是脚本从 markdown 里提上来的，首帧还是空的。入场动画要等 is-ready 才放，
+   不然动画跑在空元素上、文字反而是硬生生冒出来的。三行先藏着，避免中间闪一下。
+   这几页的正文本来就要靠脚本渲染，脚本不跑的话页头有没有文字都一样。 */
+@media (prefers-reduced-motion: no-preference) {
+  .page-hero-kicker,
+  .page-hero-title,
+  .page-hero-lead {
+    opacity: 0;
+  }
+}
+
+.page-hero.is-ready .page-hero-kicker {
+  animation: riseIn 0.62s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.page-hero.is-ready .page-hero-title {
+  animation: riseIn 0.62s cubic-bezier(0.2, 0.7, 0.2, 1) 0.06s both;
+}
+
+.page-hero.is-ready .page-hero-lead {
+  animation: riseIn 0.62s cubic-bezier(0.2, 0.7, 0.2, 1) 0.12s both;
+}
+
 .page-hero-kicker {
   font-size: 12.5px;
   letter-spacing: 0.14em;
   color: var(--icon-color);
-  animation: riseIn 0.62s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
 .page-hero-title {
-  animation: riseIn 0.62s cubic-bezier(0.2, 0.7, 0.2, 1) 0.06s both;
   margin: 14px 0 10px;
   font-size: clamp(28px, 4vw, 42px);
   font-weight: 600;
@@ -1102,7 +1123,6 @@ html {
 }
 
 .page-hero-lead {
-  animation: riseIn 0.62s cubic-bezier(0.2, 0.7, 0.2, 1) 0.12s both;
   margin: 0;
   max-width: 62ch;
   font-size: 17px;
