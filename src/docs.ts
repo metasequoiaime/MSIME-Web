@@ -1,4 +1,4 @@
-import docsSource from "./content/docs.md?raw";
+import docsSource from "../vendor/MSIME-Docs/guides/windows.md?raw";
 import { renderContentPage } from "./content-page";
 import "./style.scss";
 import "./docs.scss";
