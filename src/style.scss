@@ -10,9 +10,7 @@
   box-sizing: border-box;
 }
 
-/* 跨文档 view transition 在这套站点上不可用：内容页正文由脚本渲染，新页快照可能拍到
-   空正文；给正文脚本加 blocking="render" 又会让点击跳转后渲染永久阻塞。换页动画改用
-   页头自己的入场动画 + 导航胶囊滑动，行为确定，也不依赖浏览器支持。 */
+/* 跨文档 view transition 在这套站点上不可用：内容页正文由脚本渲染，新页快照可能拍到空正文；给正文脚本加 blocking="render" 又会让点击跳转后渲染永久阻塞。换页动画改用页头自己的入场动画 + 导航胶囊滑动，行为确定，也不依赖浏览器支持。 */
 
 /* ==== THEME TOKENS ==== */
 @mixin theme-dark {
@@ -404,8 +402,7 @@ html {
 }
 
 .nav-link[aria-current="page"] {
-  /* 压在其它标签下面，胶囊滑过时从文字底下经过。z-index 非 auto 已经建了层叠上下文，
-     ::before 的 z-index: -1 只会落到本元素内容之下，不会掉到 .nav-list 的背景后面 */
+  /* 压在其它标签下面，胶囊滑过时从文字底下经过。z-index 非 auto 已经建了层叠上下文，::before 的 z-index: -1 只会落到本元素内容之下，不会掉到 .nav-list 的背景后面 */
   z-index: 0;
   color: var(--lg-heading);
 }
@@ -500,8 +497,7 @@ html {
   background: var(--nav-well);
 }
 
-/* 两个图标叠在一起做交叉淡入，切换主题时旋转互换。
-   is-ready 之前不给过渡：首次应用主题也会切图标，否则每次进页面右上角都要淡一下。 */
+/* 两个图标叠在一起做交叉淡入，切换主题时旋转互换。is-ready 之前不给过渡：首次应用主题也会切图标，否则每次进页面右上角都要淡一下。 */
 .theme-button:not(.is-ready) svg {
   transition: none;
 }
@@ -1085,9 +1081,7 @@ html {
   padding-bottom: 2.875rem;
 }
 
-/* 标题和摘要是脚本从 markdown 里提上来的，首帧还是空的。入场动画要等 is-ready 才放，
-   不然动画跑在空元素上、文字反而是硬生生冒出来的。三行先藏着，避免中间闪一下。
-   这几页的正文本来就要靠脚本渲染，脚本不跑的话页头有没有文字都一样。 */
+/* 标题和摘要是脚本从 markdown 里提上来的，首帧还是空的。入场动画要等 is-ready 才放，不然动画跑在空元素上、文字反而是硬生生冒出来的。三行先藏着，避免中间闪一下。这几页的正文本来就要靠脚本渲染，脚本不跑的话页头有没有文字都一样。 */
 @media (prefers-reduced-motion: no-preference) {
   .page-hero-kicker,
   .page-hero-title,
