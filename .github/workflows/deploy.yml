@@ -27,11 +27,16 @@ jobs:
         with:
           node-version: 20
 
+      - name: Enable corepack
+        run: corepack enable
+
+      # 仓库里只有 pnpm-lock.yaml。此前这里跑的是 npm install，锁文件完全没有生效，
+      # 每次构建都重新解析 caret 范围，上游一个破坏性发布就能让部署失败。
       - name: Install
-        run: npm install
+        run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: npm run build
+        run: pnpm run build
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
