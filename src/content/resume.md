@@ -41,7 +41,7 @@
 
 **C/C++ · Windows API · TSF · WebView2 · Direct2D · DirectWrite · SQLite · CMake · Python**
 
-[GitHub](https://github.com/metasequoiaime/MetasequoiaImeTsf) · [Website](https://msime.app)
+[GitHub](https://github.com/metasequoiaime/MSIME-Windows) · [Website](https://msime.app)
 
 - **独立设计并长期维护完整的 Windows 中文输入法系统**，采用纯 **TSF** 架构，项目包含 TSF Core、独立 Server、UI、词库及辅助码等模块，GitHub **350+ Stars**。
 - 基于 **Text Services Framework（TSF）** 实现 Composition、Candidate List、Preserved Key 等输入法核心能力，并针对不同 Windows 应用持续处理兼容性与稳定性问题。
