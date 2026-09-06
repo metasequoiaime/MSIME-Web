@@ -26,6 +26,14 @@ const isValidReleaseUrl = (value: unknown): value is string =>
 const isSha256 = (value: unknown): value is string =>
   typeof value === "string" && /^[0-9a-f]{64}$/.test(value);
 
+// The name is substituted into a fenced command the reader is meant to paste. Restricting it to the
+// shape the release workflow actually produces keeps a manifest value from carrying its own fence or
+// shell metacharacters into that block.
+const isInstallerName = (value: unknown): value is string =>
+  typeof value === "string" && /^MetasequoiaIME_Setup_v[\w.-]+\.exe$/i.test(value);
+
+const FALLBACK_INSTALLER_NAME = "MetasequoiaIME_Setup_v<版本>.exe";
+
 // The page must never claim the installer is signed when it is not. The manifest reports what the
 // published asset actually is, so the security note is derived from that rather than written by hand
 // -- an earlier hard-coded note told users to refuse anything without a signature while the only
@@ -40,7 +48,7 @@ const securityNote = (manifest: UpdateManifest): string => {
     lines.push("在签名恢复之前，请改用 SHA256 校验下载的完整性：");
   }
   if (isSha256(manifest.installerSha256)) {
-    const name = typeof manifest.installerName === "string" ? manifest.installerName : "安装包";
+    const name = isInstallerName(manifest.installerName) ? manifest.installerName : FALLBACK_INSTALLER_NAME;
     lines.push("");
     lines.push("```powershell");
     lines.push(`Get-FileHash .\\${name} -Algorithm SHA256`);
@@ -59,7 +67,11 @@ const render = (version: string, releaseUrl: string, manifest: UpdateManifest = 
     source: downloadSource
       .replaceAll("{{version}}", version)
       .replaceAll("{{releaseUrl}}", releaseUrl)
-      .replaceAll("{{securityNote}}", securityNote(manifest)),
+      .replaceAll("{{securityNote}}", securityNote(manifest))
+      .replaceAll(
+        "{{installerName}}",
+        isInstallerName(manifest.installerName) ? manifest.installerName : FALLBACK_INSTALLER_NAME
+      ),
     sectioned: true,
   });
 };

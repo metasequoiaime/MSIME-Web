@@ -27,6 +27,16 @@
 
 {{securityNote}}
 
+#### 核对构建来源
+
+除了 SHA256，Windows 安装包还带有 GitHub 的构建来源证明（build provenance attestation），它能证明这个文件确实由本项目仓库的发布流水线构建，而不只是证明文件没被改动。安装 [GitHub CLI](https://cli.github.com) 后运行：
+
+```powershell
+gh attestation verify .\{{installerName}} --repo metasequoiaime/MSIME-Windows
+```
+
+通过时会打印出触发构建的工作流与 commit。这一步不需要登录，也不依赖代码签名证书。
+
 ## macOS
 
 适用于 macOS 12 及以上，提供 Universal 构建（同时支持 Apple Silicon 与 Intel）。
@@ -48,3 +58,11 @@ macOS 版内置 Sparkle 自动更新，安装后可从输入法菜单中的「�
 每个版本提供 `.deb`、`.rpm` 和 `.tar.gz` 三种包，按发行版选择。安装后重启 IBus，再在桌面环境的输入源设置中添加「Metasequoia IME」。
 
 Linux 包同样未经签名。Release 页面每个资产旁都显示 GitHub 计算的 SHA256，下载后可用 `sha256sum <文件名>` 核对。
+
+## 隐私
+
+输入法能看到你敲下的每一个键，所以装之前值得先看一眼它会不会联网。
+
+本地转换（拼音切分、候选排序、词频学习）完全不联网。会联网的功能里，**只有云候选是装完就生效的**——它在 Windows 和 Linux 上默认开启，输入过程中会把当前正在输入的那一串拼写发给 Google 的 input-tools 服务；AI 联想、候选翻译、语音输入都要你自己填入 API token 之后才会发出任何请求。
+
+完整的联网功能清单、各平台默认状态、以及一次全部关掉的方法，见[隐私说明](/privacy/)。
