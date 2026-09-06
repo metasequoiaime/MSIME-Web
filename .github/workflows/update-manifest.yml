@@ -16,7 +16,7 @@ on:
     types: [update-manifest]
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: update-manifest
@@ -24,7 +24,8 @@ concurrency:
 
 jobs:
   sync:
-    name: Mirror the newest published release
+    name: Propose the newest published release
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
@@ -35,7 +36,8 @@ jobs:
       - name: Check out the site
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          persist-credentials: true
+          persist-credentials: false
+          ref: main
 
       - name: Setup Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -53,12 +55,30 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Commit the manifest
-        if: steps.write.outputs.changed == 'true'
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add "$MANIFEST"
-          git commit -m "chore(release): sync validated Windows release metadata"
-          git push
+      - name: Require the PR automation credential
+        env:
+          AUTOMATION_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+        run: test -n "$AUTOMATION_TOKEN"
+
+      - name: Create or update the manifest PR
+        id: proposal
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          # A trusted token triggers PR CI and deployment after merging.
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          add-paths: public/update.json
+          branch: automation/update-manifest
+          base: main
+          delete-branch: true
+          commit-message: 'chore(release): sync validated Windows release metadata'
+          title: 'chore(release): sync validated Windows release metadata'
+          body: 'Generated from published Windows release assets after metadata regression tests. Auto-merge requires the normal build, workflow validation and dependency review.'
+
+      - name: Enable auto-merge behind the required checks
+        if: steps.proposal.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ steps.proposal.outputs.pull-request-number }}
+          HEAD_SHA: ${{ steps.proposal.outputs.pull-request-head-sha }}
+        run: python3 scripts/enable-manifest-automerge.py --repo "$GH_REPO" --pr "$PR_NUMBER" --sha "$HEAD_SHA"
