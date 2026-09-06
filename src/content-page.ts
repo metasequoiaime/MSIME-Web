@@ -28,8 +28,12 @@ const localizeSiteLinks = (root: HTMLElement) => {
     if (value?.startsWith(`${SITE_ORIGIN}/`)) element.setAttribute(attribute, value.slice(SITE_ORIGIN.length));
   };
 
-  root.querySelectorAll("a[href]").forEach((element) => strip(element, "href"));
-  root.querySelectorAll("img[src]").forEach((element) => strip(element, "src"));
+  root.querySelectorAll("a[href]").forEach((element) => {
+    strip(element, "href");
+  });
+  root.querySelectorAll("img[src]").forEach((element) => {
+    strip(element, "src");
+  });
 };
 
 /** 一级标题与首段属于页头 hero，正文继续由 markdown 驱动 */

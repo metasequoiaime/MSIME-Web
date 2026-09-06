@@ -17,6 +17,30 @@
 
 <https://msime.app/docs>
 
+## 本地开发
+
+本仓库是全组织唯一不需要 C++ 工具链的仓库，只要有 Node 就能跑起来。
+
+```sh
+corepack enable
+git submodule update --init   # 用户指南来自 vendor/MSIME-Docs 的固定 gitlink
+pnpm install
+pnpm dev                      # 开发服务器
+```
+
+其余命令：
+
+| 命令 | 作用 |
+| --- | --- |
+| `pnpm run build` | `tsc` 类型检查 + 生产构建，CI 跑的就是这条 |
+| `pnpm run preview` | 预览构建产物 |
+| `pnpm run lint` | Biome 静态检查 |
+| `pnpm test` | 校验更新元数据生成逻辑 |
+
+Biome 只开了 linter，formatter 处于关闭状态——仓库既有代码尚未按 Biome 的风格格式化，统一格式化是一次独立的机械提交，不与功能改动混在一起。
+
+页面是多入口静态站：每个目录下的 `index.html` 配一个 `src/<name>.ts` 入口，正文写在 `src/content/<name>.md`，由 `src/content-page.ts` 渲染。新增页面时三处都要加，并在 `vite.config.ts` 的 `input` 里登记。
+
 ## 发布新版本
 
 不需要手工改动。`.github/workflows/update-manifest.yml` 每 30 分钟把 `public/update.json` 同步到 [MSIME-Windows](https://github.com/metasequoiaime/MSIME-Windows/releases) 版本号最高且含有效 Windows 安装包的已发布 release，有变化才提交。官网下载页和输入法设置中的“检查更新”都会读取这份文件。

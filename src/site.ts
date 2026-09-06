@@ -99,7 +99,9 @@ if (heroVideos.length) {
     { rootMargin: "64px 0px", threshold: 0.05 }
   );
 
-  heroVideos.forEach((video) => mediaObserver.observe(video));
+  heroVideos.forEach((video) => {
+    mediaObserver.observe(video);
+  });
 
   // 手指滑动时先暂停解码，停滑后再播，兼顾演示动画和滚动流畅
   window.addEventListener(

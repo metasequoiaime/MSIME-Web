@@ -7,9 +7,12 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "biome lint .",
+    "test": "node --test scripts/generate-update.test.mjs"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.12",
     "@types/markdown-it": "^14.2.0",
     "sass": "^1.103.1",
     "swiper": "^14.2.0",
