@@ -42,10 +42,15 @@ const securityNote = (manifest: UpdateManifest): string => {
   const lines: string[] = [];
   if (manifest.signed === true) {
     lines.push("Windows 安装包带有数字签名，签署者为 **Open Source Developer LU FAN**。安装前请在文件属性的「数字签名」标签页确认签署者；签名缺失或签署者不符，请勿安装。");
-  } else {
+  } else if (manifest.signed === false) {
     lines.push("**当前 Windows 构建未经代码签名**（文件名带 `unsigned`）。SmartScreen 会拦截，需要手动放行，且输入法的 uiAccess 会失效——候选窗无法浮在以管理员身份运行的程序之上。");
     lines.push("");
     lines.push("在签名恢复之前，请改用 SHA256 校验下载的完整性：");
+  } else {
+    // The manifest could not be read, or predates the field. Saying "unsigned" here would be a
+    // claim about a release the page failed to look up -- and the sentence about checking SHA256
+    // instead has nothing to follow it, because the digest comes from the same manifest.
+    lines.push("无法读取发布信息，请到 Releases 页面确认该版本是否带有数字签名，并核对页面上给出的 SHA256。");
   }
   if (isSha256(manifest.installerSha256)) {
     const name = isInstallerName(manifest.installerName) ? manifest.installerName : FALLBACK_INSTALLER_NAME;
