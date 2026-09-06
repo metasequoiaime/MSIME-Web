@@ -75,7 +75,7 @@ jobs:
           body: 'Generated from published Windows release assets after metadata regression tests. Auto-merge requires the normal build, workflow validation and dependency review.'
 
       - name: Enable auto-merge behind the required checks
-        if: steps.proposal.outputs.pull-request-number != ''
+        if: steps.proposal.outputs.pull-request-number != '' && steps.proposal.outputs.pull-request-operation != 'closed'
         env:
           GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
           GH_REPO: ${{ github.repository }}
