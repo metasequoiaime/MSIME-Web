@@ -32,6 +32,8 @@ jobs:
         run: corepack enable
       - name: Install
         run: pnpm install --frozen-lockfile
+      - name: Lint
+        run: pnpm run lint
       - name: Validate release metadata
         run: node --test scripts/generate-update.test.mjs
       - name: Test manifest auto-merge restrictions
