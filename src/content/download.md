@@ -6,8 +6,8 @@
 
 适用于 Windows 10 和 Windows 11。当前最新版本：**v{{version}}**
 
-- [阿里云盘下载](https://www.alipan.com/s/wKbWStNYVLZ)（提取码：`27qi`）
-- [GitHub Release 下载]({{releaseUrl}})
+- [GitHub Release 下载]({{releaseUrl}}) — 官方发布位置，随包附带校验值
+- [阿里云盘下载](https://www.alipan.com/s/wKbWStNYVLZ)（提取码：`27qi`）— 加速镜像，国内直连更快；这是第三方网盘，项目无法控制其内容，请务必用下方的 SHA256 核对
 
 ### 安装说明
 
@@ -25,7 +25,7 @@
 
 ### 安全提示
 
-Windows 安装包应带有数字签名，签署者为 **Open Source Developer LU FAN**。如果签名缺失，请勿安装。
+{{securityNote}}
 
 ## macOS
 
@@ -46,3 +46,5 @@ macOS 版内置 Sparkle 自动更新，安装后可从输入法菜单中的「�
 - [GitHub Release 下载](https://github.com/metasequoiaime/MSIME-Linux/releases)
 
 每个版本提供 `.deb`、`.rpm` 和 `.tar.gz` 三种包，按发行版选择。安装后重启 IBus，再在桌面环境的输入源设置中添加「Metasequoia IME」。
+
+Linux 包同样未经签名。Release 页面每个资产旁都显示 GitHub 计算的 SHA256，下载后可用 `sha256sum <文件名>` 核对。

@@ -9,6 +9,9 @@ const RELEASES_PAGE_URL = "https://github.com/metasequoiaime/MSIME-Windows/relea
 type UpdateManifest = {
   version?: unknown;
   releaseUrl?: unknown;
+  installerName?: unknown;
+  installerSha256?: unknown;
+  signed?: unknown;
 };
 
 const downloadContent = document.getElementById("download-content");
@@ -20,10 +23,43 @@ const isValidReleaseUrl = (value: unknown): value is string =>
   typeof value === "string" &&
   (value === RELEASES_PAGE_URL || value.startsWith(`${RELEASES_PAGE_URL}/`));
 
-const render = (version: string, releaseUrl: string) => {
+const isSha256 = (value: unknown): value is string =>
+  typeof value === "string" && /^[0-9a-f]{64}$/.test(value);
+
+// The page must never claim the installer is signed when it is not. The manifest reports what the
+// published asset actually is, so the security note is derived from that rather than written by hand
+// -- an earlier hard-coded note told users to refuse anything without a signature while the only
+// downloadable build was unsigned, which trains people to ignore signature warnings.
+const securityNote = (manifest: UpdateManifest): string => {
+  const lines: string[] = [];
+  if (manifest.signed === true) {
+    lines.push("Windows 安装包带有数字签名，签署者为 **Open Source Developer LU FAN**。安装前请在文件属性的「数字签名」标签页确认签署者；签名缺失或签署者不符，请勿安装。");
+  } else {
+    lines.push("**当前 Windows 构建未经代码签名**（文件名带 `unsigned`）。SmartScreen 会拦截，需要手动放行，且输入法的 uiAccess 会失效——候选窗无法浮在以管理员身份运行的程序之上。");
+    lines.push("");
+    lines.push("在签名恢复之前，请改用 SHA256 校验下载的完整性：");
+  }
+  if (isSha256(manifest.installerSha256)) {
+    const name = typeof manifest.installerName === "string" ? manifest.installerName : "安装包";
+    lines.push("");
+    lines.push("```powershell");
+    lines.push(`Get-FileHash .\\${name} -Algorithm SHA256`);
+    lines.push("```");
+    lines.push("");
+    lines.push(`应得到：\`${manifest.installerSha256}\``);
+    lines.push("");
+    lines.push("这个值由 GitHub 对已存储的文件计算，不是发布说明里手写的，所以走网盘等镜像下载时同样可以用它核对。");
+  }
+  return lines.join("\n");
+};
+
+const render = (version: string, releaseUrl: string, manifest: UpdateManifest = {}) => {
   renderContentPage({
     target: downloadContent,
-    source: downloadSource.replaceAll("{{version}}", version).replaceAll("{{releaseUrl}}", releaseUrl),
+    source: downloadSource
+      .replaceAll("{{version}}", version)
+      .replaceAll("{{releaseUrl}}", releaseUrl)
+      .replaceAll("{{securityNote}}", securityNote(manifest)),
     sectioned: true,
   });
 };
@@ -43,7 +79,7 @@ const loadRelease = async () => {
     }
 
     setPageKicker(`Windows v${manifest.version}`);
-    render(manifest.version, manifest.releaseUrl);
+    render(manifest.version, manifest.releaseUrl, manifest);
   } catch (error) {
     console.warn("[download] failed to load update manifest:", error);
     render("暂时无法获取", RELEASES_PAGE_URL);
