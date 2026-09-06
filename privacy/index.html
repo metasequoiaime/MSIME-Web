@@ -5,8 +5,8 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/x-icon" href="/msime.ico" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="开源中文输入法，各平台共用同一套 C++ 引擎。" />
-  <title>MSIME | 水杉输入法</title>
+  <meta name="description" content="水杉输入法隐私说明：哪些功能会联网、默认状态、如何全部关闭" />
+  <title>隐私说明 | 水杉输入法</title>
 
   <script>
     (() => {
@@ -85,7 +85,7 @@
 
     <ul class="nav-list">
           <li class="nav-item">
-            <a href="/" class="nav-link" aria-current="page"><img src="/img/icons/nav/home.svg" alt="" class="nav-link-icon" />首页</a>
+            <a href="/" class="nav-link"><img src="/img/icons/nav/home.svg" alt="" class="nav-link-icon" />首页</a>
           </li>
           <li class="nav-item">
             <a href="/docs/" class="nav-link"><img src="/img/icons/nav/docs.svg" alt="" class="nav-link-icon" />文档</a>
@@ -123,147 +123,17 @@
     })();
   </script>
 
-  <main>
-    <div class="hero-band">
-      <div class="hero-glow" aria-hidden="true"></div>
-      <svg class="hero-mark" viewBox="0 0 100 110" aria-hidden="true">
-        <path d="M74.7 14L35.2 29.2L74.7 40.6L35.2 59.5C72.6 65.8 107.7 71 33 95"></path>
-      </svg>
-
-      <div class="container hero">
-        <div class="hero-content">
-          <div class="hero-eyebrow">
-            <span class="hero-eyebrow-line"></span>
-            <span class="hero-eyebrow-text">MSIME · OPEN SOURCE IME</span>
-          </div>
-
-          <h1 class="hero-title">改善中英文输入体验，<span>一套引擎，四个平台</span></h1>
-
-          <p class="hero-desc">全拼、双拼、五笔共用同一套跨平台 C++ 引擎，Windows、macOS、Linux 与 iOS 前端各自原生实现界面与文本注入。</p>
-
-          <p class="hero-quote">墨池飞出北溟鱼，笔锋杀尽中山兔。</p>
-
-          <div class="hero-buttons btn-row">
-            <a class="btn btn-lg btn-primary" href="/download/">下载<img src="/img/icons/Download.svg" alt="" class="btn-icon" /></a>
-            <a class="btn btn-lg btn-ghost" href="/docs/">阅读文档</a>
-          </div>
-        </div>
-
-        <div class="hero-stats card-lift">
-          <div>
-            <div class="hero-stat-value">3 套</div>
-            <div class="hero-stat-label">输入方案</div>
-          </div>
-          <div>
-            <div class="hero-stat-value">5 套</div>
-            <div class="hero-stat-label">辅助码方案</div>
-          </div>
-          <div>
-            <div class="hero-stat-value">4 个</div>
-            <div class="hero-stat-label">平台前端</div>
-          </div>
-          <div>
-            <div class="hero-stat-value is-text">GPL-3.0</div>
-            <div class="hero-stat-label">100% 开源</div>
-          </div>
-        </div>
-
-        <div class="hero-demo">
-          <div class="hero-screenshot">
-            <div class="hero-screenshot-bar">
-              <span class="hero-screenshot-dot"></span>
-              <span class="hero-screenshot-dot"></span>
-              <span class="hero-screenshot-dot"></span>
-              <span class="hero-screenshot-title">水杉输入法 · 输入演示</span>
-            </div>
-            <img class="hero-media hero-media-dark" src="/img/typing_words_dark.gif" alt="输入演示" />
-            <video class="hero-media hero-media-light" muted loop playsinline preload="metadata" poster="/img/typing_words_light_poster.jpg" aria-label="输入演示">
-              <source src="/img/typing_words_light.mp4" type="video/mp4" />
-            </video>
-          </div>
-        </div>
-      </div>
+  <div class="page-hero">
+    <div class="container page-hero-inner">
+      <p class="page-hero-kicker" id="page-kicker">Metasequoia IME</p>
+      <h1 class="page-hero-title" id="page-title"></h1>
+      <p class="page-hero-lead" id="page-lead"></p>
     </div>
-
-    <section class="container section">
-      <div class="section-eyebrow" data-reveal>
-        <span>01 · 能力</span>
-        <span class="section-rule"></span>
-      </div>
-
-      <div class="feature-grid" data-reveal-stagger>
-        <div class="card card-lift feature-card" data-reveal>
-          <div class="feature-kicker">输入方案</div>
-          <div class="feature-title">全拼 · 双拼 · 五笔</div>
-          <div class="feature-desc">双拼支持小鹤、自然码、首道与微软方案，五笔提供 86 版。辅助码可选蓝天小雨点、自然码、首右 2.0、首右 Plus 和小鹤，把同音候选缩小到更容易挑选的范围。</div>
-        </div>
-        <div class="card card-lift feature-card" data-reveal>
-          <div class="feature-kicker">云候选与 AI</div>
-          <div class="feature-title">本地优先，云端可选</div>
-          <div class="feature-desc">谷歌云候选插入第一页第 2 项，DeepSeek AI 联想插入第 3 项。两者都需要网络，接口异常时不影响本地候选；API Token 只保存在本机配置里。</div>
-        </div>
-        <div class="card card-lift feature-card" data-reveal>
-          <div class="feature-kicker">界面与工具</div>
-          <div class="feature-title">候选窗之外的部分</div>
-          <div class="feature-desc">候选窗支持横排与纵排、自定义字体与皮肤，另有悬浮工具栏、语音输入、手写识别板和屏幕键盘，各界面主题都可以单独设置。</div>
-        </div>
-      </div>
-    </section>
-
-    <section class="container section">
-      <div class="section-eyebrow" data-reveal>
-        <span>02 · 开源</span>
-        <span class="section-rule"></span>
-      </div>
-
-      <div class="card open-card" data-reveal>
-        <h2>100% 开源，GPL-3.0</h2>
-        <p>输入法能看到用户输入的一切，隐私边界不该只靠承诺保证，而该能被任何人读代码检查。桌面工具软件长期由少数大厂主导，我们想留一个用户可以自己改、自己分发的选择。</p>
-        <p>项目长期招募贡献者，方向不限于写代码 —— 词库、文档、本地化、兼容性测试同样算贡献。主仓的 Issue 已经按可接手程度分类，<code>no-code</code> 完全不需要写代码。</p>
-        <div class="btn-row">
-          <a class="btn btn-primary" href="https://github.com/metasequoiaime" target="_blank" rel="noreferrer">在 GitHub 上参与</a>
-          <a class="btn btn-soft" href="/code/">看全部仓库</a>
-        </div>
-      </div>
-    </section>
-
-    <section class="container section">
-      <div class="section-eyebrow" data-reveal>
-        <span>03 · 平台与下载</span>
-        <span class="section-rule"></span>
-      </div>
-
-      <h2 class="section-title" data-reveal>四个平台，一套引擎</h2>
-      <p class="section-lead" data-reveal>前端各自原生实现，下载与安装说明统一在下载页。</p>
-
-      <div class="platform-list" data-reveal>
-        <div class="platform-row">
-          <span class="platform-name">Windows 10 / 11</span>
-          <span class="platform-desc">纯 TSF 前端 + 常驻 Server</span>
-          <span class="platform-status is-live">公开内测</span>
-        </div>
-        <div class="platform-row">
-          <span class="platform-name">macOS 12+</span>
-          <span class="platform-desc">InputMethodKit + AppKit</span>
-          <span class="platform-status">开发中</span>
-        </div>
-        <div class="platform-row">
-          <span class="platform-name">Linux</span>
-          <span class="platform-desc">IBus 前端，另含 GTK 设置程序</span>
-          <span class="platform-status">开发中</span>
-        </div>
-        <div class="platform-row">
-          <span class="platform-name">iOS</span>
-          <span class="platform-desc">宿主 App + 键盘扩展</span>
-          <span class="platform-status">开发中</span>
-        </div>
-      </div>
-
-      <div class="btn-row platform-cta" data-reveal>
-        <a class="btn btn-primary" href="/download/">前往下载页<img src="/img/icons/Download.svg" alt="" class="btn-icon" /></a>
-        <a class="btn btn-ghost" href="/code/">查看仓库</a>
-      </div>
-    </section>
+  </div>
+  <main class="content-page">
+    <div class="container">
+      <article class="docs-content privacy-content" id="privacy-content" aria-live="polite"></article>
+    </div>
   </main>
 
   <footer class="site-footer">
@@ -321,7 +191,7 @@
     </div>
   </footer>
 
-  <script type="module" src="/src/main.ts"></script>
+  <script type="module" src="/src/privacy.ts"></script>
 </body>
 
 </html>

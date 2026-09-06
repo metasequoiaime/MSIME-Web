@@ -14,6 +14,7 @@ export default defineConfig({
         about: resolve(projectRoot, "about/index.html"),
         download: resolve(projectRoot, "download/index.html"),
         price: resolve(projectRoot, "price/index.html"),
+        privacy: resolve(projectRoot, "privacy/index.html"),
         resume: resolve(projectRoot, "resume/index.html"),
       },
     },
