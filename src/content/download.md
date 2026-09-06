@@ -27,6 +27,8 @@
 
 {{securityNote}}
 
+Windows binaries are code-signed through the SignPath Foundation.
+
 #### 核对构建来源
 
 除了 SHA256，Windows 安装包还带有 GitHub 的构建来源证明（build provenance attestation），它能证明这个文件确实由本项目仓库的发布流水线构建，而不只是证明文件没被改动。安装 [GitHub CLI](https://cli.github.com) 后运行：

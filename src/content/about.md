@@ -20,8 +20,7 @@
 
 Windows 版安装程序有数字签名，以避免恶意篡改，减少杀毒软件误判。
 
-- 可执行文件签署者为："Open Source Developer LU FAN"
-- 数字签名机构为: Certum
+- Windows binaries are code-signed through the SignPath Foundation.
 - 下载水杉输入法安装包 exe 可执行文件后，如果 Windows 弹出程序没有签名的安全警告，可能是下载来源被篡改，请不要安装。
 
 如果你发现内容有误，或有功能建议，欢迎提交 [Issue](https://github.com/metasequoiaime/MSIME-Windows/issues)。

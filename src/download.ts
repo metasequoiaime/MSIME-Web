@@ -41,7 +41,7 @@ const FALLBACK_INSTALLER_NAME = "MetasequoiaIME_Setup_v<版本>.exe";
 const securityNote = (manifest: UpdateManifest): string => {
   const lines: string[] = [];
   if (manifest.signed === true) {
-    lines.push("Windows 安装包带有数字签名，签署者为 **Open Source Developer LU FAN**。安装前请在文件属性的「数字签名」标签页确认签署者；签名缺失或签署者不符，请勿安装。");
+    lines.push("Windows 安装包带有数字签名。安装前请在文件属性的「数字签名」标签页确认签名；签名缺失，请勿安装。");
   } else if (manifest.signed === false) {
     lines.push("**当前 Windows 构建未经代码签名**（文件名带 `unsigned`）。SmartScreen 会拦截，需要手动放行，且输入法的 uiAccess 会失效——候选窗无法浮在以管理员身份运行的程序之上。");
     lines.push("");
