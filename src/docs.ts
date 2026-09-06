@@ -1,11 +1,39 @@
-import docsSource from "../vendor/MSIME-Docs/guides/windows.md?raw";
+import windowsGuide from "../vendor/MSIME-Docs/guides/windows.md?raw";
+import macosGuide from "../vendor/MSIME-Docs/guides/macos.md?raw";
+import macosVoiceGuide from "../vendor/MSIME-Docs/guides/macos-voice.md?raw";
+import linuxGuide from "../vendor/MSIME-Docs/guides/linux.md?raw";
 import { renderContentPage } from "./content-page";
 import "./style.scss";
 import "./docs.scss";
 import "./site";
 
+// The site distributes Windows, macOS and Linux builds, but this page only ever rendered the Windows
+// guide -- the other three guides were written and sitting in the submodule unreferenced.
+const GUIDES = [
+  { id: "windows", label: "Windows", source: windowsGuide },
+  { id: "macos", label: "macOS", source: macosGuide },
+  { id: "macos-voice", label: "macOS 语音", source: macosVoiceGuide },
+  { id: "linux", label: "Linux", source: linuxGuide },
+] as const;
+
+type GuideId = (typeof GUIDES)[number]["id"];
+
+const isGuideId = (value: string): value is GuideId =>
+  GUIDES.some((guide) => guide.id === value);
+
+/** Pick from ?platform=, else guess from the user agent, else Windows. */
+const initialGuideId = (): GuideId => {
+  const requested = new URLSearchParams(window.location.search).get("platform");
+  if (requested && isGuideId(requested)) return requested;
+  const ua = navigator.userAgent;
+  if (/Mac OS X|Macintosh/.test(ua)) return "macos";
+  if (/Linux/.test(ua) && !/Android/.test(ua)) return "linux";
+  return "windows";
+};
+
 const docsContent = document.getElementById("docs-content");
 const docsToc = document.getElementById("docs-toc");
+const docsPlatforms = document.getElementById("docs-platforms");
 const docsSidebar = document.querySelector<HTMLElement>(".docs-sidebar");
 const docsTocToggle = document.getElementById("docs-toc-toggle");
 
@@ -19,8 +47,9 @@ docsTocToggle?.addEventListener("click", () => {
   docsTocToggle.setAttribute("aria-expanded", String(isOpen));
 });
 
-if (docsContent && docsToc) {
-  renderContentPage({ target: docsContent, source: docsSource });
+const renderGuide = (docsContent: HTMLElement, docsToc: HTMLElement, source: string) => {
+  renderContentPage({ target: docsContent, source });
+  docsToc.replaceChildren();
 
   const usedIds = new Map<string, number>();
   const sections: { heading: HTMLElement; link: HTMLAnchorElement }[] = [];
@@ -159,4 +188,48 @@ if (docsContent && docsToc) {
   // 带 hash 进来时浏览器要等一帧才滚到位；图片加载完还会顶一次版面，落定后再校准一次
   requestAnimationFrame(updateActive);
   window.addEventListener("load", updateActive);
+};
+
+if (docsContent && docsToc) {
+  let currentId: GuideId | null = null;
+
+  const show = (id: GuideId, pushState: boolean) => {
+    if (id === currentId) return;
+    const guide = GUIDES.find((candidate) => candidate.id === id);
+    if (!guide) return;
+    currentId = id;
+
+    renderGuide(docsContent, docsToc, guide.source);
+
+    docsPlatforms?.querySelectorAll<HTMLButtonElement>("button").forEach((button) => {
+      const active = button.dataset.platform === id;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-current", active ? "page" : "false");
+    });
+
+    if (pushState) {
+      const url = new URL(window.location.href);
+      url.searchParams.set("platform", id);
+      url.hash = "";
+      // replaceState so the platform tabs do not fill the back button with history entries.
+      window.history.replaceState(null, "", url);
+    }
+  };
+
+  if (docsPlatforms) {
+    for (const guide of GUIDES) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "docs-platform";
+      button.dataset.platform = guide.id;
+      button.textContent = guide.label;
+      button.addEventListener("click", () => {
+        show(guide.id, true);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+      docsPlatforms.appendChild(button);
+    }
+  }
+
+  show(initialGuideId(), false);
 }

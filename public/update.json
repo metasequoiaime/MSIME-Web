@@ -1,4 +1,8 @@
 {
-  "version": "0.2.1",
-  "releaseUrl": "https://github.com/metasequoiaime/MSIME-Windows/releases/tag/v0.2.1"
+  "version": "0.3.0",
+  "releaseUrl": "https://github.com/metasequoiaime/MSIME-Windows/releases/tag/v0.3.0",
+  "installerName": "MetasequoiaIME_Setup_v0.3.0-unsigned.exe",
+  "installerUrl": "https://github.com/metasequoiaime/MSIME-Windows/releases/download/v0.3.0/MetasequoiaIME_Setup_v0.3.0-unsigned.exe",
+  "installerSha256": "aca078d7d66ee7c403aa83233e7760efd67d928c9bda1537bdcbbf444cbf74bb",
+  "signed": false
 }
