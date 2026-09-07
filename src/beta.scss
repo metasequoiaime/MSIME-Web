@@ -23,6 +23,18 @@
   text-decoration: none;
 }
 
+/* 卡片只有半栏宽，默认的贪心换行会把末行留成一两个字。pretty 让浏览器回头调整前几行来消掉孤行；
+   站内页头的大标题用的是同一族的 balance。 */
+.beta-content p,
+.beta-content li {
+  text-wrap: pretty;
+}
+
+/* 拆开就读不顺的短语：数量词之间、以及产品名内部。中文本身处处可断，浏览器不知道哪几个字是一个词。 */
+.beta-keep {
+  white-space: nowrap;
+}
+
 .beta-notes {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

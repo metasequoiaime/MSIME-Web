@@ -48,23 +48,23 @@ export function BetaPage() {
                   。
                 </li>
                 <li>用 iPhone 打开本页，点上面的按钮，在 TestFlight 里点「接受」，再点「安装」。</li>
-                <li>装好后到「设置 → 通用 → 键盘 → 键盘 → 添加新键盘」里启用水杉输入法。</li>
+                <li>
+                  装好后到「设置 → 通用 → 键盘 → 键盘 → 添加新键盘」里启用<span className="beta-keep">水杉输入法</span>。
+                </li>
               </ol>
             </section>
 
             <section className="card doc-card beta-note" data-reveal>
               <h3>需要知道的</h3>
               <p>
-                需要 iOS 15 或更高版本。TestFlight 的每个构建 90
-                天后过期，届时从 TestFlight 里更新到新版本即可，不用重新加入。名额上限 10000 人。
+                需要 iOS 15 或更高版本。TestFlight 的每个构建 90 天后过期，届时从 TestFlight 里更新到新版本即可，不用重新加入。<span className="beta-keep">名额上限 10000 人</span>。
               </p>
             </section>
 
             <section className="card doc-card beta-note" data-reveal>
               <h3>如果链接说「不接受新测试员」</h3>
               <p>
-                那是当前构建还在 Apple 的 Beta App Review 排队，不是名额满了。审核通常一到两天，过了链接会自动重新开放，
-                过一阵再点一次即可。也可以到{" "}
+                那是当前构建还在 Apple 的 Beta App Review 排队，不是名额满了。审核通常一到两天，过了链接会自动重新开放，过一阵再点一次即可。也可以到{" "}
                 <a href="https://t.me/msimegroup" target="_blank" rel="noreferrer">
                   Telegram 群
                 </a>
@@ -75,8 +75,7 @@ export function BetaPage() {
             <section className="card doc-card beta-note" data-reveal>
               <h3>iOS 版还没有上架计划</h3>
               <p>
-                iOS 目前只有 TestFlight 这一条路，是否上架 App Store 尚未决定——词库中包含 GPL-3.0 的第三方数据，与 App
-                Store 条款存在冲突，需要先解决授权问题。进展见{" "}
+                iOS 目前只有 TestFlight 这一条路，是否上架 App Store 尚未决定：词库中包含 GPL-3.0 的第三方数据，与 App Store 条款存在冲突，需要先解决授权问题。进展见{" "}
                 <a
                   href="https://github.com/metasequoiaime/MSIME-Apple/blob/main/docs/ios-distribution.md"
                   target="_blank"
