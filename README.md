@@ -39,7 +39,9 @@ pnpm dev                      # 开发服务器
 
 Biome 只开了 linter，formatter 处于关闭状态——仓库既有代码尚未按 Biome 的风格格式化，统一格式化是一次独立的机械提交，不与功能改动混在一起。
 
-页面是多入口静态站：每个目录下的 `index.html` 配一个 `src/<name>.ts` 入口，正文写在 `src/content/<name>.md`，由 `src/content-page.ts` 渲染。新增页面时三处都要加，并在 `vite.config.ts` 的 `input` 里登记。
+站点是 React + TanStack Router，但仍然多入口：每个目录下的 `index.html` 负责直接访问时的首帧、标题与分享元数据，页面本身由路由渲染。新增一页要动五处——`<name>/index.html`、`src/page-<name>.tsx`、`src/routes.tsx` 的路由、`vite.config.ts` 的 `input`、`public/sitemap.xml`。正文是散文的页面把内容写在 `src/content/<name>.md`，交给 `src/page-content.tsx` 渲染；自定义排版的页面直接写 JSX。`scripts/site-metadata.test.mjs` 会盯着 canonical、og 标签与站点地图三边不许走偏。
+
+入口 HTML 里那段读主题的内联脚本必须逐字节照抄现有页面：CSP 不含 `unsafe-inline`，`scripts/csp-hashes.mjs` 在构建时按摘要放行，改动一个字符就会多出一条需要放行的摘要。
 
 ## 发布新版本
 

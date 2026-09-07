@@ -1,0 +1,86 @@
+/* 唯一的动作独占一行，说明卡在下面 2×2。把动作和说明并排放时它只有说明那列一半高，中间空一大块。 */
+.beta-action {
+  text-align: center;
+  padding: 34px 30px 30px;
+}
+
+.beta-notes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+  margin-top: 28px;
+}
+
+@media (max-width: 900px) {
+  .beta-notes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.beta-card {
+  padding: 28px 30px;
+}
+
+.beta-card h2 {
+  margin: 0 0 6px;
+  font-size: var(--h3-font-size);
+  font-weight: 600;
+  color: var(--lg-heading);
+}
+
+.beta-card p {
+  margin: 0 0 18px;
+  font-size: var(--font-size-body-text);
+  line-height: 1.85;
+  color: var(--text-content);
+}
+
+.beta-action p {
+  max-width: 46em;
+  margin-inline: auto;
+}
+
+.beta-cta {
+  min-width: 16rem;
+}
+
+/* 链接本身也印出来，方便在桌面端把它发到手机上；点它没用，真正能装的地方是 iPhone。选择器要压过上面的
+   `.beta-card p`，否则底部会留着那条正文用的 18px。 */
+.beta-card .beta-cta-url {
+  margin: 14px 0 0;
+  font-family: var(--mono);
+  font-size: 13.5px;
+  text-align: center;
+  color: var(--text-muted);
+  user-select: all;
+}
+
+.beta-note h3 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--lg-heading);
+}
+
+.beta-note p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.85;
+  color: var(--text-content);
+}
+
+.beta-note a {
+  color: var(--link-color);
+}
+
+.beta-steps {
+  margin: 0;
+  padding-left: 1.2em;
+  font-size: 14px;
+  line-height: 1.9;
+  color: var(--text-content);
+}
+
+.beta-steps li + li {
+  margin-top: 4px;
+}
