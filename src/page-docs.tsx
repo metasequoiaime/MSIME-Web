@@ -8,7 +8,8 @@ import { renderContent } from "./markdown";
 import { PageHero } from "./page-content";
 import { usePageMeta } from "./page-meta";
 import { detectPlatform } from "./platform";
-import { useTocScrollSpy, withHeadingIds } from "./toc";
+import { linkGuideCrossReferences, useTocScrollSpy, withHeadingIds } from "./toc";
+import { useInternalLinks } from "./use-internal-links";
 import { TocNav } from "./toc-nav";
 
 // The site distributes Windows, macOS and Linux builds, but this page only ever rendered the Windows guide -- the other three guides were written and sitting in the submodule unreferenced.
@@ -20,6 +21,8 @@ const GUIDES = [
 ] as const;
 
 type GuideId = (typeof GUIDES)[number]["id"];
+
+const GUIDE_IDS = GUIDES.map((guide) => guide.id);
 
 /** 没有 ?platform= 时按 UA 猜。三个系统各自对应一份主指南，macOS 语音那份要自己点。 */
 const guideIdFromUserAgent = (): GuideId => detectPlatform();
@@ -38,10 +41,12 @@ export function DocsPage() {
   const guide = useMemo(() => GUIDES.find((candidate) => candidate.id === guideId) ?? GUIDES[0], [guideId]);
   const content = useMemo(() => {
     const rendered = renderContent(guide.source);
-    return { ...rendered, ...withHeadingIds(rendered.bodyHtml) };
+    const linked = linkGuideCrossReferences(rendered.bodyHtml, GUIDE_IDS);
+    return { ...rendered, ...withHeadingIds(linked) };
   }, [guide]);
 
   const { activeId, lockUntilScrollEnds } = useTocScrollSpy(content.toc, articleRef, tocRef, sidebarRef);
+  useInternalLinks(articleRef);
 
   usePageMeta("文档 | 水杉输入法", "水杉输入法文档");
 

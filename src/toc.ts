@@ -3,6 +3,28 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObje
 export type TocEntry = { id: string; text: string; isSubItem: boolean };
 
 /**
+ * 把指南之间的相对链接改写成站内地址。
+ *
+ * 文档源自独立仓库，互相引用时写的是 `macos-voice.md` —— 在 GitHub 上能跳，放到站上就是死链：这一页的地址是 `/docs/?platform=xxx`，没有 `.md` 这个文件。认得出来的改写成对应的平台参数，认不出来的原样留着，不去猜。
+ */
+export const linkGuideCrossReferences = (html: string, knownGuides: readonly string[]) => {
+  const holder = document.createElement("div");
+  holder.innerHTML = html;
+
+  holder.querySelectorAll<HTMLAnchorElement>("a[href$='.md'], a[href*='.md#']").forEach((link) => {
+    const href = link.getAttribute("href") ?? "";
+    if (/^[a-z]+:|^\//i.test(href)) return;
+
+    const match = /^([\w-]+)\.md(#.*)?$/.exec(href);
+    if (!match || !knownGuides.includes(match[1])) return;
+
+    link.setAttribute("href", `/docs/?platform=${match[1]}${match[2] ?? ""}`);
+  });
+
+  return holder.innerHTML;
+};
+
+/**
  * 给正文标题编好锚点 id，同时把目录条目一并算出来。
  *
  * 文档页要二级和三级，内容页只要二级 —— 那边每个二级标题就是一张卡片，把卡片里的小标题也列进去反而失去索引的作用。

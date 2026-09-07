@@ -12,19 +12,22 @@ import { useReveal } from "./use-reveal";
  */
 const SHOTS = [
   {
-    src: "/img/edge-screenshot.png",
+    src: "/img/edge-screenshot-840w.webp",
+    srcSet: "/img/edge-screenshot-840w.webp 840w, /img/edge-screenshot-1680w.webp 1680w",
     title: "任何应用里都是同一套候选窗",
     body: "浏览器的搜索框里用双拼加辅助码打出「水杉输入法」。候选窗由输入法自己绘制，不依赖应用配合。",
     alt: "Edge 浏览器的搜索框中显示水杉输入法的候选窗，第一项是「水杉输入法」",
   },
   {
-    src: "/img/wt-screenshot.png",
+    src: "/img/wt-screenshot-840w.webp",
+    srcSet: "/img/wt-screenshot-840w.webp 840w",
     title: "辅助码把同音字缩到一屏",
     body: "终端里输入 fuvuma，候选按辅助码分开：辅助码 iU、辅助 iQ、附注 eD 各自可辨，不必翻页找字。",
     alt: "Windows Terminal 中的深色候选窗，逐项标注辅助码",
   },
   {
-    src: "/screenshots/install-finish.png",
+    src: "/screenshots/install-finish-840w.webp",
+    srcSet: "/screenshots/install-finish-840w.webp 840w",
     title: "装完即用",
     body: "安装程序结束后按提示切换输入法即可，不需要注册、不需要登录。",
     alt: "水杉输入法安装程序的完成页，勾选着启动 Server 与 Watchdog 两项",
@@ -109,7 +112,17 @@ export function FeaturesPage() {
           <section className="feature-shots" data-reveal-stagger>
             {SHOTS.map((shot) => (
               <figure className="card feature-shot" data-reveal key={shot.src}>
-                <img src={shot.src} alt={shot.alt} loading="lazy" decoding="async" />
+                {/* 卡片里最多显示 ~420px 宽，原图有 1735px。sizes 让浏览器按实际显示宽度挑，别下大的那张。 */}
+                <img
+                  src={shot.src}
+                  srcSet={shot.srcSet}
+                  sizes="(max-width: 700px) 92vw, (max-width: 1100px) 46vw, 400px"
+                  alt={shot.alt}
+                  width="840"
+                  height="525"
+                  loading="lazy"
+                  decoding="async"
+                />
                 <figcaption>
                   <strong>{shot.title}</strong>
                   <span>{shot.body}</span>

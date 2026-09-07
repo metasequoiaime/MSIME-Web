@@ -2,6 +2,7 @@ import { memo, useMemo, useRef, useState, type ReactNode } from "react";
 import { renderContent } from "./markdown";
 import { usePageMeta } from "./page-meta";
 import { useTocScrollSpy, withHeadingIds } from "./toc";
+import { useInternalLinks } from "./use-internal-links";
 import { TocNav } from "./toc-nav";
 import { useReveal } from "./use-reveal";
 
@@ -162,6 +163,7 @@ export function ContentPage({
   );
 
   const { activeId, lockUntilScrollEnds } = useTocScrollSpy(content.toc, articleRef, tocRef, sidebarRef);
+  useInternalLinks(articleRef);
 
   usePageMeta(documentTitle, description);
   useReveal([content]);
