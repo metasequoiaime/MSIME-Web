@@ -84,6 +84,38 @@ function CandidatePreview({ scheme, layout }: { scheme: "dark" | "light"; layout
   );
 }
 
+/*
+ * 候选窗的四种形态，图来自 MSIME-Windows 仓库 docs/images 下官方给的截图。
+ *
+ * 站上原来只有文字说「支持横排与纵排」「辅助码把同音候选缩小」，这几张是它们真实的样子。
+ */
+const CANDIDATE_VIEWS = [
+  {
+    id: "helpcode",
+    tab: "辅助码",
+    caption: "双拼打 uvujuurufa，候选后括号里是辅助码。同音的水杉 / 水山 / 水疝各自可辨，不必翻页。",
+    alt: "浏览器搜索框下的竖排候选窗，每个候选后面标着两位辅助码",
+  },
+  {
+    id: "horizontal",
+    tab: "横排",
+    caption: "同一串输入换成横排候选窗，占的纵向空间更少，适合行内输入。",
+    alt: "浏览器搜索框下的横排候选窗，候选项并排列出",
+  },
+  {
+    id: "emoji",
+    tab: "emoji",
+    caption: "候选里可以直接出 emoji，打词的时候顺手就能选。",
+    alt: "候选窗中部分候选项旁边显示 emoji 图标",
+  },
+  {
+    id: "mixed",
+    tab: "中英混输",
+    caption: "已经上屏的中文后面接着敲拼音，不用先切换模式再切回来。",
+    alt: "搜索框里是「水杉shurufa」，候选窗继续给出后半段的中文候选",
+  },
+] as const;
+
 const BUILT_IN_SKINS = ["Fluent", "微信绿", "石墨 Graphite", "杨柳青 Willow green"] as const;
 
 const HELP_CODES = ["蓝天小雨点", "自然码", "首右 2.0", "首右 Plus", "小鹤"] as const;
@@ -91,6 +123,8 @@ const HELP_CODES = ["蓝天小雨点", "自然码", "首右 2.0", "首右 Plus",
 const readableSize = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 
 export function FeaturesPage() {
+  const [view, setView] = useState<(typeof CANDIDATE_VIEWS)[number]["id"]>("helpcode");
+  const [settingsScheme, setSettingsScheme] = useState<"dark" | "light">("dark");
   const [scheme, setScheme] = useState<"dark" | "light">("dark");
   const [layout, setLayout] = useState<"vertical" | "horizontal">("vertical");
   const platforms = useQuery({ queryKey: ["platforms"], queryFn: fetchPlatforms, staleTime: Number.POSITIVE_INFINITY, retry: 1 });
@@ -129,6 +163,82 @@ export function FeaturesPage() {
                 </figcaption>
               </figure>
             ))}
+          </section>
+
+          <section className="card feature-block" data-reveal>
+            <div className="feature-block-head">
+              <div>
+                <p className="community-kicker">候选窗</p>
+                <h2>四种形态，同一个窗口</h2>
+              </div>
+              <fieldset className="docs-platforms">
+                <legend className="visually-hidden">选择候选窗形态</legend>
+                {CANDIDATE_VIEWS.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`docs-platform${view === item.id ? " is-active" : ""}`}
+                    aria-pressed={view === item.id}
+                    onClick={() => setView(item.id)}
+                  >
+                    {item.tab}
+                  </button>
+                ))}
+              </fieldset>
+            </div>
+
+            {CANDIDATE_VIEWS.filter((item) => item.id === view).map((item) => (
+              <figure className="feature-figure" key={item.id}>
+                <img
+                  src={`/screenshots/candidate-${item.id}-840w.webp`}
+                  srcSet={`/screenshots/candidate-${item.id}-840w.webp 840w, /screenshots/candidate-${item.id}-1680w.webp 1680w`}
+                  sizes="(max-width: 900px) 92vw, 800px"
+                  alt={item.alt}
+                  width="840"
+                  height="348"
+                  decoding="async"
+                />
+                <figcaption>{item.caption}</figcaption>
+              </figure>
+            ))}
+          </section>
+
+          <section className="card feature-block" data-reveal>
+            <div className="feature-block-head">
+              <div>
+                <p className="community-kicker">设置</p>
+                <h2>能改的东西都在一处</h2>
+                <p className="feature-block-lead">
+                  外观、输入、辅助码、快捷键、词库、皮肤、语音输入、屏幕键盘、手写识别板、悬浮工具栏、AI 辅助各占一栏，界面自身也分明暗两套。
+                </p>
+              </div>
+              <fieldset className="docs-platforms">
+                <legend className="visually-hidden">设置界面配色</legend>
+                {(["dark", "light"] as const).map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`docs-platform${settingsScheme === value ? " is-active" : ""}`}
+                    aria-pressed={settingsScheme === value}
+                    onClick={() => setSettingsScheme(value)}
+                  >
+                    {value === "dark" ? "深色" : "浅色"}
+                  </button>
+                ))}
+              </fieldset>
+            </div>
+
+            <figure className="feature-figure is-tall">
+              <img
+                src={`/screenshots/settings-${settingsScheme}-840w.webp`}
+                srcSet={`/screenshots/settings-${settingsScheme}-840w.webp 840w, /screenshots/settings-${settingsScheme}-1680w.webp 1680w`}
+                sizes="(max-width: 900px) 92vw, 760px"
+                alt={`水杉输入法设置窗口的${settingsScheme === "dark" ? "深色" : "浅色"}界面，左侧列出各个设置分区`}
+                width="840"
+                height="666"
+                decoding="async"
+              />
+            </figure>
           </section>
 
           <section className="card feature-block" data-reveal>

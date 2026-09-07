@@ -860,3 +860,29 @@
     padding: 20px;
   }
 }
+
+/* 单张大图：候选窗与设置界面各自成组，比塞进三列网格看得清 */
+.feature-figure {
+  margin: 20px 0 0;
+}
+
+.feature-figure img {
+  display: block;
+  width: 100%;
+  max-width: 800px;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: var(--card-soft), inset 0 0 0 1px var(--hair);
+}
+
+.feature-figure.is-tall img {
+  max-width: 760px;
+}
+
+.feature-figure figcaption {
+  max-width: 46em;
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text-content);
+}
