@@ -9,10 +9,7 @@ import { useTheme } from "./theme";
  *
  * 暗色主题下显示的是 GIF，样式表已经把不匹配的那个藏起来了，这里只管别让藏起来的视频在后台空转。
  */
-function useHeroVideo(videoRef: React.RefObject<HTMLVideoElement | null>, matchesTheme: boolean) {
-  const matchesThemeRef = useRef(matchesTheme);
-  matchesThemeRef.current = matchesTheme;
-
+function useHeroVideo(videoRef: React.RefObject<HTMLVideoElement | null>, source: string) {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -22,7 +19,7 @@ function useHeroVideo(videoRef: React.RefObject<HTMLVideoElement | null>, matche
     let resumeTimer = 0;
 
     const sync = () => {
-      if (!inView || scrollPaused || !matchesThemeRef.current) {
+      if (!inView || scrollPaused) {
         video.pause();
         return;
       }
@@ -64,18 +61,26 @@ function useHeroVideo(videoRef: React.RefObject<HTMLVideoElement | null>, matche
     };
   }, [videoRef]);
 
+  /*
+   * 换主题就是换一段视频。两个分支都是 <video> 且在同一个位置，React 会复用同一个 DOM 节点、只替换里面的
+   * <source> —— 而改 source 不会让媒体元素重新取流，不显式 load() 一次的话，切过去放的还是上一份。
+   * 复用节点本身是好事：上面那个 IntersectionObserver 盯的是同一个元素，不必跟着重挂。
+   */
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    if (matchesTheme) {
-      void video.play().catch(() => {});
-    } else {
-      video.pause();
-      video.currentTime = 0;
-    }
-  }, [videoRef, matchesTheme]);
+    // currentSrc 是解析后的绝对地址，已经在放这一份就不必重新取流
+    if (video.currentSrc.endsWith(source)) return;
+
+    video.load();
+    void video.play().catch(() => {});
+  }, [videoRef, source]);
 }
+
+/** 两套主题各一段演示。路径同时喂给 <source> 和播放钩子，避免两处各写一份。 */
+const LIGHT_DEMO = "/img/typing_words_light.mp4";
+const DARK_DEMO = "/img/typing_words.mp4";
 
 const FEATURES = [
   {
@@ -113,7 +118,7 @@ export function HomePage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const { isLight } = useTheme();
 
-  useHeroVideo(videoRef, isLight);
+  useHeroVideo(videoRef, isLight ? LIGHT_DEMO : DARK_DEMO);
   useReveal();
 
   return (
@@ -169,7 +174,7 @@ export function HomePage() {
               </div>
               {/*
                 只渲染当前主题用得上的那一份。样式表本来就把另一份藏起来了，但 display: none 不阻止请求 ——
-                两份一起下会白白多花 480 KB 的 GIF，而它一个像素都不会显示。
+                两份一起下会白白多取一整段视频，而它一个像素都不会显示。
               */}
               {isLight ? (
                 <video
@@ -182,10 +187,27 @@ export function HomePage() {
                   poster="/img/typing_words_light_poster.jpg"
                   aria-label="输入演示"
                 >
-                  <source src="/img/typing_words_light.mp4" type="video/mp4" />
+                  <source src={LIGHT_DEMO} type="video/mp4" />
                 </video>
               ) : (
-                <img className="hero-media hero-media-dark" src="/img/typing_words_dark.gif" alt="输入演示" />
+                /*
+                  暗色这份原来是 GIF，而那张 GIF 把录制时的窗口边框一起录进去了：第 0 行整行是 rgb(224,227,230)，
+                  左右两列的首像素同样。浅色下它跟周围一样亮，看不出来；暗色下就是 #2a2a2a 底上的一道白边。
+                  仓库里本来就有同一段演示的暗色视频，没有那道边框，还比 GIF 小 141 KB。
+                */
+                <video
+                  className="hero-media hero-media-dark"
+                  ref={videoRef}
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  poster="/img/typing_words_poster.jpg"
+                  aria-label="输入演示"
+                >
+                  <source src={DARK_DEMO} type="video/mp4" />
+                  <source src="/img/typing_words.webm" type="video/webm" />
+                </video>
               )}
             </div>
           </div>
