@@ -234,8 +234,10 @@
 /* 架构分组并排，宽屏下把面板的横向空间用起来；窄屏落回单列 */
 .download-panel-arches {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 4px 40px;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  /* 并排时两组之间靠 40px 的列距分开；窄屏堆成一列后，那条列距不起作用了，
+     架构标题会紧贴上一组的最后一行 —— 所以行距要够撑开分组。 */
+  gap: 22px 40px;
 }
 
 .download-panel-arches h3 {
@@ -285,6 +287,7 @@
   font-size: 14px;
   color: var(--link-color);
 }
+
 
 .download-panel-more a:hover {
   color: var(--primary-color);
@@ -550,17 +553,42 @@ kbd {
   box-shadow: inset 2px 0 0 var(--accent-ring);
 }
 
+/* 横向滚动交给外面的容器。右边缘那道渐隐是唯一能告诉手机用户「右边还有一列」的东西 —— 滚到底就消失。 */
+.table-scroll {
+  position: relative;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 1.2rem 0;
+}
+
+.table-scroll::after {
+  content: "";
+  position: sticky;
+  top: 0;
+  right: 0;
+  float: right;
+  width: 34px;
+  height: 100%;
+  margin-left: -34px;
+  background: linear-gradient(to left, var(--card-bg), transparent);
+  pointer-events: none;
+}
+
+.table-scroll:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 3px;
+}
+
 .docs-content table {
   width: 100%;
   border-collapse: collapse;
-  display: block;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 .docs-content th,
 .docs-content td {
-  min-width: 140px;
+  /* 手机上 140px 会把三列表推出屏幕（3×140 > 390），而「小写」这种格子根本用不到那么宽。
+     放不下的表格仍然可以横滑，这里只是让本来放得下的别被撑开。 */
+  min-width: clamp(88px, 24vw, 140px);
   padding: 0.7rem 0.8rem;
   border: 1px solid var(--card-border);
   text-align: left;
@@ -575,7 +603,7 @@ kbd {
 /* ==== CODE PAGE · 仓库列表按卡片排布 ==== */
 .code-content .doc-card ul {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
   gap: 10px;
   padding: 0;
 }
@@ -699,7 +727,7 @@ kbd {
 /* ==== FEATURES · 功能页 ==== */
 .feature-shots {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
   gap: 16px;
   margin-bottom: 16px;
 }
@@ -874,7 +902,7 @@ fieldset.docs-platforms {
 
 .feature-formats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
   gap: 12px;
   margin: 16px 0 4px;
 }
@@ -945,6 +973,45 @@ fieldset.docs-platforms {
   font-size: 12.5px;
 }
 
+/* 窄屏退回按行排：三条 max-content 轨道加起来 345px，放不进 360px 的屏幕，
+   而 max-content 不会收缩 —— 整页会因此可以横向滚动。名称独占一行，文件名和体积并排在第二行。 */
+@media screen and (max-width: 620px) {
+  .feature-dict {
+    display: block;
+  }
+
+  .feature-dict li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 10px;
+    margin-bottom: 2px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: var(--card-3);
+  }
+
+  .feature-dict li > * {
+    padding: 0;
+    border-radius: 0;
+    background: none;
+  }
+
+  .feature-dict-label {
+    flex: 1 1 100%;
+  }
+
+  .feature-dict-file {
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .feature-dict-size {
+    margin-left: auto;
+  }
+}
+
 .feature-dict-size {
   text-align: right;
   color: var(--text-muted);
@@ -1000,4 +1067,21 @@ fieldset.docs-platforms {
   font-size: 14px;
   line-height: 1.8;
   color: var(--text-content);
+}
+
+/* 触摸设备上的点击目标：平台切换和目录开关是这几页的主要操作，32–37px 高对拇指偏小。字号不动，只加高。
+   媒体查询不提升特异性，所以这一段必须排在被它覆盖的规则之后。 */
+@media (pointer: coarse) {
+  .docs-platform {
+    min-height: 44px;
+    padding-inline: 15px;
+  }
+
+  .docs-toc-toggle {
+    min-height: 44px;
+  }
+
+  .download-panel-more li > * {
+    padding: 12px 0;
+  }
 }

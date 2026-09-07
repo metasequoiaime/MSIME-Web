@@ -1400,7 +1400,7 @@ html {
 /* 卡片里再套一条滚动条，等于把大部分贡献者藏在一个没人会去拖的地方。改成整块铺开、按宽度自动分列，谁在名单上一眼看得全。 */
 .community-people {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(212px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(212px, 100%), 1fr));
   gap: 2px;
 }
 
@@ -1793,7 +1793,7 @@ html {
   }
 
   .feature-grid {
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
   }
 
   .site-footer-grid {
@@ -1927,5 +1927,24 @@ html {
 
   .site-footer-license {
     margin-left: 0;
+  }
+}
+
+/* 触摸设备上的点击目标。
+ *
+ * 顶栏那三颗（GitHub、主题、菜单）在桌面是 36px 的小圆钮，鼠标点得准；换成拇指就偏小了 —— 这三颗是每一页都在的操作，
+ * 也是手机上最常按的。按指针类型放大，而不是按屏幕宽度：带触摸屏的大平板同样需要，而窄窗口的鼠标用户不需要。 */
+@media (pointer: coarse) {
+  .header-github,
+  .theme-button,
+  .btn-toggle,
+  .btn-close {
+    width: auto;
+    min-width: 44px;
+    height: 44px;
+  }
+
+  .header-github {
+    padding: 0 17px;
   }
 }

@@ -126,6 +126,28 @@ const markUpGlyphSamples = (root: ParentNode) => {
   });
 };
 
+/**
+ * 把表格套进一个可横向滚动的容器。
+ *
+ * 表格本身原来就是 `display: block; overflow-x: auto`，所以内容能滑到 —— 但手机上没有任何迹象表明右边还有一列：390px 宽的屏幕上，三列的辅助码对照表只看得见前两列，右边缘干干净净，读者不知道「结果」那一列存在。而且 `overflow` 元素不可聚焦，键盘用户根本滚不动它。
+ *
+ * 套一层容器之后，边缘的渐隐提示由容器的伪元素来画（表格自己是 block，伪元素会跟着内容滚走），`tabindex` 让它能被聚焦、用方向键滚动，`role` 和 `aria-label` 告诉读屏这是一块可滚区域。
+ */
+const wrapScrollableTables = (root: ParentNode) => {
+  root.querySelectorAll("table").forEach((table) => {
+    if (table.parentElement?.classList.contains("table-scroll")) return;
+
+    const scroller = document.createElement("div");
+    scroller.className = "table-scroll";
+    scroller.setAttribute("role", "region");
+    scroller.setAttribute("aria-label", "表格，可横向滚动");
+    scroller.tabIndex = 0;
+
+    table.replaceWith(scroller);
+    scroller.append(table);
+  });
+};
+
 /** 一级标题与首段属于页头 hero，正文继续由 markdown 驱动 */
 const liftHero = (root: ParentNode) => {
   const heading = root.querySelector("h1");
@@ -213,6 +235,7 @@ export const renderContent = (source: string, { sectioned = false, repoRows = fa
   localizeSiteLinks(holder);
   markUpKeystrokes(holder);
   markUpGlyphSamples(holder);
+  wrapScrollableTables(holder);
   const { title, leadHtml } = liftHero(holder);
 
   if (sectioned) groupSections(holder);
