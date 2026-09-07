@@ -8,10 +8,18 @@ name: Sync platform downloads
 #
 # public/update.json 不受影响：它是 Windows 客户端「检查更新」读的接口，由 update-manifest.yml 单独维护。
 
+# 半小时一轮的 cron 只是兜底。真正让页面跟上发布的是 repository_dispatch：update-manifest.yml 早就这么做了，
+# 所以 Windows 发版后 4 秒站上就是新版本，而 macOS/Linux 要等下一轮 cron —— 2026-09-07 那天 macOS v0.48.6 发布后
+# 页面上停在 v0.47.2 十一分钟。两条链路没有理由用不同的时效。
+#
+# 上游（MSIME-Apple / MSIME-Linux）的发布流水线发完版后往本仓库投一个 `sync-platforms` 事件即可触发。
+# 上游接上之前这个触发器不会被触发，cron 照常兜底。
 on:
   schedule:
     - cron: '23,53 * * * *'
   workflow_dispatch:
+  repository_dispatch:
+    types: [sync-platforms]
 
 permissions:
   contents: read
