@@ -4,17 +4,7 @@
   padding: 2.25rem 0 0;
 }
 
-/*
- * 容器宽度由里面装什么决定。
- *
- * 首页那些卡片网格、平台列表、趋势图能随屏放大，用整站那个宽容器；成段正文不行 —— 中文一行超过 45 字左右视线扫回行首就容易串行，屏幕再宽也不该把行拉长。所以阅读页单独收窄并居中，卡片贴合这一栏，里面不会空出半边。
- *
- * 想把这段留白也用掉的话，就得往里放东西 —— 已经放了左侧小节索引；再往宽了走只能加第三栏，那是另一个量级的改动。
- */
-.docs-page > .container,
-.content-page > .container {
-  max-width: min(1160px, 94vw);
-}
+/* 正文铺满这一栏，不再单独封顶：封了顶右边缘就和顶栏、页脚对不齐。行宽改由容器宽度约束，见 --page-max 上的说明。 */
 
 /*
  * 无侧栏的内容页原本整行铺满，1440px 下一行 65 个汉字，视线扫回行首容易串行；文档页因为有侧栏挤着是一行 46 字，读起来明显舒服。
@@ -26,15 +16,10 @@
   grid-column: 1 / -1;
 }
 
-/* 小节太少（价格页只有两节）就不列索引，这时正文自己占一列。宽度仍按文档页那一栏来，左边缘和页头对齐，免得又回到一行 65 个汉字。 */
-.content-page .container:not(.docs-shell) .docs-content,
-.content-page .container:not(.docs-shell) .download-panel {
-  max-width: var(--content-measure);
-}
-
 .docs-shell {
   display: grid;
-  grid-template-columns: 250px minmax(0, 1fr);
+  /* 索引给到 280：容器变宽之后，正文那栏也跟着宽，索引多占一点能把一行压回 50 字上下 */
+  grid-template-columns: 280px minmax(0, 1fr);
   gap: 32px;
   align-items: start;
   overflow-anchor: none;

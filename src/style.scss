@@ -140,16 +140,21 @@
   @include theme-dark;
 
   --fixed-header-height: 4.25rem;
-  /* 1160 的死宽在 1920 上只占 60% 的屏、2560 上只占 45%，整站看着像一条窄带。改成跟着视口长、到 1600 封顶：卡片网格、平台列表、趋势图这些本来就该铺开。正文另有阅读上限，见下面 --reading-measure。 */
-  --page-max: min(1600px, 94vw);
+  /*
+   * 全站只有这一个容器宽度：顶栏、页脚、各页正文都读它，左右边缘因此天然对齐，换页时也不会整站宽度跳一下。
+   *
+   * 原来是死的 1160，在 1920 上只占 60% 的屏、2560 上只占 45%，整站像一条窄带。改成跟着视口长、到 1400 封顶。
+   *
+   * 上限取 1320 而不是更大：阅读页的正文要铺满这个容器（左右两边都得和顶栏、页脚齐），所以一行多少字是由容器宽度定的。1320 配上下面的字号，一行落在 50 字上下；再往宽了走，行就长到视线扫回行首会串行。
+   */
+  --page-max: min(1320px, 94vw);
   --page-gutter: clamp(1.25rem, 4vw, 3rem);
   --radius-card: 20px;
   /* 不列索引时正文那一列的宽度，取自文档页正文栏（容器 1064 减去 250 的侧栏和 32 的间距） */
-  --content-measure: 49rem;
   --mono: "SF Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-size-body-text: clamp(14px, 1.6vw, 16px);
   /* 大屏通常也坐得更远，正文跟着放大一档。阅读栏是定宽的，字号一大每行字数反而更少、更好读。 */
-  --reading-font: clamp(15.5px, 0.8vw, 17px);
+  --reading-font: clamp(15.5px, 1.22vw, 17.5px);
   --h1-font-size: calc(var(--font-size-body-text) * 2.4);
   --h2-font-size: calc(var(--h1-font-size) - 15px);
   --h3-font-size: calc(var(--h2-font-size) - 8px);
@@ -1154,12 +1159,53 @@ html {
 }
 
 /* ==== HOME · OPEN SOURCE ==== */
+/*
+ * 拆成两栏：文字一栏、按钮一栏。
+ *
+ * 之前是给段落加 max-width 把行压短，结果卡片有一半是空的 —— 和内容页那次犯的是同一个错。让按钮去占住右边，卡片被填满，行宽也自然收在 50 字上下。
+ */
+.open-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(200px, 280px);
+  column-gap: clamp(24px, 3vw, 56px);
+  align-items: start;
+}
+
+.open-card h2 {
+  grid-column: 1 / -1;
+}
+
 .open-card p {
+  grid-column: 1;
   margin: 0 0 12px;
-  max-width: 42em;
-  font-size: 15px;
+  font-size: var(--reading-font);
   line-height: 1.8;
   color: var(--text-content);
+}
+
+.open-card .btn-row {
+  grid-column: 2;
+  grid-row: 2 / span 2;
+  align-self: center;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+@media screen and (max-width: 900px) {
+  /* 窄屏放不下两栏，按钮回到文字下面 */
+  .open-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .open-card p,
+  .open-card .btn-row {
+    grid-column: 1;
+  }
+
+  .open-card .btn-row {
+    grid-row: auto;
+    flex-direction: row;
+  }
 }
 
 .open-card h2 {
@@ -1282,8 +1328,6 @@ html {
 }
 
 .page-hero-lead {
-  /* 页头摘要跟着正文栏的宽度走，不要横跨整幅 */
-  max-width: var(--content-measure);
   margin: 0;
   font-size: 17px;
   line-height: 1.8;
