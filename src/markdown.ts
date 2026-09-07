@@ -69,6 +69,9 @@ const isKeyName = (token: string) => {
  */
 const markUpKeystrokes = (root: ParentNode) => {
   root.querySelectorAll("code").forEach((element) => {
+    // 只处理行内代码。代码块整段是要照抄的命令，把里面某个词换成键帽就抄不出来了。
+    if (element.closest("pre")) return;
+
     const text = element.textContent?.trim() ?? "";
     if (!text) return;
 
@@ -111,6 +114,8 @@ const CJK_PUNCTUATION = /^[\u3000-\u303f\uff00-\uffef\u2014\u2026]{1,4}$/;
 
 const markUpGlyphSamples = (root: ParentNode) => {
   root.querySelectorAll("code").forEach((element) => {
+    if (element.closest("pre")) return;
+
     const text = element.textContent?.trim() ?? "";
     if (!CJK_PUNCTUATION.test(text)) return;
 

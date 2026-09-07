@@ -8,6 +8,19 @@ import { useReveal } from "./use-reveal";
  *
  * 不在浏览器里直接调 GitHub：光 star 历史每 100 个 stargazer 就是一次分页请求，而匿名限额是每 IP 每小时 60 次，共用出口地址的访客会直接吃到 403。读自己的文件也守住了隐私说明里那句话 —— 浏览这个站不会联系除本站以外的任何人。头像仍然来自 GitHub 的 CDN，所以带上 no-referrer。
  */
+/**
+ * 地址钉在它们该在的主机上。
+ *
+ * `z.string().url()` 只判断 `new URL()` 解不解析得了 —— `javascript:` 和 `data:` 都算合法，任意外部主机也算。头像会进 `<img src>`，主页会进 `<a href>`：前者一旦指向别处，上面那句「浏览这个站不会联系除本站以外的任何人」就不成立了；后者是用户会点的链接。
+ *
+ * 这份快照由自动化任务生成，出现预期之外的主机意味着链路出了问题，整块作废、这一节不显示，比照单渲染安全。
+ */
+const githubUrl = (prefix: string) =>
+  z
+    .string()
+    .url()
+    .refine((value) => value.startsWith(prefix), { message: `地址必须以 ${prefix} 开头` });
+
 const communitySchema = z.object({
   generatedAt: z.string(),
   totalStars: z.number().int().nonnegative(),
@@ -17,8 +30,8 @@ const communitySchema = z.object({
     .array(
       z.object({
         login: z.string(),
-        avatarUrl: z.string().url(),
-        url: z.string().url(),
+        avatarUrl: githubUrl("https://avatars.githubusercontent.com/"),
+        url: githubUrl("https://github.com/"),
         contributions: z.number().int().nonnegative(),
         repos: z.number().int().nonnegative(),
       })

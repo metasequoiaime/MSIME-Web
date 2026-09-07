@@ -46,6 +46,19 @@ class ManifestGate(unittest.TestCase):
         with self.assertRaises(ValueError):
             gate.validate(pr, ['public/update.json'], self.rules, 'a' * 40)
 
+    def test_rejects_a_closed_or_draft_pr(self):
+        for field, value in [('state', 'closed'), ('draft', True), ('state', 'merged')]:
+            pr = copy.deepcopy(self.pr)
+            pr[field] = value
+            with self.assertRaises(ValueError):
+                gate.validate(pr, ['public/update.json'], self.rules, 'a' * 40)
+
+    def test_rejects_a_base_other_than_main(self):
+        pr = copy.deepcopy(self.pr)
+        pr['base']['ref'] = 'release'
+        with self.assertRaises(ValueError):
+            gate.validate(pr, ['public/update.json'], self.rules, 'a' * 40)
+
     def test_rejects_fork_moved_head_and_other_files(self):
         for files in [[], ['public/update.json', '.github/workflows/ci.yml']]:
             with self.assertRaises(ValueError):
