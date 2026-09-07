@@ -80,12 +80,48 @@ const fillTemplate = (version: string, releaseUrl: string, manifest: Partial<Upd
     .replaceAll("{{securityNote}}", securityNote(manifest))
     .replaceAll("{{installerName}}", manifest.installerName ?? FALLBACK_INSTALLER_NAME);
 
-// Windows 的版本信息来自 update.json；另外两个平台各自在自己的仓库发版，没有等价的清单，所以只能把人送到发布页。
+// 取不到 platforms.json 时的兜底去处
 const RELEASE_PAGES: Record<Platform, string> = {
   windows: RELEASES_PAGE_URL,
   macos: "https://github.com/metasequoiaime/MSIME-Apple/releases",
   linux: "https://github.com/metasequoiaime/MSIME-Linux/releases",
 };
+
+const downloadSchema = z.object({
+  label: z.string(),
+  arch: z.string(),
+  name: z.string(),
+  url: z.string().url(),
+  size: z.number().int().nonnegative(),
+  sha256: z.string().regex(/^[0-9a-f]{64}$/).nullable().catch(null),
+});
+
+/** 由 scripts/generate-platforms.mjs 生成，三个平台各自最新一个已发布版本。 */
+const platformsSchema = z.object({
+  generatedAt: z.string(),
+  platforms: z.record(
+    z.enum(PLATFORMS),
+    z.object({
+      version: z.string(),
+      releaseUrl: z.string().url(),
+      publishedAt: z.string(),
+      prerelease: z.boolean().catch(false),
+      // 三态：true 已签名、false 未签名、null 判不出来。判不出来时页面什么都不说。
+      signed: z.boolean().nullable().catch(null),
+      downloads: z.array(downloadSchema).min(1),
+    })
+  ),
+});
+
+type PlatformRelease = z.infer<typeof platformsSchema>["platforms"][Platform];
+
+const fetchPlatforms = async () => {
+  const response = await fetch("/platforms.json");
+  if (!response.ok) throw new Error(`Platform manifest returned ${response.status}`);
+  return platformsSchema.parse(await response.json());
+};
+
+const readableSize = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 
 const PLATFORM_HINTS: Record<Platform, string> = {
   windows: "适用于 Windows 10 与 Windows 11",
@@ -98,14 +134,10 @@ const PLATFORM_HINTS: Record<Platform, string> = {
  *
  * 在这之前，这一页最主要的操作是正文项目符号里的一个文字链接，和旁边的镜像链接、说明文字一样重 —— 来下载的人得先读一段才找得到它。这里把它提到页头之下，并且让人自己选平台：按 UA 猜到的那个只是默认选中，三个入口一直都在。
  */
-function DownloadPanel({ manifest }: { manifest: UpdateManifest | undefined }) {
+function DownloadPanel({ platforms }: { platforms: Partial<Record<Platform, PlatformRelease>> | undefined }) {
   const [platform, setPlatform] = useState(detectPlatform);
-
-  const canDownloadInstaller = platform === "windows" && manifest?.installerUrl !== undefined;
-  const href = canDownloadInstaller ? (manifest?.installerUrl as string) : RELEASE_PAGES[platform];
-  const label = canDownloadInstaller
-    ? `下载 Windows 安装包 v${manifest?.version}`
-    : `前往 ${PLATFORM_LABELS[platform]} 发布页`;
+  const current = platforms?.[platform];
+  const primary = current?.downloads[0];
 
   return (
     <div className="download-panel">
@@ -126,25 +158,56 @@ function DownloadPanel({ manifest }: { manifest: UpdateManifest | undefined }) {
       </nav>
 
       <div className="download-panel-action">
-        <a className="btn btn-lg btn-primary" href={href} rel="noreferrer">
-          {label}
-          {/* 只有真的开始下文件时才配下载箭头；跳去发布页是导航，配个下载图标是在说假话 */}
-          {canDownloadInstaller && <img src="/img/icons/Download.svg" alt="" className="btn-icon" />}
+        <a
+          className="btn btn-lg btn-primary"
+          href={primary?.url ?? RELEASE_PAGES[platform]}
+          rel="noreferrer"
+        >
+          {primary ? `下载 ${PLATFORM_LABELS[platform]} 版 v${current?.version}` : `前往 ${PLATFORM_LABELS[platform]} 发布页`}
+          {primary && <img src="/img/icons/Download.svg" alt="" className="btn-icon" />}
         </a>
 
         <div className="download-panel-meta">
           <p>{PLATFORM_HINTS[platform]}</p>
-          {canDownloadInstaller && manifest?.installerName && (
+          {primary && (
             <p className="download-panel-file">
-              <code>{manifest.installerName}</code>
-              {manifest.signed === true && <span className="download-panel-signed">已签名</span>}
-              {manifest.signed === false && <span className="download-panel-unsigned">未签名</span>}
+              <code>{primary.name}</code>
+              <span>{readableSize(primary.size)}</span>
+              {/* signed 是三态：判不出来时（比如 Linux 的文件名不带签名信息）什么都不显示，而不是猜一个 */}
+              {current?.signed === true && <span className="download-panel-signed">已签名</span>}
+              {current?.signed === false && <span className="download-panel-unsigned">未签名</span>}
             </p>
           )}
         </div>
       </div>
 
-      <p className="download-panel-note">安装步骤、校验值与常见问题见下方 {PLATFORM_LABELS[platform]} 小节。</p>
+      {current && current.downloads.length > 1 && (
+        <div className="download-panel-more">
+          <span className="download-panel-more-label">其他格式</span>
+          <ul>
+            {current.downloads.slice(1).map((entry) => (
+              <li key={entry.url}>
+                <a href={entry.url} rel="noreferrer">
+                  {entry.label}
+                  <span className="download-panel-arch">{entry.arch}</span>
+                </a>
+                <span className="download-panel-size">{readableSize(entry.size)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <p className="download-panel-note">
+        {current ? (
+          <>
+            {current.prerelease ? "公开内测版本，" : ""}发布于 {current.publishedAt.slice(0, 10)}。校验值与安装步骤见下方{" "}
+            {PLATFORM_LABELS[platform]} 小节。
+          </>
+        ) : (
+          <>安装步骤、校验值与常见问题见下方 {PLATFORM_LABELS[platform]} 小节。</>
+        )}
+      </p>
     </div>
   );
 }
@@ -157,6 +220,14 @@ const fetchUpdateManifest = async (): Promise<UpdateManifest> => {
 };
 
 export function DownloadPage() {
+  // 页面自己的三平台清单。update.json 另有其主（Windows 客户端的「检查更新」），两者互不干扰。
+  const platforms = useQuery({
+    queryKey: ["platforms"],
+    queryFn: fetchPlatforms,
+    staleTime: Number.POSITIVE_INFINITY,
+    retry: 1,
+  });
+
   const manifest = useQuery({
     queryKey: ["update-manifest"],
     queryFn: fetchUpdateManifest,
@@ -186,7 +257,7 @@ export function DownloadPage() {
       contentId="download-content"
       contentClass="download-content"
       sectioned
-      banner={<DownloadPanel manifest={manifest.data} />}
+      banner={<DownloadPanel platforms={platforms.data?.platforms} />}
     />
   );
 }

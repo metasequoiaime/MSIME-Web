@@ -217,6 +217,68 @@
   color: color-mix(in oklab, #d9822b 78%, var(--lg-heading));
 }
 
+/* 主推那个之外的包：Linux 有 deb / rpm / tar.gz 各两种架构，摆成一排让人自己挑，而不是逼他去 Release 页翻 */
+.download-panel-more {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--hair);
+}
+
+.download-panel-more-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.download-panel-more ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 2px;
+}
+
+.download-panel-more li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  transition: background-color 0.18s ease;
+}
+
+.download-panel-more li:hover {
+  background: var(--card-3);
+}
+
+.download-panel-more a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--link-color);
+}
+
+.download-panel-more a:hover {
+  color: var(--primary-color);
+}
+
+.download-panel-arch {
+  padding: 1px 7px;
+  border-radius: 8px;
+  background: var(--chip-bg);
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.download-panel-size {
+  flex: none;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
 .download-panel-note {
   margin: 16px 0 0;
   padding-top: 14px;
