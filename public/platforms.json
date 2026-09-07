@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-07T10:40:15.370Z",
+  "generatedAt": "2026-09-07T11:49:30.263Z",
   "platforms": {
     "windows": {
       "repository": "metasequoiaime/MSIME-Windows",
@@ -21,27 +21,27 @@
     },
     "macos": {
       "repository": "metasequoiaime/MSIME-Apple",
-      "version": "0.47.2",
-      "releaseUrl": "https://github.com/metasequoiaime/MSIME-Apple/releases/tag/v0.47.2",
-      "publishedAt": "2026-09-06T10:33:39Z",
+      "version": "0.48.6",
+      "releaseUrl": "https://github.com/metasequoiaime/MSIME-Apple/releases/tag/v0.48.6",
+      "publishedAt": "2026-09-07T11:37:59Z",
       "prerelease": true,
-      "signed": false,
+      "signed": true,
       "downloads": [
         {
           "label": "安装包 · pkg",
           "arch": "Universal",
-          "name": "MetasequoiaIME-v0.47.2-macos-universal-unsigned.pkg",
-          "url": "https://github.com/metasequoiaime/MSIME-Apple/releases/download/v0.47.2/MetasequoiaIME-v0.47.2-macos-universal-unsigned.pkg",
-          "size": 52670532,
-          "sha256": "30395fb6b95b00ad75038effdefe0574ad245fbf86b7c26a5f316597d25b26ca"
+          "name": "MetasequoiaIME-v0.48.6-macos-universal.pkg",
+          "url": "https://github.com/metasequoiaime/MSIME-Apple/releases/download/v0.48.6/MetasequoiaIME-v0.48.6-macos-universal.pkg",
+          "size": 52802109,
+          "sha256": "cfd048c73a59eaf3a2df7fbb1308cfe883fc4fd146df4d5f893bef8eff220645"
         },
         {
           "label": "压缩包 · zip",
           "arch": "Universal",
-          "name": "MetasequoiaIME-v0.47.2-macos-universal-unsigned.zip",
-          "url": "https://github.com/metasequoiaime/MSIME-Apple/releases/download/v0.47.2/MetasequoiaIME-v0.47.2-macos-universal-unsigned.zip",
-          "size": 52790284,
-          "sha256": "e38a21a0813e22198a2cef5585d01f580d6f8b64f85164060b9d7763607c4178"
+          "name": "MetasequoiaIME-v0.48.6-macos-universal.zip",
+          "url": "https://github.com/metasequoiaime/MSIME-Apple/releases/download/v0.48.6/MetasequoiaIME-v0.48.6-macos-universal.zip",
+          "size": 52902428,
+          "sha256": "bda296340cb0950e14bb7c7c717e7750c6e4de198b037bfd947d71c07c6cf724"
         }
       ]
     },

@@ -81,8 +81,10 @@ const securityNote = (manifest: Partial<UpdateManifest>): string => {
  */
 const PLATFORM_SIGNING: Record<"macos" | "linux", Record<"signed" | "unsigned" | "unknown", string>> = {
   macos: {
+    // 文件名去掉 `unsigned` 只说明它没被标成未签名，不代表过了 Apple 公证 —— 公证与否决定首次打开会不会被 Gatekeeper 拦，
+    // 这是文件名承载不了的信息。写「不会被拦截」是拿一个约定去担保另一件事，用户真被拦了就是页面在撒谎。
     signed:
-      "当前构建已经过 Apple 公证，首次打开不会被系统拦截。每个版本仍附带 `.sha256` 校验文件，可用 `shasum -a 256` 核对下载完整性。",
+      "当前构建已签名，文件名中不再带 `unsigned`。是否已通过 Apple 公证请以发布说明为准：若首次打开被系统拦截，可在「系统设置 → 隐私与安全性」中放行。每个版本仍附带 `.sha256` 校验文件，可用 `shasum -a 256` 核对下载完整性。",
     unsigned:
       "当前构建**未经 Apple 公证**，文件名中带 `unsigned`。首次打开时系统会拦截，需要在「系统设置 → 隐私与安全性」中手动放行。每个版本都附带 `.sha256` 校验文件，可用 `shasum -a 256` 核对下载完整性。",
     unknown:
