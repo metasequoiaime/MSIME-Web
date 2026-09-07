@@ -29,13 +29,11 @@ export function BetaPage() {
         <div className="container docs-content beta-content">
           <section className="card doc-card beta-action" data-reveal>
             <h2>加入内测</h2>
-            <p>在 iPhone 上打开下面的链接即可安装。本站不收集任何信息。</p>
+            <p>在 iPhone 上点下面的按钮即可安装。本站不收集任何信息。</p>
 
             <a className="btn btn-primary btn-lg beta-cta" href={TESTFLIGHT_LINK} target="_blank" rel="noreferrer">
               在 TestFlight 中打开
             </a>
-
-            <p className="beta-cta-url">{TESTFLIGHT_LINK.replace("https://", "")}</p>
           </section>
 
           <div className="beta-notes">
@@ -49,7 +47,7 @@ export function BetaPage() {
                   </a>
                   。
                 </li>
-                <li>用 iPhone 打开上面的链接，在 TestFlight 里点「接受」，再点「安装」。</li>
+                <li>用 iPhone 打开本页，点上面的按钮，在 TestFlight 里点「接受」，再点「安装」。</li>
                 <li>装好后到「设置 → 通用 → 键盘 → 键盘 → 添加新键盘」里启用水杉输入法。</li>
               </ol>
             </section>

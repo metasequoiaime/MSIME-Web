@@ -23,15 +23,6 @@
   text-decoration: none;
 }
 
-/* 链接本身也印出来，方便在桌面端把它发到手机上；点它没用，真正能装的地方是 iPhone。 */
-.beta-cta-url {
-  font-family: var(--mono);
-  font-size: 0.86em;
-  text-align: center;
-  color: var(--text-muted);
-  user-select: all;
-}
-
 .beta-notes {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
