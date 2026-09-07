@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import downloadSource from "./content/download.md?raw";
@@ -137,12 +138,14 @@ const fillTemplate = (
     .replaceAll("{{linuxPackages}}", linux.packages);
 };
 
-// 取不到 platforms.json 时的兜底去处
-const RELEASE_PAGES: Record<Platform, string> = {
+// 取不到 platforms.json 时的兜底去处。iOS 不在这里：它没有发布产物，去处是站内那一页，见 BETA_PAGE。
+const RELEASE_PAGES: Record<Exclude<Platform, "ios">, string> = {
   windows: RELEASES_PAGE_URL,
   macos: "https://github.com/metasequoiaime/MSIME-Apple/releases",
   linux: "https://github.com/metasequoiaime/MSIME-Linux/releases",
 };
+
+const BETA_PAGE = "/beta/" as const;
 
 const readableSize = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 
@@ -186,6 +189,7 @@ export const describePackages = (downloads: PlatformRelease["downloads"] | undef
 const PLATFORM_HINTS: Record<Platform, string> = {
   windows: "适用于 Windows 10 与 Windows 11",
   macos: "适用于 macOS 12 及以上",
+  ios: "适用于 iOS 15 及以上，通过 TestFlight 安装",
   linux: "IBus 前端",
 };
 
@@ -237,14 +241,19 @@ function DownloadPanel({ platforms }: { platforms: Partial<Record<Platform, Plat
       </nav>
 
       <div className="download-panel-action">
-        <a
-          className="btn btn-lg btn-primary"
-          href={primary?.url ?? RELEASE_PAGES[platform]}
-          rel="noreferrer"
-        >
-          {primary ? `下载 ${PLATFORM_LABELS[platform]} 版 v${current?.version}` : `前往 ${PLATFORM_LABELS[platform]} 发布页`}
-          {primary && <img src="/img/icons/Download.svg" alt="" className="btn-icon" />}
-        </a>
+        {/* iOS 这一栏没有可下的文件，按钮通向站内的内测页；用路由的 Link，点了不整页重载 */}
+        {platform === "ios" ? (
+          <Link className="btn btn-lg btn-primary" to={BETA_PAGE}>
+            查看 iOS 内测
+          </Link>
+        ) : (
+          <a className="btn btn-lg btn-primary" href={primary?.url ?? RELEASE_PAGES[platform]} rel="noreferrer">
+            {primary
+              ? `下载 ${PLATFORM_LABELS[platform]} 版 v${current?.version}`
+              : `前往 ${PLATFORM_LABELS[platform]} 发布页`}
+            {primary && <img src="/img/icons/Download.svg" alt="" className="btn-icon" />}
+          </a>
+        )}
 
         <div className="download-panel-meta">
           <p>{PLATFORM_HINTS[platform]}</p>
@@ -285,7 +294,10 @@ function DownloadPanel({ platforms }: { platforms: Partial<Record<Platform, Plat
       )}
 
       <p className="download-panel-note">
-        {current ? (
+        {platform === "ios" ? (
+          // 没有版本号也没有校验值可说：iOS 装的是 TestFlight 当前放出的那个构建，版本由 Apple 那边决定。
+          <>不需要邮箱，也不需要开发者账号。上架计划与常见问题见下方 iOS 小节。</>
+        ) : current ? (
           <>
             {current.prerelease ? "公开测试版本，" : ""}发布于 {current.publishedAt.slice(0, 10)}。校验值与安装步骤见下方{" "}
             {PLATFORM_LABELS[platform]} 小节。
