@@ -122,6 +122,16 @@ const HELP_CODES = ["蓝天小雨点", "自然码", "首右 2.0", "首右 Plus",
 
 const readableSize = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 
+/**
+ * 给长路径加上断行机会。
+ *
+ * 浏览器不在反斜杠处断行，整条路径就是一个不可拆的词：行尾剩下的宽度装不下它时，整行提前折掉，右边空出一大块。在每个分隔符后插一个 `<wbr>`，需要折行时断在分隔符处，而不是断在词中间，也不是把整行顶断。
+ */
+const breakAtSeparators = (path: string) =>
+  path
+    .split(/(?<=[\\/])/)
+    .flatMap((part, index, all) => (index === 0 ? [part] : [<wbr key={all.slice(0, index).join("")} />, part]));
+
 export function FeaturesPage() {
   const [view, setView] = useState<(typeof CANDIDATE_VIEWS)[number]["id"]>("helpcode");
   const [settingsScheme, setSettingsScheme] = useState<"dark" | "light">("dark");
@@ -192,7 +202,7 @@ export function FeaturesPage() {
                 <img
                   src={`/screenshots/candidate-${item.id}-840w.webp`}
                   srcSet={`/screenshots/candidate-${item.id}-840w.webp 840w, /screenshots/candidate-${item.id}-1680w.webp 1680w`}
-                  sizes="(max-width: 900px) 92vw, 800px"
+                  sizes="(max-width: 900px) 92vw, min(1170px, 86vw)"
                   alt={item.alt}
                   width="840"
                   height="348"
@@ -248,7 +258,7 @@ export function FeaturesPage() {
                 <h2>候选窗可以整套换掉</h2>
                 <p className="feature-block-lead">
                   内置 {BUILT_IN_SKINS.join(" / ")} 四套。外部皮肤把含 <code>skin.toml</code> 的文件夹放进{" "}
-                  <code>%LOCALAPPDATA%\metasequoiaime\skins</code> 再点「刷新皮肤」即可。
+                  <code>{breakAtSeparators("%LOCALAPPDATA%\\metasequoiaime\\skins")}</code> 再点「刷新皮肤」即可。
                 </p>
               </div>
 
@@ -330,7 +340,10 @@ export function FeaturesPage() {
                   {dictionary.files.map((file: Dictionary["files"][number]) => (
                     <li key={file.name}>
                       <span className="feature-dict-label">{file.label}</span>
-                      <code>{file.name}</code>
+                      {/* 外面这层负责铺整行底色，里面的 code 才是那个小色块 */}
+                      <span className="feature-dict-file">
+                        <code>{file.name}</code>
+                      </span>
                       <span className="feature-dict-size">{readableSize(file.size)}</span>
                     </li>
                   ))}

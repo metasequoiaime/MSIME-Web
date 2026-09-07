@@ -231,30 +231,57 @@
   color: var(--text-muted);
 }
 
+/* 架构分组并排，宽屏下把面板的横向空间用起来；窄屏落回单列 */
+.download-panel-arches {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 4px 40px;
+}
+
+.download-panel-arches h3 {
+  margin: 0 0 2px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 组内是「格式 + 体积」两栏。两栏都按内容取宽，不去撑满整个分组 —— 撑满的话名字和体积之间会隔开半个面板，看一眼得横着找回去。 */
 .download-panel-more ul {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 2px;
+  grid-template-columns: max-content max-content;
+  align-items: center;
+  gap: 0 28px;
+  justify-content: start;
 }
 
 .download-panel-more li {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 7px 10px;
-  border-radius: 10px;
+  display: contents;
+}
+
+.download-panel-more li > * {
+  padding: 6px 0;
   transition: background-color 0.18s ease;
 }
 
-.download-panel-more li:hover {
+/* li 不再是盒子，整行的悬停底色要靠两个字段各自铺一段，首尾补上圆角 */
+.download-panel-more li:hover > * {
   background: var(--card-3);
 }
 
+.download-panel-more li > *:first-child {
+  padding-left: 10px;
+  border-radius: 10px 0 0 10px;
+}
+
+.download-panel-more li > *:last-child {
+  padding-right: 10px;
+  border-radius: 0 10px 10px 0;
+}
+
 .download-panel-more a {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
   font-size: 14px;
   color: var(--link-color);
 }
@@ -273,7 +300,7 @@
 }
 
 .download-panel-size {
-  flex: none;
+  text-align: right;
   font-size: 12.5px;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
@@ -676,7 +703,6 @@
 }
 
 .feature-block-lead {
-  max-width: 46em;
   margin: 0;
   font-size: 15px;
   line-height: 1.85;
@@ -693,6 +719,12 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 18px 28px;
+}
+
+/* 文字栏吃掉切换按钮之外的全部宽度。不给它 flex 的话，宽度由内容决定，右边会空出一大块。 */
+.feature-block-head > div:first-child {
+  flex: 1 1 420px;
+  min-width: 0;
 }
 
 .feature-toggles {
@@ -780,7 +812,6 @@ fieldset.docs-platforms {
 }
 
 .skin-note {
-  max-width: 44em;
   margin: 0;
   font-size: 13.5px;
   line-height: 1.8;
@@ -814,26 +845,42 @@ fieldset.docs-platforms {
   tab-size: 12;
 }
 
+/* 三列表格：名称、文件名、体积。整份列表共用一套列宽（li 用 display:contents 把三个字段直接交给网格），否则「日文词典（源自 Mozc）」比别人宽，后面两列就整行错开。 */
 .feature-dict {
   display: grid;
-  gap: 2px;
-  margin: 12px 0 4px;
-}
-
-.feature-dict li {
-  display: flex;
+  grid-template-columns: max-content max-content 1fr;
   align-items: baseline;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  background: var(--card-3);
+  gap: 2px 12px;
+  margin: 12px 0 4px;
   font-size: 14px;
 }
 
+.feature-dict li {
+  display: contents;
+}
+
+/* 行底色由三个字段各自铺一段拼出来，首尾补圆角 */
+.feature-dict li > * {
+  padding: 8px 0;
+  background: var(--card-3);
+}
+
+.feature-dict li > *:first-child {
+  padding-left: 10px;
+  border-radius: 10px 0 0 10px;
+}
+
+.feature-dict li > *:last-child {
+  padding-right: 10px;
+  border-radius: 0 10px 10px 0;
+}
+
 .feature-dict-label {
-  min-width: 9em;
   color: var(--lg-heading);
+}
+
+.feature-dict-file {
+  white-space: nowrap;
 }
 
 .feature-dict code {
@@ -845,11 +892,12 @@ fieldset.docs-platforms {
 }
 
 .feature-dict-size {
-  margin-left: auto;
+  text-align: right;
   color: var(--text-muted);
   font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
+
 
 .feature-chips {
   display: flex;
@@ -873,7 +921,8 @@ fieldset.docs-platforms {
   }
 }
 
-/* 单张大图：候选窗与设置界面各自成组，比塞进三列网格看得清 */
+/* 单张大图：候选窗与设置界面各自成组，比塞进三列网格看得清。
+   不给图设固定上限 —— 候选窗源图 1680×696、设置窗 1332×1056，撑到卡片宽度（约 1170px）都还在原始像素以内，压到 800px 只会在右边留一块死白。 */
 .feature-figure {
   margin: 20px 0 0;
 }
@@ -881,18 +930,18 @@ fieldset.docs-platforms {
 .feature-figure img {
   display: block;
   width: 100%;
-  max-width: 800px;
   height: auto;
   border-radius: 12px;
   box-shadow: var(--card-soft), inset 0 0 0 1px var(--hair);
 }
 
+/* 设置窗那张的源图只有 1332×1056（就是实际窗口大小），铺到卡片宽在高分屏上会发虚。留着上限，改成居中，空白左右对称，不像是漏排了一块。 */
 .feature-figure.is-tall img {
   max-width: 760px;
+  margin-inline: auto;
 }
 
 .feature-figure figcaption {
-  max-width: 46em;
   margin-top: 12px;
   font-size: 14px;
   line-height: 1.8;

@@ -188,6 +188,23 @@ const PLATFORM_HINTS: Record<Platform, string> = {
 };
 
 /**
+ * 按架构把下载分组。
+ *
+ * 这批文件是「架构 × 格式」的矩阵：Linux 三种格式各出 x86_64 和 aarch64 两份。平铺成一列的话每行都要贴一个架构标签，同一个词重复五遍；按架构分组之后那个词只出现一次，而且对得上人挑包的顺序 —— 先确定自己是什么机器，再选发行版对应的格式。顺序沿用清单里的先后，不另外排。
+ */
+const groupByArch = (downloads: PlatformRelease["downloads"]) => {
+  const groups = new Map<string, PlatformRelease["downloads"]>();
+
+  for (const entry of downloads) {
+    const existing = groups.get(entry.arch);
+    if (existing) existing.push(entry);
+    else groups.set(entry.arch, [entry]);
+  }
+
+  return [...groups];
+};
+
+/**
  * 页面顶部的下载入口。
  *
  * 在这之前，这一页最主要的操作是正文项目符号里的一个文字链接，和旁边的镜像链接、说明文字一样重 —— 来下载的人得先读一段才找得到它。这里把它提到页头之下，并且让人自己选平台：按 UA 猜到的那个只是默认选中，三个入口一直都在。
@@ -226,13 +243,11 @@ function DownloadPanel({ platforms }: { platforms: Partial<Record<Platform, Plat
         </a>
 
         <div className="download-panel-meta">
-          <p>
-            {PLATFORM_HINTS[platform]}
-            {current && `，${describePackages(current.downloads)}`}
-          </p>
+          <p>{PLATFORM_HINTS[platform]}</p>
           {primary && (
             <p className="download-panel-file">
               <code>{primary.name}</code>
+              <span className="download-panel-arch">{primary.arch}</span>
               <span>{readableSize(primary.size)}</span>
               {/* signed 是三态：判不出来时（比如 Linux 的文件名不带签名信息）什么都不显示，而不是猜一个 */}
               {current?.signed === true && <span className="download-panel-signed">已签名</span>}
@@ -244,18 +259,24 @@ function DownloadPanel({ platforms }: { platforms: Partial<Record<Platform, Plat
 
       {current && current.downloads.length > 1 && (
         <div className="download-panel-more">
-          <span className="download-panel-more-label">其他格式</span>
-          <ul>
-            {current.downloads.slice(1).map((entry) => (
-              <li key={entry.url}>
-                <a href={entry.url} rel="noreferrer">
-                  {entry.label}
-                  <span className="download-panel-arch">{entry.arch}</span>
-                </a>
-                <span className="download-panel-size">{readableSize(entry.size)}</span>
-              </li>
+          <span className="download-panel-more-label">全部下载</span>
+          <div className="download-panel-arches">
+            {groupByArch(current.downloads).map(([arch, entries]) => (
+              <section key={arch}>
+                <h3>{arch}</h3>
+                <ul>
+                  {entries.map((entry) => (
+                    <li key={entry.url}>
+                      <a href={entry.url} rel="noreferrer">
+                        {entry.label}
+                      </a>
+                      <span className="download-panel-size">{readableSize(entry.size)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
             ))}
-          </ul>
+          </div>
         </div>
       )}
 
