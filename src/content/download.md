@@ -27,8 +27,6 @@
 
 {{securityNote}}
 
-Windows binaries are code-signed through the SignPath Foundation.
-
 #### 核对构建来源
 
 除了 SHA256，Windows 安装包还带有 GitHub 的构建来源证明（build provenance attestation），它能证明这个文件确实由本项目仓库的发布流水线构建，而不只是证明文件没被改动。安装 [GitHub CLI](https://cli.github.com) 后运行：
@@ -41,11 +39,11 @@ gh attestation verify .\{{installerName}} --repo metasequoiaime/MSIME-Windows
 
 ## macOS
 
-适用于 macOS 12 及以上，提供 Universal 构建（同时支持 Apple Silicon 与 Intel）。当前最新版本：**v{{macosVersion}}**
+适用于 macOS 12 及以上。当前最新版本：**v{{macosVersion}}**，{{macosPackages}}。
 
 - [GitHub Release 下载]({{macosReleaseUrl}}) — 官方发布位置，随包附带校验值
 
-下载 `.pkg` 安装，或下载 `.zip` 后把输入法包放进 `~/Library/Input Methods`，再到「系统设置 → 键盘 → 文字输入 → 编辑」中启用「水杉输入法」。
+安装包直接双击运行；压缩包解开后把输入法包放进 `~/Library/Input Methods`，再到「系统设置 → 键盘 → 文字输入 → 编辑」中启用「水杉输入法」。
 
 {{macosSigning}}
 
@@ -53,11 +51,11 @@ macOS 版内置 Sparkle 自动更新，安装后可从输入法菜单中的「�
 
 ## Linux
 
-以 IBus 输入法的形式提供，支持 x86_64 与 aarch64。当前最新版本：**v{{linuxVersion}}**
+以 IBus 输入法的形式提供。当前最新版本：**v{{linuxVersion}}**，{{linuxPackages}}。
 
 - [GitHub Release 下载]({{linuxReleaseUrl}}) — 官方发布位置，随包附带校验值
 
-每个版本提供 `.deb`、`.rpm` 和 `.tar.gz` 三种包，按发行版选择。安装后重启 IBus，再在桌面环境的输入源设置中添加「Metasequoia IME」。
+按发行版选择对应的包。安装后重启 IBus，再在桌面环境的输入源设置中添加「Metasequoia IME」。
 
 {{linuxSigning}}
 

@@ -113,6 +113,7 @@ const fillTemplate = (
       version: release?.version ?? "暂时无法获取",
       releaseUrl: release?.releaseUrl ?? fallbackUrl,
       signing: PLATFORM_SIGNING[platform][signingKey(release?.signed)],
+      packages: describePackages(release?.downloads),
     };
   };
 
@@ -127,9 +128,11 @@ const fillTemplate = (
     .replaceAll("{{macosVersion}}", macos.version)
     .replaceAll("{{macosReleaseUrl}}", macos.releaseUrl)
     .replaceAll("{{macosSigning}}", macos.signing)
+    .replaceAll("{{macosPackages}}", macos.packages)
     .replaceAll("{{linuxVersion}}", linux.version)
     .replaceAll("{{linuxReleaseUrl}}", linux.releaseUrl)
-    .replaceAll("{{linuxSigning}}", linux.signing);
+    .replaceAll("{{linuxSigning}}", linux.signing)
+    .replaceAll("{{linuxPackages}}", linux.packages);
 };
 
 // 取不到 platforms.json 时的兜底去处
@@ -141,10 +144,47 @@ const RELEASE_PAGES: Record<Platform, string> = {
 
 const readableSize = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 
+/*
+ * 「有哪些包、支持哪些架构」这类事实，从产物里数出来，不写在文案里。
+ *
+ * 之前正文和面板都是手写清单（「提供 .deb、.rpm 和 .tar.gz 三种包」「支持 x86_64 与 aarch64」）。发布流水线哪天多出一种包或砍掉一种架构，这些句子不会跟着变，页面就开始说谎 —— 和手写签名结论是同一类毛病。
+ */
+const FORMAT_OF = (name: string) => {
+  const match = /\.(deb|rpm|pkg|zip|exe|tar\.gz)$/i.exec(name);
+  return match ? match[1].toLowerCase() : null;
+};
+
+/* 中英混排里，连接词两侧要留空格，否则「pkg与zip」会连成一团 */
+const joinCn = (items: string[]) =>
+  items.length <= 1 ? (items[0] ?? "") : `${items.slice(0, -1).join("、")} 与 ${items[items.length - 1]}`;
+
+const COUNT_CN = ["", "一", "两", "三", "四", "五", "六", "七", "八"];
+
+export const describePackages = (downloads: PlatformRelease["downloads"] | undefined) => {
+  if (!downloads?.length) return "包体清单暂时无法获取";
+
+  const formats = [...new Set(downloads.map((entry) => FORMAT_OF(entry.name)).filter((f): f is string => f !== null))];
+  const arches = [...new Set(downloads.map((entry) => entry.arch))];
+
+  // 清单是穷举的，不写「等」
+  const formatPart = formats.length
+    ? formats.length === 1
+      ? `提供 ${formats[0]} 包`
+      : `提供 ${joinCn(formats)} ${COUNT_CN[formats.length] ?? formats.length}种包`
+    : "";
+
+  // macOS 只有一个 Universal 标注，说「覆盖 Universal」不像话
+  const archPart =
+    arches.length === 1 && arches[0] === "Universal" ? "为 Universal 构建" : arches.length ? `覆盖 ${joinCn(arches)}` : "";
+
+  return [formatPart, archPart].filter(Boolean).join("，");
+};
+
+// 系统要求是产品决策，不在产物里，只能写下来
 const PLATFORM_HINTS: Record<Platform, string> = {
   windows: "适用于 Windows 10 与 Windows 11",
-  macos: "适用于 macOS 12 及以上，Apple Silicon 与 Intel 通用",
-  linux: "IBus 前端，提供 .deb、.rpm 与 .tar.gz",
+  macos: "适用于 macOS 12 及以上",
+  linux: "IBus 前端",
 };
 
 /**
@@ -186,7 +226,10 @@ function DownloadPanel({ platforms }: { platforms: Partial<Record<Platform, Plat
         </a>
 
         <div className="download-panel-meta">
-          <p>{PLATFORM_HINTS[platform]}</p>
+          <p>
+            {PLATFORM_HINTS[platform]}
+            {current && `，${describePackages(current.downloads)}`}
+          </p>
           {primary && (
             <p className="download-panel-file">
               <code>{primary.name}</code>
