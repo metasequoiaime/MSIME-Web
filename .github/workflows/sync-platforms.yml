@@ -2,13 +2,15 @@ name: Sync platform downloads
 
 # public/platforms.json 给下载页提供三个平台各自的最新版本与安装包。三个平台在各自的仓库发版，版本号互不相通，所以要逐个仓库取。
 #
-# 这个 PR 不自动合并。scripts/enable-manifest-automerge.py 只接受「改动恰好是 public/update.json」的差异，放宽那份白名单是在动自动化的安全边界，得由仓库维护者单独审一次，不该作为加一个数据文件的副作用。在那之前这个 PR 需要人工合并。
+# 和发布清单一样自动合并：不自动合就等于没有 —— PR 堆在那里没人合，页面上的版本号会一直停在最后一次人工生成的时刻。
+# 守卫（scripts/enable-manifest-automerge.py）把分支和它能改的文件绑死：这条分支只能改 public/platforms.json，
+# 其余检查（单文件、非草稿、base 为 main、head sha 精确匹配、同仓来源、main 必须有 PR 规则和三项必需检查）一律不变。
 #
 # public/update.json 不受影响：它是 Windows 客户端「检查更新」读的接口，由 update-manifest.yml 单独维护。
 
 on:
   schedule:
-    - cron: '23 */6 * * *'
+    - cron: '23,53 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -61,6 +63,7 @@ jobs:
       - name: Create or update the downloads PR
         if: steps.write.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        id: proposal
         with:
           # A trusted token triggers PR CI and deployment after merging.
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
@@ -70,4 +73,13 @@ jobs:
           delete-branch: true
           commit-message: 'chore(site): refresh platform download manifest'
           title: 'chore(site): refresh platform download manifest'
-          body: 'Latest published release and packages for Windows, macOS and Linux. Merge by hand: this file is outside the release manifest auto-merge allowlist.'
+          body: 'Latest published release and packages for Windows, macOS and Linux. Auto-merge requires the normal build, workflow validation and dependency review.'
+
+      - name: Enable auto-merge behind the required checks
+        if: steps.proposal.outputs.pull-request-number != '' && steps.proposal.outputs.pull-request-operation != 'closed'
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ steps.proposal.outputs.pull-request-number }}
+          HEAD_SHA: ${{ steps.proposal.outputs.pull-request-head-sha }}
+        run: python3 scripts/enable-manifest-automerge.py --repo "$GH_REPO" --pr "$PR_NUMBER" --sha "$HEAD_SHA"

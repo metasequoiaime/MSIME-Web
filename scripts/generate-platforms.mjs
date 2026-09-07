@@ -40,6 +40,23 @@ const RULES = {
   ],
 };
 
+/*
+ * 版本号规则与 update.json 那份保持一致，两份清单必须对同一个仓库给出同一个版本。
+ *
+ * 不统一的后果刚发生过：上游发了 v0.6.2-beta，update.json 按规则拒掉（带后缀的 tag 不算正式版本），这份却收了，于是同一页上下载按钮说 v0.6.2-beta、正文说 v0.5.4。
+ *
+ * 选最高版本而不是最新发布，也是照搬那边的做法：补发一个旧版本不该把页面推回去。
+ */
+const RELEASE_TAG = /^v?\d+\.\d+\.\d+(?:\.\d+)?$/;
+
+const versionOrder = (left, right) => {
+  const a = left.split('.').map(Number), b = right.split('.').map(Number);
+  for (let i = 0; i < Math.max(a.length, b.length); i += 1) {
+    if ((a[i] || 0) !== (b[i] || 0)) return (b[i] || 0) - (a[i] || 0);
+  }
+  return 0;
+};
+
 const sha256Of = asset =>
   typeof asset.digest === 'string' && asset.digest.startsWith('sha256:')
     ? asset.digest.slice('sha256:'.length)
@@ -83,20 +100,25 @@ export const signingState = (platform, downloads) => {
 };
 
 export function selectRelease(platform, releases) {
+  const eligible = [];
+
   for (const release of releases) {
-    if (release.draft !== false || !release.published_at) continue;
+    const tag = String(release.tag_name ?? '');
+    if (release.draft !== false || !release.published_at || !RELEASE_TAG.test(tag)) continue;
     const downloads = classifyAssets(platform, release.assets ?? []);
     if (!downloads.length) continue;
-    return {
-      version: String(release.tag_name ?? '').replace(/^v/, ''),
+    eligible.push({
+      version: tag.replace(/^v/, ''),
       releaseUrl: release.html_url,
       publishedAt: release.published_at,
       prerelease: release.prerelease === true,
       signed: signingState(platform, downloads),
       downloads,
-    };
+    });
   }
-  return null;
+
+  eligible.sort((left, right) => versionOrder(left.version, right.version));
+  return eligible[0] ?? null;
 }
 
 /*

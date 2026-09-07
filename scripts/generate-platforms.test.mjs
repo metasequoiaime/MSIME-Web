@@ -80,3 +80,26 @@ test('drafts and releases without a recognisable package are skipped', () => {
 test('nothing is returned when no release qualifies, so the page can fall back', () => {
   assert.equal(selectRelease('linux', [{ tag_name: 'v1', draft: true, assets: linuxAssets }]), null);
 });
+
+test('a tag that is not a plain version is refused, the same way the update manifest refuses it', () => {
+  const withAssets = tag => ({
+    tag_name: tag, draft: false, published_at: '2026-09-07T00:00:00Z',
+    html_url: `https://github.com/metasequoiaime/MSIME-Linux/releases/tag/${tag}`, assets: linuxAssets,
+  });
+  // 上游真发过 v0.6.2-beta：update.json 按规则拒掉，这份也必须拒，否则同一页会出现两个版本号
+  assert.equal(selectRelease('linux', [withAssets('v0.6.2-beta')]), null);
+  assert.equal(selectRelease('linux', [withAssets('nightly')]), null);
+  assert.equal(selectRelease('linux', [withAssets('v0.9.1')]).version, '0.9.1');
+  assert.equal(selectRelease('linux', [withAssets('v0.9.1.2')]).version, '0.9.1.2');
+});
+
+test('the highest version wins, not the most recently published', () => {
+  const at = (tag, when) => ({
+    tag_name: tag, draft: false, published_at: when,
+    html_url: `https://github.com/metasequoiaime/MSIME-Linux/releases/tag/${tag}`, assets: linuxAssets,
+  });
+  // 补发一个旧版本不该把页面推回去
+  const chosen = selectRelease('linux', [at('v0.8.9', '2026-09-07T00:00:00Z'), at('v0.9.1', '2026-09-01T00:00:00Z')]);
+  assert.equal(chosen.version, '0.9.1');
+  assert.equal(selectRelease('linux', [at('v0.10.0', '2026-09-01T00:00:00Z'), at('v0.9.9', '2026-09-02T00:00:00Z')]).version, '0.10.0');
+});

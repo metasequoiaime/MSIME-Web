@@ -28,6 +28,24 @@ class ManifestGate(unittest.TestCase):
         with self.assertRaises(ValueError):
             gate.validate(self.pr, ['public/update.json'], rules, 'a' * 40)
 
+    def test_each_branch_may_only_change_its_own_manifest(self):
+        for branch, allowed in gate.ALLOWED.items():
+            pr = copy.deepcopy(self.pr)
+            pr['head']['ref'] = branch
+            gate.validate(pr, [allowed], self.rules, 'a' * 40)
+            # 换成另一条自动化分支的文件也不行：分支和文件是绑死的
+            for other in gate.ALLOWED.values():
+                if other == allowed:
+                    continue
+                with self.assertRaises(ValueError):
+                    gate.validate(pr, [other], self.rules, 'a' * 40)
+
+    def test_rejects_an_unknown_automation_branch(self):
+        pr = copy.deepcopy(self.pr)
+        pr['head']['ref'] = 'automation/something-else'
+        with self.assertRaises(ValueError):
+            gate.validate(pr, ['public/update.json'], self.rules, 'a' * 40)
+
     def test_rejects_fork_moved_head_and_other_files(self):
         for files in [[], ['public/update.json', '.github/workflows/ci.yml']]:
             with self.assertRaises(ValueError):
