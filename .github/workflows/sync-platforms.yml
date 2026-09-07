@@ -1,0 +1,93 @@
+name: Sync platform downloads
+
+# public/platforms.json 给下载页提供三个平台各自的最新版本与安装包。三个平台在各自的仓库发版，版本号互不相通，所以要逐个仓库取。
+#
+# 和发布清单一样自动合并：不自动合就等于没有 —— PR 堆在那里没人合，页面上的版本号会一直停在最后一次人工生成的时刻。
+# 守卫（scripts/enable-manifest-automerge.py）把分支和它能改的文件绑死：这条分支只能改 public/platforms.json，
+# 其余检查（单文件、非草稿、base 为 main、head sha 精确匹配、同仓来源、main 必须有 PR 规则和三项必需检查）一律不变。
+#
+# public/update.json 不受影响：它是 Windows 客户端「检查更新」读的接口，由 update-manifest.yml 单独维护。
+
+# 半小时一轮的 cron 只是兜底。真正让页面跟上发布的是 repository_dispatch：update-manifest.yml 早就这么做了，
+# 所以 Windows 发版后 4 秒站上就是新版本，而 macOS/Linux 要等下一轮 cron —— 2026-09-07 那天 macOS v0.48.6 发布后
+# 页面上停在 v0.47.2 十一分钟。两条链路没有理由用不同的时效。
+#
+# 上游（MSIME-Apple / MSIME-Linux）的发布流水线发完版后往本仓库投一个 `sync-platforms` 事件即可触发。
+# 上游接上之前这个触发器不会被触发，cron 照常兜底。
+on:
+  schedule:
+    - cron: '23,53 * * * *'
+  workflow_dispatch:
+  repository_dispatch:
+    types: [sync-platforms]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-platforms
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Propose refreshed platform downloads
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MANIFEST: public/platforms.json
+    steps:
+      - name: Check out the site
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: main
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+
+      - name: Validate and regenerate
+        id: write
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          node --test scripts/generate-platforms.test.mjs
+          node scripts/generate-platforms.mjs
+          if git diff --quiet -- "$MANIFEST"; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Require the PR automation credential
+        if: steps.write.outputs.changed == 'true'
+        env:
+          AUTOMATION_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+        run: test -n "$AUTOMATION_TOKEN"
+
+      - name: Create or update the downloads PR
+        if: steps.write.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        id: proposal
+        with:
+          # A trusted token triggers PR CI and deployment after merging.
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          add-paths: public/platforms.json
+          branch: automation/platform-downloads
+          base: main
+          delete-branch: true
+          commit-message: 'chore(site): refresh platform download manifest'
+          title: 'chore(site): refresh platform download manifest'
+          body: 'Latest published release and packages for Windows, macOS and Linux. Auto-merge requires the normal build, workflow validation and dependency review.'
+
+      - name: Enable auto-merge behind the required checks
+        if: steps.proposal.outputs.pull-request-number != '' && steps.proposal.outputs.pull-request-operation != 'closed'
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ steps.proposal.outputs.pull-request-number }}
+          HEAD_SHA: ${{ steps.proposal.outputs.pull-request-head-sha }}
+        run: python3 scripts/enable-manifest-automerge.py --repo "$GH_REPO" --pr "$PR_NUMBER" --sha "$HEAD_SHA"

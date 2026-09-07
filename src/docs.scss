@@ -4,12 +4,34 @@
   padding: 2.25rem 0 0;
 }
 
+/* 正文铺满这一栏，不再单独封顶：封了顶右边缘就和顶栏、页脚对不齐。行宽改由容器宽度约束，见 --page-max 上的说明。 */
+
+/*
+ * 无侧栏的内容页原本整行铺满，1440px 下一行 65 个汉字，视线扫回行首容易串行；文档页因为有侧栏挤着是一行 46 字，读起来明显舒服。
+ *
+ * 收窄的是整列，不是列里的文字：只把文字收窄会让卡片右半边空出一大块死区，白底上的空洞比长行更难看。卡片跟着文字一起收，右边留出来的就是页面留白，和页头、顶栏 logo 左边缘对齐。
+ */
+/* 下载入口跨满两列，排在索引和正文之上 —— 它是这一页要做的那件事，不该缩在正文栏里 */
+.content-page .docs-shell > .download-panel {
+  grid-column: 1 / -1;
+}
+
 .docs-shell {
   display: grid;
-  grid-template-columns: 250px minmax(0, 1fr);
+  /* 索引给到 280：容器变宽之后，正文那栏也跟着宽，索引多占一点能把一行压回 50 字上下 */
+  grid-template-columns: 280px minmax(0, 1fr);
   gap: 32px;
   align-items: start;
   overflow-anchor: none;
+}
+
+/* 页头有自己的入场动画，正文这两块原本是硬生生出现的。接在页头后面依次抬起来，整页才像一起进场。切换平台时这两个元素一直挂着，动画不会重跑 —— 换标签不该整页再动一遍。 */
+.docs-shell > .docs-sidebar {
+  animation: riseIn 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) 0.1s both;
+}
+
+.docs-shell > .docs-article {
+  animation: riseIn 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) 0.16s both;
 }
 
 .docs-sidebar {
@@ -69,11 +91,34 @@
 }
 
 .docs-toc {
+  position: relative;
   display: grid;
   gap: 2px;
 }
 
+/* 当前小节的底色做成一块会滑的胶囊，跟着正文滚动在目录里移动。位置和高度由脚本量好写进自定义属性 —— 目录项高度不一（二级和三级字号不同），照搬导航那种纯 CSS 的做法量不出来。 */
+.docs-toc::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: var(--toc-h, 34px);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  opacity: var(--toc-on, 0);
+  transform: translateY(var(--toc-y, 0));
+  transition:
+    transform 0.28s cubic-bezier(0.2, 0.7, 0.2, 1),
+    height 0.28s cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 0.2s ease;
+  pointer-events: none;
+}
+
 .docs-toc a {
+  /* 滑动胶囊是定位元素，会盖在普通流内容之上；目录项自己也定位一下才压得住它 */
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   min-height: 34px;
@@ -94,15 +139,193 @@
   background: var(--card-3);
 }
 
+/* 底色交给上面那块会滑的胶囊，这里只留文字颜色；两边都画背景的话，滑动过程中会同时亮起两处 */
 .docs-toc a.is-active {
   color: var(--lg-heading);
-  background: var(--accent-soft);
 }
 
 .docs-toc-subitem {
   padding-left: 26px !important;
   font-weight: 400 !important;
   font-size: 13.5px !important;
+}
+
+/* ==== DOWNLOAD · 顶部下载入口 ==== */
+/* 在这之前，这一页最主要的操作是正文项目符号里的一个文字链接，和旁边的镜像链接、说明文字同等分量。这块面板把它提到正文之前，用主色描边说明「这是本页要做的那件事」。平台标签沿用文档页那套，站内同一个概念只用一种控件。 */
+.download-panel {
+  margin-bottom: 16px;
+  padding: 20px 24px 18px;
+  border-radius: var(--radius-card);
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow), inset 0 0 0 1px var(--accent-ring);
+}
+
+.download-panel-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.download-panel-action {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px 20px;
+}
+
+.download-panel-meta p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-content);
+}
+
+.download-panel-file {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 5px !important;
+}
+
+.download-panel-file code {
+  padding: 0.15em 0.4em;
+  border-radius: 6px;
+  background: var(--docs-code-bg);
+  color: var(--docs-code-text);
+  font-size: 12.5px;
+  overflow-wrap: anywhere;
+}
+
+.download-panel-signed,
+.download-panel-unsigned {
+  padding: 2px 9px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.download-panel-signed {
+  background: var(--accent-soft);
+  color: var(--icon-color);
+}
+
+/* 未签名不是装饰性的状态，配色要和「已签名」明确不同，别让人扫一眼就当成一样 */
+.download-panel-unsigned {
+  background: color-mix(in oklab, #d9822b 22%, transparent);
+  color: color-mix(in oklab, #d9822b 78%, var(--lg-heading));
+}
+
+/* 主推那个之外的包：Linux 有 deb / rpm / tar.gz 各两种架构，摆成一排让人自己挑，而不是逼他去 Release 页翻 */
+.download-panel-more {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--hair);
+}
+
+.download-panel-more-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* 架构分组并排，宽屏下把面板的横向空间用起来；窄屏落回单列 */
+.download-panel-arches {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  /* 并排时两组之间靠 40px 的列距分开；窄屏堆成一列后，那条列距不起作用了，
+     架构标题会紧贴上一组的最后一行 —— 所以行距要够撑开分组。 */
+  gap: 22px 40px;
+}
+
+.download-panel-arches h3 {
+  margin: 0 0 2px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 组内是「格式 + 体积」两栏。两栏都按内容取宽，不去撑满整个分组 —— 撑满的话名字和体积之间会隔开半个面板，看一眼得横着找回去。 */
+.download-panel-more ul {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  align-items: center;
+  gap: 0 28px;
+  justify-content: start;
+}
+
+.download-panel-more li {
+  display: contents;
+}
+
+.download-panel-more li > * {
+  padding: 6px 0;
+  transition: background-color 0.18s ease;
+}
+
+/* li 不再是盒子，整行的悬停底色要靠两个字段各自铺一段，首尾补上圆角 */
+.download-panel-more li:hover > * {
+  background: var(--card-3);
+}
+
+.download-panel-more li > *:first-child {
+  padding-left: 10px;
+  border-radius: 10px 0 0 10px;
+}
+
+.download-panel-more li > *:last-child {
+  padding-right: 10px;
+  border-radius: 0 10px 10px 0;
+}
+
+.download-panel-more a {
+  font-size: 14px;
+  color: var(--link-color);
+}
+
+
+.download-panel-more a:hover {
+  color: var(--primary-color);
+}
+
+.download-panel-arch {
+  padding: 1px 7px;
+  border-radius: 8px;
+  background: var(--chip-bg);
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.download-panel-size {
+  text-align: right;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.download-panel-note {
+  margin: 16px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--hair);
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+
+@media screen and (max-width: 640px) {
+  .download-panel {
+    padding: 18px 18px 16px;
+  }
+
+  /* 窄屏上按钮铺满，是本页最该点的东西 */
+  .download-panel-action .btn {
+    width: 100%;
+  }
 }
 
 /* ==== CONTENT CARDS ==== */
@@ -142,9 +365,10 @@
 .docs-content {
   min-width: 0;
   color: var(--text-body);
-  font-size: 15.5px;
+  font-size: var(--reading-font);
   line-height: 1.85;
 }
+
 
 .docs-content h1,
 .docs-content h2,
@@ -163,19 +387,36 @@
   font-size: clamp(28px, 4vw, 40px);
 }
 
+/* 标题按正文的倍数走，跟着 --reading-font 一起缩放。之前是写死的 23 / 18 / 16px，而正文是 17.5px —— h4 比正文还小，h3 只大半个字号，
+   于是一份四千像素的指南里六个 h2、十六个 h3 全都读成正文，整页是一堵墙。
+   每级之间留出可辨的差距；标题上方的间距明显大于下方，标题才会跟它领起的那段绑在一起，而不是浮在两段中间。 */
 .docs-content h2 {
-  margin: 2.5rem 0 1rem;
-  font-size: 23px;
+  margin: 3.2rem 0 0.9rem;
+  font-size: 1.55em;
 }
 
 .docs-content h3 {
-  margin: 1.75rem 0 0.7rem;
-  font-size: 18px;
+  margin: 2.1rem 0 0.6rem;
+  font-size: 1.18em;
 }
 
+/* 第四级不再靠字号区分 —— 再小就掉到正文以下了。改成同字号加重，另起一行领起下文。 */
 .docs-content h4 {
-  margin: 1.4rem 0 0.5rem;
-  font-size: 16px;
+  margin: 1.6rem 0 0.4rem;
+  font-size: 1em;
+  font-weight: 700;
+}
+
+/* 指南是一整篇长文，没有卡片边界帮忙分节，二级标题上面给一道细线标出大的段落。
+   内容页的 h2 是卡片标题，卡片本身就是边界，不加。 */
+#docs-content h2 {
+  padding-top: 1.6rem;
+  border-top: 1px solid var(--hair);
+}
+
+#docs-content h2:first-child {
+  padding-top: 0;
+  border-top: 0;
 }
 
 .docs-content p,
@@ -235,6 +476,43 @@
   box-shadow: 0 0 0 1px var(--hair);
 }
 
+/* 按键做成键帽：输入法的文档里按键是最常被查的东西，跟文件名、路径混成同一种色块的话，读者每次都要自己分辨这是要按的还是要输的。
+   键帽有边、有一道底边阴影，读起来是一颗能按下去的东西；`+` 留在键帽外面，一组组合键就是几颗键，而不是一条长胶囊。 */
+kbd {
+  display: inline-block;
+  min-width: 1.9em;
+  padding: 0.2em 0.5em;
+  border: 1px solid var(--kbd-edge);
+  border-radius: 6px;
+  box-shadow: 0 1px 0 var(--kbd-under);
+  background: var(--kbd-face);
+  color: var(--kbd-text);
+  font-family: inherit;
+  font-size: 0.82em;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+  vertical-align: 0.06em;
+  white-space: nowrap;
+}
+
+/* 打出来的字：不加框，字号放大一点让字形看得清，底下一道细线表示这是被指出来的样本而不是正文。
+   跟键帽形成对照 —— 有框的是要按的，没框的是按完得到的。 */
+.glyph-sample {
+  padding: 0 0.15em 0.05em;
+  border-bottom: 2px solid var(--accent-soft);
+  color: var(--lg-heading);
+  font-family: inherit;
+  font-size: 1.12em;
+  font-weight: 500;
+}
+
+.kbd-plus {
+  padding: 0 0.3em;
+  color: var(--text-muted);
+  font-size: 0.82em;
+}
+
 .docs-content code {
   padding: 0.15em 0.35em;
   border-radius: 6px;
@@ -275,17 +553,42 @@
   box-shadow: inset 2px 0 0 var(--accent-ring);
 }
 
+/* 横向滚动交给外面的容器。右边缘那道渐隐是唯一能告诉手机用户「右边还有一列」的东西 —— 滚到底就消失。 */
+.table-scroll {
+  position: relative;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 1.2rem 0;
+}
+
+.table-scroll::after {
+  content: "";
+  position: sticky;
+  top: 0;
+  right: 0;
+  float: right;
+  width: 34px;
+  height: 100%;
+  margin-left: -34px;
+  background: linear-gradient(to left, var(--card-bg), transparent);
+  pointer-events: none;
+}
+
+.table-scroll:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 3px;
+}
+
 .docs-content table {
   width: 100%;
   border-collapse: collapse;
-  display: block;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 .docs-content th,
 .docs-content td {
-  min-width: 140px;
+  /* 手机上 140px 会把三列表推出屏幕（3×140 > 390），而「小写」这种格子根本用不到那么宽。
+     放不下的表格仍然可以横滑，这里只是让本来放得下的别被撑开。 */
+  min-width: clamp(88px, 24vw, 140px);
   padding: 0.7rem 0.8rem;
   border: 1px solid var(--card-border);
   text-align: left;
@@ -300,7 +603,7 @@
 /* ==== CODE PAGE · 仓库列表按卡片排布 ==== */
 .code-content .doc-card ul {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
   gap: 10px;
   padding: 0;
 }
@@ -417,6 +720,368 @@
   }
 
   .docs-content h2 {
-    font-size: 21px;
+    font-size: 1.45em;
+  }
+}
+
+/* ==== FEATURES · 功能页 ==== */
+.feature-shots {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.feature-shot {
+  overflow: hidden;
+  padding: 0;
+}
+
+.feature-shot img {
+  display: block;
+  width: 100%;
+  /* 截图各自尺寸不一，统一裁到同一比例才排得齐；取上沿，候选窗基本都在画面上半部 */
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  object-position: top left;
+  background: var(--card-3);
+}
+
+.feature-shot figcaption {
+  display: grid;
+  gap: 6px;
+  padding: 18px 20px 20px;
+  border-top: 1px solid var(--hair);
+}
+
+.feature-shot strong {
+  color: var(--lg-heading);
+  font-size: 16px;
+}
+
+.feature-shot span {
+  color: var(--text-content);
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.feature-block {
+  margin-bottom: 16px;
+  padding: 26px 28px 24px;
+}
+
+.feature-block h2 {
+  margin: 6px 0 10px;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--lg-heading);
+}
+
+.feature-sub {
+  margin: 26px 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--lg-heading);
+}
+
+.feature-block-lead {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.85;
+  color: var(--text-content);
+}
+
+.feature-block-head fieldset.docs-platforms {
+  border-bottom: none;
+}
+
+.feature-block-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 18px 28px;
+}
+
+/* 文字栏吃掉切换按钮之外的全部宽度。不给它 flex 的话，宽度由内容决定，右边会空出一大块。 */
+.feature-block-head > div:first-child {
+  flex: 1 1 420px;
+  min-width: 0;
+}
+
+.feature-toggles {
+  display: grid;
+  gap: 8px;
+}
+
+/*
+ * 这几组切换按钮用 fieldset 是为了语义（一组同类选项 + legend 说明它是什么），不是为了它自带的方框。
+ * 按元素本身清掉浏览器默认的 border / padding / margin —— 之前只清了 .feature-toggles 里那两组，
+ * 后来加的候选窗和设置那两组不在那个位置，方框就露出来了。
+ */
+fieldset.docs-platforms {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
+}
+
+.feature-toggles .docs-platforms {
+  border-bottom: none;
+}
+
+/* 候选窗预览：按皮肤声明的配色现场画，颜色走内联 style，结构和间距归这里 */
+.skin-stage {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 24px 32px;
+  margin: 22px 0 18px;
+  padding: 26px;
+  border-radius: var(--radius-card);
+  background: var(--card-3);
+}
+
+.skin-window {
+  width: fit-content;
+  padding: 4px;
+  border: 1.5px solid;
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+  font-size: 15px;
+  user-select: none;
+}
+
+.skin-pinyin {
+  display: flex;
+  align-items: center;
+  min-width: 132px;
+  padding: 2px 10px 4px;
+  font-size: 14px;
+}
+
+.skin-caret {
+  display: inline-block;
+  width: 1.5px;
+  height: 1.1em;
+  margin-left: 2px;
+}
+
+.skin-rows {
+  display: grid;
+  gap: 2px;
+}
+
+.skin-window.is-horizontal .skin-rows {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.skin-cand {
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.skin-num {
+  margin-right: 5px;
+  font-size: 0.8em;
+}
+
+.skin-code {
+  margin-left: 2px;
+  font-size: 0.85em;
+}
+
+.skin-note {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.8;
+  color: var(--text-muted);
+}
+
+.feature-formats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  gap: 12px;
+  margin: 16px 0 4px;
+}
+
+.feature-format-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: var(--icon-color);
+}
+
+.feature-formats pre {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  overflow-x: auto;
+  background: var(--docs-code-bg);
+  color: var(--docs-code-text);
+  font-family: var(--mono);
+  font-size: 13px;
+  /* 词库是制表符分隔的三列，把制表位摆出来才看得出「三列」 */
+  tab-size: 12;
+}
+
+/* 三列表格：名称、文件名、体积。整份列表共用一套列宽（li 用 display:contents 把三个字段直接交给网格），否则「日文词典（源自 Mozc）」比别人宽，后面两列就整行错开。 */
+.feature-dict {
+  display: grid;
+  grid-template-columns: max-content max-content 1fr;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin: 12px 0 4px;
+  font-size: 14px;
+}
+
+.feature-dict li {
+  display: contents;
+}
+
+/* 行底色由三个字段各自铺一段拼出来，首尾补圆角 */
+.feature-dict li > * {
+  padding: 8px 0;
+  background: var(--card-3);
+}
+
+.feature-dict li > *:first-child {
+  padding-left: 10px;
+  border-radius: 10px 0 0 10px;
+}
+
+.feature-dict li > *:last-child {
+  padding-right: 10px;
+  border-radius: 0 10px 10px 0;
+}
+
+.feature-dict-label {
+  color: var(--lg-heading);
+}
+
+.feature-dict-file {
+  white-space: nowrap;
+}
+
+.feature-dict code {
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: var(--docs-code-bg);
+  color: var(--docs-code-text);
+  font-size: 12.5px;
+}
+
+/* 窄屏退回按行排：三条 max-content 轨道加起来 345px，放不进 360px 的屏幕，
+   而 max-content 不会收缩 —— 整页会因此可以横向滚动。名称独占一行，文件名和体积并排在第二行。 */
+@media screen and (max-width: 620px) {
+  .feature-dict {
+    display: block;
+  }
+
+  .feature-dict li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 10px;
+    margin-bottom: 2px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: var(--card-3);
+  }
+
+  .feature-dict li > * {
+    padding: 0;
+    border-radius: 0;
+    background: none;
+  }
+
+  .feature-dict-label {
+    flex: 1 1 100%;
+  }
+
+  .feature-dict-file {
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .feature-dict-size {
+    margin-left: auto;
+  }
+}
+
+.feature-dict-size {
+  text-align: right;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+
+.feature-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.feature-chips li {
+  padding: 5px 13px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--icon-color);
+  font-size: 14px;
+}
+
+@media screen and (max-width: 700px) {
+  .skin-stage {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 20px;
+  }
+}
+
+/* 单张大图：候选窗与设置界面各自成组，比塞进三列网格看得清。
+   不给图设固定上限 —— 候选窗源图 1680×696、设置窗 1332×1056，撑到卡片宽度（约 1170px）都还在原始像素以内，压到 800px 只会在右边留一块死白。 */
+.feature-figure {
+  margin: 20px 0 0;
+}
+
+.feature-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: var(--card-soft), inset 0 0 0 1px var(--hair);
+}
+
+/* 设置窗那张的源图只有 1332×1056（就是实际窗口大小），铺到卡片宽在高分屏上会发虚。留着上限，改成居中，空白左右对称，不像是漏排了一块。 */
+.feature-figure.is-tall img {
+  max-width: 760px;
+  margin-inline: auto;
+}
+
+.feature-figure figcaption {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text-content);
+}
+
+/* 触摸设备上的点击目标：平台切换和目录开关是这几页的主要操作，32–37px 高对拇指偏小。字号不动，只加高。
+   媒体查询不提升特异性，所以这一段必须排在被它覆盖的规则之后。 */
+@media (pointer: coarse) {
+  .docs-platform {
+    min-height: 44px;
+    padding-inline: 15px;
+  }
+
+  .docs-toc-toggle {
+    min-height: 44px;
+  }
+
+  .download-panel-more li > * {
+    padding: 12px 0;
   }
 }

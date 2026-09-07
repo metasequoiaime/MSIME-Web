@@ -4,16 +4,25 @@ import json
 import subprocess
 
 REQUIRED = {'Build', 'Workflow validation', 'Dependency review'}
+
+# Each automation branch may touch exactly one file, and only its own. Binding the two together is
+# tighter than allowing either file from either branch: a branch that somehow produced the other
+# manifest would be refused rather than merged.
+ALLOWED = {
+    'automation/update-manifest': 'public/update.json',
+    'automation/platform-downloads': 'public/platforms.json',
+}
 BRANCH = 'automation/update-manifest'
 
 
 def validate(pr, files, rules, sha):
+    branch = pr['head']['ref']
     if (pr['state'] != 'open' or pr['draft'] or pr['base']['ref'] != 'main'
-            or pr['head']['ref'] != BRANCH or pr['head']['sha'] != sha
+            or branch not in ALLOWED or pr['head']['sha'] != sha
             or pr['head']['repo']['full_name'] != pr['base']['repo']['full_name']):
         raise ValueError('Unexpected manifest PR source, target, state or commit')
-    if files != ['public/update.json']:
-        raise ValueError('Manifest automation may only change public/update.json')
+    if files != [ALLOWED[branch]]:
+        raise ValueError(f'{branch} may only change {ALLOWED[branch]}')
     checks = {c['context'] for rule in rules if rule['type'] == 'required_status_checks'
               for c in rule['parameters']['required_status_checks']
               if c.get('integration_id') == 15368}
