@@ -99,6 +99,35 @@ export function selectRelease(platform, releases) {
   return null;
 }
 
+/*
+ * 词库单独发布，三个平台共用同一份（各自的 product-manifest.json 里记的 dictionary.tag 是同一个）。
+ * 这也是「一套引擎」最硬的佐证：同一个 tag、同一批哈希。
+ */
+const DICTIONARY_REPOSITORY = 'metasequoiaime/MSIME-Engine';
+
+const DICTIONARY_FILES = {
+  'msime.db': '全拼与五笔主词库',
+  'others.db': '扩展词库',
+  'english.db': '英文词库',
+  'dict_japanese.dat': '日文词典（源自 Mozc）',
+};
+
+export function selectDictionary(release) {
+  if (release?.draft !== false || !release.published_at) return null;
+  const files = (release.assets ?? [])
+    .filter(asset => asset.name in DICTIONARY_FILES)
+    .map(asset => ({
+      name: asset.name,
+      label: DICTIONARY_FILES[asset.name],
+      size: asset.size ?? 0,
+      sha256: sha256Of(asset),
+    }))
+    .sort((left, right) => right.size - left.size);
+
+  if (!files.length) return null;
+  return { repository: DICTIONARY_REPOSITORY, tag: release.tag_name, releaseUrl: release.html_url, publishedAt: release.published_at, files };
+}
+
 async function main() {
   const headers = { Accept: 'application/vnd.github+json' };
   if (process.env.GH_TOKEN) headers.Authorization = `Bearer ${process.env.GH_TOKEN}`;
@@ -115,9 +144,18 @@ async function main() {
   // 一个平台都取不到就别写：宁可让页面回落到「前往发布页」，也不要发布一份空清单。
   if (!Object.keys(platforms).length) throw new Error('Refusing to write an empty platform manifest');
 
+  const dictionaryResponse = await fetch(`https://api.github.com/repos/${DICTIONARY_REPOSITORY}/releases?per_page=30`,
+    { headers, signal: AbortSignal.timeout(30000) });
+  if (!dictionaryResponse.ok) throw new Error(`dictionary releases failed: HTTP ${dictionaryResponse.status}`);
+  const dictionary = (await dictionaryResponse.json())
+    .filter(release => String(release.tag_name ?? '').startsWith('dict-'))
+    .map(selectDictionary)
+    .find(Boolean) ?? null;
+
   await writeFile(new URL('../public/platforms.json', import.meta.url),
-    `${JSON.stringify({ generatedAt: new Date().toISOString(), platforms }, null, 2)}\n`);
-  console.log(Object.entries(platforms).map(([k, v]) => `${k} v${v.version} (${v.downloads.length} 个产物)`).join(', '));
+    `${JSON.stringify({ generatedAt: new Date().toISOString(), platforms, dictionary }, null, 2)}\n`);
+  console.log(Object.entries(platforms).map(([k, v]) => `${k} v${v.version} (${v.downloads.length} 个产物)`).join(', '),
+    dictionary ? `| 词库 ${dictionary.tag} (${dictionary.files.length} 个文件)` : '| 词库 未取到');
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) await main();

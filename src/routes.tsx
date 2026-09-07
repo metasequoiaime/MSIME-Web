@@ -41,6 +41,12 @@ const shellRoute = createRoute({
 // 首页不拆包：它是最常见的落地页，而且不需要 markdown 渲染器。其余各页的正文各自成块，只有真的打开才下载。
 const indexRoute = createRoute({ getParentRoute: () => shellRoute, path: "/", component: HomePage });
 
+const featuresRoute = createRoute({
+  getParentRoute: () => shellRoute,
+  path: "/features",
+  component: lazyRouteComponent(() => import("./page-features"), "FeaturesPage"),
+});
+
 const docsRoute = createRoute({
   getParentRoute: () => shellRoute,
   path: "/docs",
@@ -85,7 +91,7 @@ const resumeRoute = createRoute({
 });
 
 const routeTree = rootRoute.addChildren([
-  shellRoute.addChildren([indexRoute, docsRoute, downloadRoute, aboutRoute, codeRoute, priceRoute, privacyRoute]),
+  shellRoute.addChildren([indexRoute, featuresRoute, docsRoute, downloadRoute, aboutRoute, codeRoute, priceRoute, privacyRoute]),
   resumeRoute,
 ]);
 

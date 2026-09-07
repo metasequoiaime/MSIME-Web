@@ -1578,6 +1578,18 @@ html {
 
 
 
+/* 只给读屏用，视觉上不占位 */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 /* 平时收在视口外，只有键盘聚焦时才滑进来 */
 .skip-link {
   position: fixed;

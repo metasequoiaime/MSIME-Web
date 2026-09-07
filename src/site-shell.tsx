@@ -4,6 +4,7 @@ import { THEME_CHOICES, THEME_LABELS, useTheme } from "./theme";
 
 const NAV_ITEMS = [
   { to: "/", label: "首页", icon: "home" },
+  { to: "/features/", label: "功能", icon: "home" },
   { to: "/docs/", label: "文档", icon: "docs" },
   { to: "/price/", label: "价格", icon: "price" },
   { to: "/code/", label: "开源代码", icon: "code" },

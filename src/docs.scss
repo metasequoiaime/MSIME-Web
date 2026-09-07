@@ -614,3 +614,249 @@
     font-size: 21px;
   }
 }
+
+/* ==== FEATURES · 功能页 ==== */
+.feature-shots {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.feature-shot {
+  overflow: hidden;
+  padding: 0;
+}
+
+.feature-shot img {
+  display: block;
+  width: 100%;
+  /* 截图各自尺寸不一，统一裁到同一比例才排得齐；取上沿，候选窗基本都在画面上半部 */
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  object-position: top left;
+  background: var(--card-3);
+}
+
+.feature-shot figcaption {
+  display: grid;
+  gap: 6px;
+  padding: 18px 20px 20px;
+  border-top: 1px solid var(--hair);
+}
+
+.feature-shot strong {
+  color: var(--lg-heading);
+  font-size: 16px;
+}
+
+.feature-shot span {
+  color: var(--text-content);
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.feature-block {
+  margin-bottom: 16px;
+  padding: 26px 28px 24px;
+}
+
+.feature-block h2 {
+  margin: 6px 0 10px;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--lg-heading);
+}
+
+.feature-sub {
+  margin: 26px 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--lg-heading);
+}
+
+.feature-block-lead {
+  max-width: 46em;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.85;
+  color: var(--text-content);
+}
+
+.feature-block-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 18px 28px;
+}
+
+.feature-toggles {
+  display: grid;
+  gap: 8px;
+}
+
+/* fieldset 自带边框和内边距，这里只借它的语义 */
+.feature-toggles .docs-platforms {
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-bottom: none;
+}
+
+/* 候选窗预览：按皮肤声明的配色现场画，颜色走内联 style，结构和间距归这里 */
+.skin-stage {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 24px 32px;
+  margin: 22px 0 18px;
+  padding: 26px;
+  border-radius: var(--radius-card);
+  background: var(--card-3);
+}
+
+.skin-window {
+  width: fit-content;
+  padding: 4px;
+  border: 1.5px solid;
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+  font-size: 15px;
+  user-select: none;
+}
+
+.skin-pinyin {
+  display: flex;
+  align-items: center;
+  min-width: 132px;
+  padding: 2px 10px 4px;
+  font-size: 14px;
+}
+
+.skin-caret {
+  display: inline-block;
+  width: 1.5px;
+  height: 1.1em;
+  margin-left: 2px;
+}
+
+.skin-rows {
+  display: grid;
+  gap: 2px;
+}
+
+.skin-window.is-horizontal .skin-rows {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.skin-cand {
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.skin-num {
+  margin-right: 5px;
+  font-size: 0.8em;
+}
+
+.skin-code {
+  margin-left: 2px;
+  font-size: 0.85em;
+}
+
+.skin-note {
+  max-width: 44em;
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.8;
+  color: var(--text-muted);
+}
+
+.feature-formats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  margin: 16px 0 4px;
+}
+
+.feature-format-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: var(--icon-color);
+}
+
+.feature-formats pre {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  overflow-x: auto;
+  background: var(--docs-code-bg);
+  color: var(--docs-code-text);
+  font-family: var(--mono);
+  font-size: 13px;
+  /* 词库是制表符分隔的三列，把制表位摆出来才看得出「三列」 */
+  tab-size: 12;
+}
+
+.feature-dict {
+  display: grid;
+  gap: 2px;
+  margin: 12px 0 4px;
+}
+
+.feature-dict li {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--card-3);
+  font-size: 14px;
+}
+
+.feature-dict-label {
+  min-width: 9em;
+  color: var(--lg-heading);
+}
+
+.feature-dict code {
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: var(--docs-code-bg);
+  color: var(--docs-code-text);
+  font-size: 12.5px;
+}
+
+.feature-dict-size {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.feature-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.feature-chips li {
+  padding: 5px 13px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--icon-color);
+  font-size: 14px;
+}
+
+@media screen and (max-width: 700px) {
+  .skin-stage {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 20px;
+  }
+}

@@ -4,6 +4,7 @@ import { z } from "zod";
 import downloadSource from "./content/download.md?raw";
 import { ContentPage } from "./page-content";
 import { detectPlatform, PLATFORM_LABELS, PLATFORMS, type Platform } from "./platform";
+import { fetchPlatforms, type PlatformRelease } from "./platforms-data";
 
 const RELEASES_PAGE_URL = "https://github.com/metasequoiaime/MSIME-Windows/releases";
 
@@ -85,40 +86,6 @@ const RELEASE_PAGES: Record<Platform, string> = {
   windows: RELEASES_PAGE_URL,
   macos: "https://github.com/metasequoiaime/MSIME-Apple/releases",
   linux: "https://github.com/metasequoiaime/MSIME-Linux/releases",
-};
-
-const downloadSchema = z.object({
-  label: z.string(),
-  arch: z.string(),
-  name: z.string(),
-  url: z.string().url(),
-  size: z.number().int().nonnegative(),
-  sha256: z.string().regex(/^[0-9a-f]{64}$/).nullable().catch(null),
-});
-
-/** 由 scripts/generate-platforms.mjs 生成，三个平台各自最新一个已发布版本。 */
-const platformsSchema = z.object({
-  generatedAt: z.string(),
-  platforms: z.record(
-    z.enum(PLATFORMS),
-    z.object({
-      version: z.string(),
-      releaseUrl: z.string().url(),
-      publishedAt: z.string(),
-      prerelease: z.boolean().catch(false),
-      // 三态：true 已签名、false 未签名、null 判不出来。判不出来时页面什么都不说。
-      signed: z.boolean().nullable().catch(null),
-      downloads: z.array(downloadSchema).min(1),
-    })
-  ),
-});
-
-type PlatformRelease = z.infer<typeof platformsSchema>["platforms"][Platform];
-
-const fetchPlatforms = async () => {
-  const response = await fetch("/platforms.json");
-  if (!response.ok) throw new Error(`Platform manifest returned ${response.status}`);
-  return platformsSchema.parse(await response.json());
 };
 
 const readableSize = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(1)} MB`;
