@@ -11,7 +11,8 @@ import "./beta.scss";
  */
 const TESTFLIGHT_LINK = "https://testflight.apple.com/join/bUzPvyqt";
 const TITLE = "iOS 内测 | 水杉输入法";
-const DESCRIPTION = "加入水杉输入法 iOS 版的 TestFlight 内测：用 iPhone 打开链接即可安装，不需要邮箱或开发者账号。";
+// 与 `beta/index.html` 里的 `<meta name="description">` 保持逐字一致：直接访问时首帧用的是那一份，站内跳转过来时 usePageMeta 用的是这一份，两边写岔了同一页会有两种描述。
+const DESCRIPTION = "加入水杉输入法 iOS 版的 TestFlight 内测：用 iPhone 打开链接即可安装，不需要邮箱或开发者账号";
 
 export function BetaPage() {
   usePageMeta(TITLE, DESCRIPTION);
@@ -27,7 +28,7 @@ export function BetaPage() {
 
       <main className="content-page">
         <div className="container docs-content beta-content">
-          <section className="card doc-card beta-action" data-reveal>
+          <section className="doc-card beta-action" data-reveal>
             <h2>加入内测</h2>
             <p>在 iPhone 上点下面的按钮即可安装。本站不收集任何信息。</p>
 
@@ -37,7 +38,7 @@ export function BetaPage() {
           </section>
 
           <div className="beta-notes">
-            <section className="card doc-card beta-note" data-reveal>
+            <section className="doc-card beta-note" data-reveal>
               <h3>怎么装</h3>
               <ol className="beta-steps">
                 <li>
@@ -54,17 +55,17 @@ export function BetaPage() {
               </ol>
             </section>
 
-            <section className="card doc-card beta-note" data-reveal>
+            <section className="doc-card beta-note" data-reveal>
               <h3>需要知道的</h3>
               <p>
                 需要 iOS 15 或更高版本。TestFlight 的每个构建 90 天后过期，届时从 TestFlight 里更新到新版本即可，不用重新加入。<span className="beta-keep">名额上限 10000 人</span>。
               </p>
             </section>
 
-            <section className="card doc-card beta-note" data-reveal>
+            <section className="doc-card beta-note" data-reveal>
               <h3>如果链接说「不接受新测试员」</h3>
               <p>
-                那是当前构建还在 Apple 的 Beta App Review 排队，不是名额满了。审核通常一到两天，过了链接会自动重新开放，过一阵再点一次即可。也可以到{" "}
+                多半是当前构建还在 Apple 的 Beta App Review 排队，或者上一版已经过期而新版还没放出来。这两种情况审核通常一到两天，过了链接会自动重新开放，过一阵再点一次即可。名额满了显示的也是同一句话，从页面上分不出来，可以到{" "}
                 <a href="https://t.me/msimegroup" target="_blank" rel="noreferrer">
                   Telegram 群
                 </a>
@@ -72,7 +73,7 @@ export function BetaPage() {
               </p>
             </section>
 
-            <section className="card doc-card beta-note" data-reveal>
+            <section className="doc-card beta-note" data-reveal>
               <h3>iOS 版还没有上架计划</h3>
               <p>
                 iOS 目前只有 TestFlight 这一条路，是否上架 App Store 尚未决定：词库中包含 GPL-3.0 的第三方数据，与 App Store 条款存在冲突，需要先解决授权问题。进展见{" "}

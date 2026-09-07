@@ -15,6 +15,13 @@
   margin-inline: auto;
 }
 
+/* 窄屏上卡片本来会收到 `20px 18px`，但这份样式表是路由分块，运行时注入在 app.css 之后，同特异性下这里的 padding 会压过那次收窄，动作卡就比下面四张多出一圈留白。这一页主要在 iPhone 上看，得跟着收。 */
+@media (max-width: 640px) {
+  .beta-action {
+    padding: 28px 18px 24px;
+  }
+}
+
 /* 按钮是个 `<a>`，落在 `.docs-content a` 的下划线规则里，会画成一条带下划线的胶囊。 */
 .docs-content .beta-cta,
 .docs-content .beta-cta:hover {
