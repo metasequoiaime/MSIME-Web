@@ -384,19 +384,36 @@
   font-size: clamp(28px, 4vw, 40px);
 }
 
+/* 标题按正文的倍数走，跟着 --reading-font 一起缩放。之前是写死的 23 / 18 / 16px，而正文是 17.5px —— h4 比正文还小，h3 只大半个字号，
+   于是一份四千像素的指南里六个 h2、十六个 h3 全都读成正文，整页是一堵墙。
+   每级之间留出可辨的差距；标题上方的间距明显大于下方，标题才会跟它领起的那段绑在一起，而不是浮在两段中间。 */
 .docs-content h2 {
-  margin: 2.5rem 0 1rem;
-  font-size: 23px;
+  margin: 3.2rem 0 0.9rem;
+  font-size: 1.55em;
 }
 
 .docs-content h3 {
-  margin: 1.75rem 0 0.7rem;
-  font-size: 18px;
+  margin: 2.1rem 0 0.6rem;
+  font-size: 1.18em;
 }
 
+/* 第四级不再靠字号区分 —— 再小就掉到正文以下了。改成同字号加重，另起一行领起下文。 */
 .docs-content h4 {
-  margin: 1.4rem 0 0.5rem;
-  font-size: 16px;
+  margin: 1.6rem 0 0.4rem;
+  font-size: 1em;
+  font-weight: 700;
+}
+
+/* 指南是一整篇长文，没有卡片边界帮忙分节，二级标题上面给一道细线标出大的段落。
+   内容页的 h2 是卡片标题，卡片本身就是边界，不加。 */
+#docs-content h2 {
+  padding-top: 1.6rem;
+  border-top: 1px solid var(--hair);
+}
+
+#docs-content h2:first-child {
+  padding-top: 0;
+  border-top: 0;
 }
 
 .docs-content p,
@@ -454,6 +471,43 @@
   margin: 1.25rem auto;
   border-radius: 12px;
   box-shadow: 0 0 0 1px var(--hair);
+}
+
+/* 按键做成键帽：输入法的文档里按键是最常被查的东西，跟文件名、路径混成同一种色块的话，读者每次都要自己分辨这是要按的还是要输的。
+   键帽有边、有一道底边阴影，读起来是一颗能按下去的东西；`+` 留在键帽外面，一组组合键就是几颗键，而不是一条长胶囊。 */
+kbd {
+  display: inline-block;
+  min-width: 1.9em;
+  padding: 0.2em 0.5em;
+  border: 1px solid var(--kbd-edge);
+  border-radius: 6px;
+  box-shadow: 0 1px 0 var(--kbd-under);
+  background: var(--kbd-face);
+  color: var(--kbd-text);
+  font-family: inherit;
+  font-size: 0.82em;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+  vertical-align: 0.06em;
+  white-space: nowrap;
+}
+
+/* 打出来的字：不加框，字号放大一点让字形看得清，底下一道细线表示这是被指出来的样本而不是正文。
+   跟键帽形成对照 —— 有框的是要按的，没框的是按完得到的。 */
+.glyph-sample {
+  padding: 0 0.15em 0.05em;
+  border-bottom: 2px solid var(--accent-soft);
+  color: var(--lg-heading);
+  font-family: inherit;
+  font-size: 1.12em;
+  font-weight: 500;
+}
+
+.kbd-plus {
+  padding: 0 0.3em;
+  color: var(--text-muted);
+  font-size: 0.82em;
 }
 
 .docs-content code {
@@ -638,7 +692,7 @@
   }
 
   .docs-content h2 {
-    font-size: 21px;
+    font-size: 1.45em;
   }
 }
 

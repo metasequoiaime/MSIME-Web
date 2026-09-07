@@ -23,6 +23,104 @@ const localizeSiteLinks = (root: ParentNode) => {
   });
 };
 
+/**
+ * 键名对照：文档里怎么写，页面上就怎么显示，只把几个约定俗成的记号换成符号。
+ *
+ * 不做平台猜测 —— macOS 指南写 `Option`，Windows 指南写 `Alt`，各自说的就是各自平台的那颗键，替读者「翻译」反而会说错。
+ */
+const KEY_GLYPHS: Record<string, string> = {
+  ArrowUp: "↑",
+  ArrowDown: "↓",
+  ArrowLeft: "←",
+  ArrowRight: "→",
+};
+
+/** 认得出来的键名。只收这些是有意的：认不准就当普通字面量，宁可少认，不能把 `date`、`openai` 这种词渲染成键帽。 */
+const KEY_NAMES = new Set(
+  [
+    "Shift", "Ctrl", "Control", "Alt", "Option", "Opt", "Cmd", "Command", "Win", "Super", "Meta", "Fn",
+    "Enter", "Return", "Esc", "Escape", "Tab", "Space", "Backspace", "Delete", "Del", "Insert",
+    "Home", "End", "Page Up", "Page Down", "PageUp", "PageDown", "Caps Lock", "CapsLock",
+    "↑", "↓", "←", "→", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight",
+  ].map((name) => name.toLowerCase())
+);
+
+const MODIFIERS = new Set(
+  ["Shift", "Ctrl", "Control", "Alt", "Option", "Opt", "Cmd", "Command", "Win", "Super", "Meta", "Fn"].map((name) =>
+    name.toLowerCase()
+  )
+);
+
+const isKeyName = (token: string) => {
+  const key = token.trim();
+  if (!key) return false;
+  if (KEY_NAMES.has(key.toLowerCase())) return true;
+  if (/^F([1-9]|1[0-2])$/.test(key)) return true;
+  // 组合键里的那一颗普通键：`Ctrl + Shift + E` 的 E、`Ctrl + .` 的句点，或者 `Shift + 数字` 这种占位说法
+  return /^[^\s]$/.test(key) || /^[\u4e00-\u9fa5]{1,3}$/.test(key);
+};
+
+/**
+ * 把按键从普通字面量里分出来。
+ *
+ * 指南里三种东西现在都写成反引号：按键（`Esc`、`Ctrl + Shift + E`）、要敲的编码（`ni'hao`、`xq`）、技术字面量（`vc_redist.x86.exe`、`XDG_DATA_HOME`）。对输入法来说按键是它的词汇，混在一起读者得逐个分辨。
+ *
+ * 组合键拆成一颗一颗键帽，`+` 留在外面 —— 那才是按键的写法，也比一整条长胶囊好扫。文档是独立仓库的，所以在渲染这一层做，不去改源文件。
+ */
+const markUpKeystrokes = (root: ParentNode) => {
+  root.querySelectorAll("code").forEach((element) => {
+    const text = element.textContent?.trim() ?? "";
+    if (!text) return;
+
+    const parts = text.split("+").map((part) => part.trim());
+    // 组合键以修饰键开头才算数：这样 `Ctrl + .` 和 `Shift + 数字` 都能认出来，而 `+1f600`、`a + b` 这类不会被误判。
+    // 单独一个字母或符号不足以判定，必须是认得出来的键名 —— 正文里的 `1`、`.` 更可能是候选序号或标点本身。
+    const looksLikeKeys =
+      parts.length > 1
+        ? MODIFIERS.has(parts[0].toLowerCase()) && parts.every(isKeyName)
+        : KEY_NAMES.has(text.toLowerCase()) || /^F([1-9]|1[0-2])$/.test(text);
+    if (!looksLikeKeys) return;
+
+    const replacement = document.createDocumentFragment();
+
+    parts.forEach((part, index) => {
+      if (index > 0) {
+        const plus = document.createElement("span");
+        plus.className = "kbd-plus";
+        plus.textContent = "+";
+        replacement.append(plus);
+      }
+
+      const cap = document.createElement("kbd");
+      cap.textContent = KEY_GLYPHS[part] ?? part;
+      replacement.append(cap);
+    });
+
+    element.replaceWith(replacement);
+  });
+};
+
+/**
+ * 把「打出来的字」和「要按的键」分开。
+ *
+ * 指南里两者都写成反引号：`Shift + 6 输入省略号 ……`。左边是要按的键，右边是按完得到的字符，装进同一种色块的话，读者会以为省略号也是一颗键。中文标点是这个产品的产出物，不该被框成能按下去的样子 —— 单独标出来、字号放大一点，让字形本身看得清。
+ *
+ * 只认整段都是中日韩标点的那种（`、` `《》` `……` `——`）。带 ASCII 的一律不动：`,` `.` `-` 这些在指南里指的是键盘上那颗键，不是产出的字符。
+ */
+const CJK_PUNCTUATION = /^[\u3000-\u303f\uff00-\uffef\u2014\u2026]{1,4}$/;
+
+const markUpGlyphSamples = (root: ParentNode) => {
+  root.querySelectorAll("code").forEach((element) => {
+    const text = element.textContent?.trim() ?? "";
+    if (!CJK_PUNCTUATION.test(text)) return;
+
+    const sample = document.createElement("samp");
+    sample.className = "glyph-sample";
+    sample.textContent = text;
+    element.replaceWith(sample);
+  });
+};
+
 /** 一级标题与首段属于页头 hero，正文继续由 markdown 驱动 */
 const liftHero = (root: ParentNode) => {
   const heading = root.querySelector("h1");
@@ -108,6 +206,8 @@ export const renderContent = (source: string, { sectioned = false, repoRows = fa
   holder.innerHTML = markdown.render(source);
 
   localizeSiteLinks(holder);
+  markUpKeystrokes(holder);
+  markUpGlyphSamples(holder);
   const { title, leadHtml } = liftHero(holder);
 
   if (sectioned) groupSections(holder);
