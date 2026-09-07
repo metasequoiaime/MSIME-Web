@@ -74,12 +74,63 @@ const securityNote = (manifest: Partial<UpdateManifest>): string => {
   return lines.join("\n");
 };
 
-const fillTemplate = (version: string, releaseUrl: string, manifest: Partial<UpdateManifest>) =>
-  downloadSource
+/*
+ * macOS 与 Linux 的签名说明。
+ *
+ * 这两段原本是手写在 markdown 里的定论（「未经 Apple 公证」「Linux 包同样未经签名」）。手写的问题在于：签名状态会变，正文不会跟着变，将来签上了这页就在说假话。改成按产物推 —— 和 Windows 那段用的是同一条原则：页面绝不能声称一个没签名的包签过名，也不该在判不出来时替它下结论。
+ */
+const PLATFORM_SIGNING: Record<"macos" | "linux", Record<"signed" | "unsigned" | "unknown", string>> = {
+  macos: {
+    signed:
+      "当前构建已经过 Apple 公证，首次打开不会被系统拦截。每个版本仍附带 `.sha256` 校验文件，可用 `shasum -a 256` 核对下载完整性。",
+    unsigned:
+      "当前构建**未经 Apple 公证**，文件名中带 `unsigned`。首次打开时系统会拦截，需要在「系统设置 → 隐私与安全性」中手动放行。每个版本都附带 `.sha256` 校验文件，可用 `shasum -a 256` 核对下载完整性。",
+    unknown:
+      "公证状态请以发布页说明为准。每个版本都附带 `.sha256` 校验文件，可用 `shasum -a 256` 核对下载完整性。",
+  },
+  linux: {
+    signed:
+      "当前包带有签名。Release 页面每个资产旁都显示 GitHub 计算的 SHA256，下载后可用 `sha256sum <文件名>` 核对。",
+    unsigned:
+      "当前包未经签名。Release 页面每个资产旁都显示 GitHub 计算的 SHA256，下载后可用 `sha256sum <文件名>` 核对。",
+    unknown:
+      "Linux 包的文件名不体现签名状态，请以发布页说明为准。Release 页面每个资产旁都显示 GitHub 计算的 SHA256，下载后可用 `sha256sum <文件名>` 核对。",
+  },
+};
+
+const signingKey = (signed: boolean | null | undefined) =>
+  signed === true ? "signed" : signed === false ? "unsigned" : "unknown";
+
+const fillTemplate = (
+  version: string,
+  releaseUrl: string,
+  manifest: Partial<UpdateManifest>,
+  platforms: Partial<Record<Platform, PlatformRelease>> | undefined
+) => {
+  const other = (platform: "macos" | "linux", fallbackUrl: string) => {
+    const release = platforms?.[platform];
+    return {
+      version: release?.version ?? "暂时无法获取",
+      releaseUrl: release?.releaseUrl ?? fallbackUrl,
+      signing: PLATFORM_SIGNING[platform][signingKey(release?.signed)],
+    };
+  };
+
+  const macos = other("macos", RELEASE_PAGES.macos);
+  const linux = other("linux", RELEASE_PAGES.linux);
+
+  return downloadSource
     .replaceAll("{{version}}", version)
     .replaceAll("{{releaseUrl}}", releaseUrl)
     .replaceAll("{{securityNote}}", securityNote(manifest))
-    .replaceAll("{{installerName}}", manifest.installerName ?? FALLBACK_INSTALLER_NAME);
+    .replaceAll("{{installerName}}", manifest.installerName ?? FALLBACK_INSTALLER_NAME)
+    .replaceAll("{{macosVersion}}", macos.version)
+    .replaceAll("{{macosReleaseUrl}}", macos.releaseUrl)
+    .replaceAll("{{macosSigning}}", macos.signing)
+    .replaceAll("{{linuxVersion}}", linux.version)
+    .replaceAll("{{linuxReleaseUrl}}", linux.releaseUrl)
+    .replaceAll("{{linuxSigning}}", linux.signing);
+};
 
 // 取不到 platforms.json 时的兜底去处
 const RELEASE_PAGES: Record<Platform, string> = {
@@ -208,10 +259,12 @@ export function DownloadPage() {
   }, [manifest.error]);
 
   const source = useMemo(() => {
-    if (manifest.isPending) return null;
-    if (!manifest.data) return fillTemplate("暂时无法获取", RELEASES_PAGE_URL, {});
-    return fillTemplate(manifest.data.version, manifest.data.releaseUrl, manifest.data);
-  }, [manifest.isPending, manifest.data]);
+    // 两份清单都在路上时先不渲染正文，免得先写一版「暂时无法获取」再改口
+    if (manifest.isPending || platforms.isPending) return null;
+    const table = platforms.data?.platforms;
+    if (!manifest.data) return fillTemplate("暂时无法获取", RELEASES_PAGE_URL, {}, table);
+    return fillTemplate(manifest.data.version, manifest.data.releaseUrl, manifest.data, table);
+  }, [manifest.isPending, manifest.data, platforms.isPending, platforms.data]);
 
   return (
     <ContentPage

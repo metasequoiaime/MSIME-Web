@@ -683,6 +683,10 @@
   color: var(--text-content);
 }
 
+.feature-block-head fieldset.docs-platforms {
+  border-bottom: none;
+}
+
 .feature-block-head {
   display: flex;
   align-items: flex-start;
@@ -696,11 +700,19 @@
   gap: 8px;
 }
 
-/* fieldset 自带边框和内边距，这里只借它的语义 */
-.feature-toggles .docs-platforms {
+/*
+ * 这几组切换按钮用 fieldset 是为了语义（一组同类选项 + legend 说明它是什么），不是为了它自带的方框。
+ * 按元素本身清掉浏览器默认的 border / padding / margin —— 之前只清了 .feature-toggles 里那两组，
+ * 后来加的候选窗和设置那两组不在那个位置，方框就露出来了。
+ */
+fieldset.docs-platforms {
   margin: 0;
   padding: 0;
-  border: none;
+  border: 0;
+  min-inline-size: 0;
+}
+
+.feature-toggles .docs-platforms {
   border-bottom: none;
 }
 
