@@ -317,6 +317,11 @@ export function SiteShell() {
 
   return (
     <>
+      {/* 键盘和读屏用户的第一站：不加这个，每换一页都要按十几次 Tab 才走完顶栏 */}
+      <a className="skip-link" href="#site-content">
+        跳到正文
+      </a>
+
       <div className="header-wrap">
         <header className="container header">
           <Link className="logo" to="/">
@@ -350,7 +355,9 @@ export function SiteShell() {
       <NavMenu isOpen={menuIsOpen} onClose={closeMenu} />
       <RouteProgress />
 
-      <Outlet />
+      <div id="site-content" tabIndex={-1}>
+        <Outlet />
+      </div>
 
       <SiteFooter />
     </>

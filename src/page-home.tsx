@@ -167,19 +167,26 @@ export function HomePage() {
                 <span className="hero-screenshot-dot" />
                 <span className="hero-screenshot-title">水杉输入法 · 输入演示</span>
               </div>
-              <img className="hero-media hero-media-dark" src="/img/typing_words_dark.gif" alt="输入演示" />
-              <video
-                className="hero-media hero-media-light"
-                ref={videoRef}
-                muted
-                loop
-                playsInline
-                preload="metadata"
-                poster="/img/typing_words_light_poster.jpg"
-                aria-label="输入演示"
-              >
-                <source src="/img/typing_words_light.mp4" type="video/mp4" />
-              </video>
+              {/*
+                只渲染当前主题用得上的那一份。样式表本来就把另一份藏起来了，但 display: none 不阻止请求 ——
+                两份一起下会白白多花 480 KB 的 GIF，而它一个像素都不会显示。
+              */}
+              {isLight ? (
+                <video
+                  className="hero-media hero-media-light"
+                  ref={videoRef}
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  poster="/img/typing_words_light_poster.jpg"
+                  aria-label="输入演示"
+                >
+                  <source src="/img/typing_words_light.mp4" type="video/mp4" />
+                </video>
+              ) : (
+                <img className="hero-media hero-media-dark" src="/img/typing_words_dark.gif" alt="输入演示" />
+              )}
             </div>
           </div>
         </div>

@@ -1,0 +1,5 @@
+# 简历页是个人页面，入口 HTML 里也带 noindex，这里一并拦住。
+User-agent: *
+Disallow: /resume/
+
+Sitemap: https://msime.app/sitemap.xml
