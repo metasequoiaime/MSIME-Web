@@ -35,7 +35,7 @@ pnpm dev                      # 开发服务器
 | `pnpm run build` | `tsc` 类型检查 + 生产构建，CI 跑的就是这条 |
 | `pnpm run preview` | 预览构建产物 |
 | `pnpm run lint` | Biome 静态检查 |
-| `pnpm test` | 校验更新元数据生成逻辑 |
+| `pnpm test` | 校验更新元数据生成逻辑与 TestFlight 邀请接口 |
 
 Biome 只开了 linter，formatter 处于关闭状态——仓库既有代码尚未按 Biome 的风格格式化，统一格式化是一次独立的机械提交，不与功能改动混在一起。
 
@@ -48,6 +48,14 @@ Biome 只开了 linter，formatter 处于关闭状态——仓库既有代码尚
 想立刻生效就手动触发一次该 workflow；发布仓也可以用 `repository_dispatch`（`event_type: update-manifest`）把它推起来。
 
 取的是版本号最高的有效非 draft release，包含 prerelease 在内。这里不能用 `/releases/latest`，它会跳过 prerelease，而本产品目前发布的每一个 release 都是 prerelease。
+
+## iOS 内测（/beta/）
+
+`/beta/` 是一个静态页，指向 TestFlight 的公开链接。没有表单、没有接口、不收集任何信息——公开链接把人放进的就是那个外部测试组，收邮箱再调 App Store Connect API 加人得到的是同一个结果，代价却是要在本站部署一份 Apple 私钥。
+
+链接写在 `beta/index.html` 里。换组或重开链接时改那一处；`src/beta.ts` 只负责引样式和放行页头动画，这一页的正文不走 `src/content/*.md` 那套渲染。
+
+链接显示「此 Beta 版本目前不接受任何新测试员」通常不是名额满了，而是当前构建还在 Apple 的 Beta App Review 排队，审核通过后会自动重新开放。页面上写了这一条，免得访客以为是坏的。
 
 ## Bug 反馈 or 功能建议
 

@@ -13,6 +13,7 @@ export default defineConfig({
         code: resolve(projectRoot, "code/index.html"),
         about: resolve(projectRoot, "about/index.html"),
         download: resolve(projectRoot, "download/index.html"),
+        beta: resolve(projectRoot, "beta/index.html"),
         price: resolve(projectRoot, "price/index.html"),
         privacy: resolve(projectRoot, "privacy/index.html"),
         resume: resolve(projectRoot, "resume/index.html"),
