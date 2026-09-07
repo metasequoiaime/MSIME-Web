@@ -1,7 +1,35 @@
+/*
+ * 这一页只出布局，字号、行高、卡片外观全部沿用 `.docs-content` 和 `.doc-card`。
+ *
+ * 早先这里自带一套 14/15px 的字号，是从改版前的站点搬过来的，在 `--reading-font` 之下整页比别的页小一号，看起来像另一个站。
+ */
+
 /* 唯一的动作独占一行，说明卡在下面 2×2。把动作和说明并排放时它只有说明那列一半高，中间空一大块。 */
 .beta-action {
   text-align: center;
   padding: 34px 30px 30px;
+}
+
+.beta-action p {
+  max-width: 46em;
+  margin-inline: auto;
+}
+
+/* 按钮是个 `<a>`，落在 `.docs-content a` 的下划线规则里，会画成一条带下划线的胶囊。 */
+.docs-content .beta-cta,
+.docs-content .beta-cta:hover {
+  min-width: 16rem;
+  color: #fff;
+  text-decoration: none;
+}
+
+/* 链接本身也印出来，方便在桌面端把它发到手机上；点它没用，真正能装的地方是 iPhone。 */
+.beta-cta-url {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  text-align: center;
+  color: var(--text-muted);
+  user-select: all;
 }
 
 .beta-notes {
@@ -11,76 +39,13 @@
   margin-top: 28px;
 }
 
+/* 说明卡是网格的兄弟节点，`.doc-card + .doc-card` 那条竖排用的外边距会叠在 gap 上，把第二行往下推歪。 */
+.beta-notes > .doc-card + .doc-card {
+  margin-top: 0;
+}
+
 @media (max-width: 900px) {
   .beta-notes {
     grid-template-columns: minmax(0, 1fr);
   }
-}
-
-.beta-card {
-  padding: 28px 30px;
-}
-
-.beta-card h2 {
-  margin: 0 0 6px;
-  font-size: var(--h3-font-size);
-  font-weight: 600;
-  color: var(--lg-heading);
-}
-
-.beta-card p {
-  margin: 0 0 18px;
-  font-size: var(--font-size-body-text);
-  line-height: 1.85;
-  color: var(--text-content);
-}
-
-.beta-action p {
-  max-width: 46em;
-  margin-inline: auto;
-}
-
-.beta-cta {
-  min-width: 16rem;
-}
-
-/* 链接本身也印出来，方便在桌面端把它发到手机上；点它没用，真正能装的地方是 iPhone。选择器要压过上面的
-   `.beta-card p`，否则底部会留着那条正文用的 18px。 */
-.beta-card .beta-cta-url {
-  margin: 14px 0 0;
-  font-family: var(--mono);
-  font-size: 13.5px;
-  text-align: center;
-  color: var(--text-muted);
-  user-select: all;
-}
-
-.beta-note h3 {
-  margin: 0 0 6px;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--lg-heading);
-}
-
-.beta-note p {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.85;
-  color: var(--text-content);
-}
-
-.beta-note a {
-  color: var(--link-color);
-}
-
-.beta-steps {
-  margin: 0;
-  padding-left: 1.2em;
-  font-size: 14px;
-  line-height: 1.9;
-  color: var(--text-content);
-}
-
-.beta-steps li + li {
-  margin-top: 4px;
 }

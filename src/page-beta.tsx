@@ -26,8 +26,8 @@ export function BetaPage() {
       />
 
       <main className="content-page">
-        <div className="container">
-          <section className="card beta-card beta-action" data-reveal>
+        <div className="container docs-content beta-content">
+          <section className="card doc-card beta-action" data-reveal>
             <h2>加入内测</h2>
             <p>在 iPhone 上打开下面的链接即可安装。本站不收集任何信息。</p>
 
@@ -39,7 +39,7 @@ export function BetaPage() {
           </section>
 
           <div className="beta-notes">
-            <section className="card beta-card beta-note" data-reveal>
+            <section className="card doc-card beta-note" data-reveal>
               <h3>怎么装</h3>
               <ol className="beta-steps">
                 <li>
@@ -54,7 +54,7 @@ export function BetaPage() {
               </ol>
             </section>
 
-            <section className="card beta-card beta-note" data-reveal>
+            <section className="card doc-card beta-note" data-reveal>
               <h3>需要知道的</h3>
               <p>
                 需要 iOS 15 或更高版本。TestFlight 的每个构建 90
@@ -62,7 +62,7 @@ export function BetaPage() {
               </p>
             </section>
 
-            <section className="card beta-card beta-note" data-reveal>
+            <section className="card doc-card beta-note" data-reveal>
               <h3>如果链接说「不接受新测试员」</h3>
               <p>
                 那是当前构建还在 Apple 的 Beta App Review 排队，不是名额满了。审核通常一到两天，过了链接会自动重新开放，
@@ -74,7 +74,7 @@ export function BetaPage() {
               </p>
             </section>
 
-            <section className="card beta-card beta-note" data-reveal>
+            <section className="card doc-card beta-note" data-reveal>
               <h3>iOS 版还没有上架计划</h3>
               <p>
                 iOS 目前只有 TestFlight 这一条路，是否上架 App Store 尚未决定——词库中包含 GPL-3.0 的第三方数据，与 App
