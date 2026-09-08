@@ -52,7 +52,7 @@ export function DocsPage() {
     setSidebarIsOpen(false);
   }, []);
 
-  if (guideId && !GUIDES.some(item => item.id === guideId)) return <main className="content-page"><div className="container"><h1>指南不存在</h1><Link to="/docs/$guide/" params={{ guide: "windows" }}>返回文档目录</Link></div></main>;
+  if (guideId && !GUIDES.some(item => item.id === guideId)) return <main className="content-page"><div className="container"><h1>指南不存在</h1><Link to="/docs/$guide/" params={{ guide: "windows" }}>查看 Windows 使用指南</Link></div></main>;
   return (
     <>
       <PageHero kicker="文档" title={content.title} leadHtml={content.leadHtml} />

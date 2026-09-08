@@ -1,74 +1,67 @@
 # 隐私说明
 
-输入法能看到你敲下的每一个键，所以「哪些功能会联网、默认是开还是关、怎么全部关掉」应该一眼可查，而不是散在三个仓库的文档里。这一页把三个平台的隐私说明汇总到一处，每条都能在对应仓库的 `PRIVACY.md` 和源码里核对。
+本页说明输入法的本地数据、联网功能，以及浏览官网和提交反馈时涉及的数据。各平台的功能与默认设置不同，请查看你所用平台的说明。
 
-## 一句话
+## 本地输入与联网功能
 
-本地转换（拼音切分、候选排序、词频学习）**完全不联网**。会联网的只有下面这张表里的功能，其中**只有云候选在 Windows 和 Linux 上是装完就生效的**，其余全部需要你自己填入 API token 才会发出任何请求。
+拼音转换、候选排序和词频学习在本机完成。云候选、AI 联想、在线翻译、云端语音识别和更新检查可能联网，具体取决于平台与设置。
 
-## 哪些功能会联网
+| 功能 | Windows | macOS | Linux |
+| --- | --- | --- | --- |
+| 云候选 | 默认开启，首次安装可取消勾选 | 未提供 | 默认开启 |
+| AI 候选联想 | 配置有效凭据后可用 | 未提供 | 默认关闭，需配置服务 |
+| 候选翻译 | 在线翻译需配置腾讯云凭据 | 未提供 | 默认使用本地词典；选择 DeepLX 后会联网 |
+| 语音输入 | 需配置服务并主动触发 | 手动触发，可选云端或本地 Whisper | 默认关闭，通过独立语音工具使用 |
+| 检查更新 | 手动点击时联网 | 可自动检查，也可手动检查 | 输入法未提供内置更新检查 |
 
-| 功能 | Windows | macOS | Linux | 数据去向 |
-| --- | --- | --- | --- | --- |
-| 云候选 | **默认开启** | 不提供 | **默认开启**（停顿 500 毫秒后） | `inputtools.google.com`，只发当前这一串拼写 |
-| AI 候选联想 | 需自填 token | 不提供 | 默认关闭 | DeepSeek / OpenAI / SiliconFlow / Groq，按你配置的服务商 |
-| 候选翻译 | 需自填凭据 | 不提供 | 默认开启，但默认走本地词典、**不联网** | Windows 用腾讯云 `tmt.tencentcloudapi.com`；Linux 仅在改成 `deeplx` 时才发出 |
-| 语音输入 | 需自填 token | 需手动触发 | 默认关闭，且在独立命令里 | 你配置的转写服务；macOS 可选本地 Whisper 模型，全程不出本机 |
-| 检查更新 | 仅在你点按钮时 | Sparkle，约每天一次 | 无 | Windows 读 `msime.app/update.json`；macOS 读签名 appcast |
+Windows 的部分联网功能开关默认开启，但随包凭据为占位符；在填入有效凭据前，AI 联想、在线翻译和语音服务不会因此发出请求。云候选不需要 API 凭据。
 
-关于「需自填 token」：这几项的配置开关出厂是 `true`，但随包的 token 是占位符，运行时会拒绝占位符——**在你填入真实 token 之前，它们不会发出任何网络请求**。
+## 会向服务商发送什么
 
-## 云候选：唯一一个装完就在联网的功能
+- **云候选**：Windows 和 Linux 会向 Google input-tools 服务发送当前输入的拼写，以获取额外候选。该请求不包含已提交的正文、词库或学习记录。
+- **AI 联想**：向配置的服务商发送拼写及功能所需的上下文。Linux 在应用允许读取时，可能附带光标前最多 32 个字符。
+- **在线翻译**：向所选翻译服务发送需要翻译的候选文本。本地词典翻译不需要联网。
+- **云端语音识别**：向所选服务发送录音。若开启文字润色，识别结果还会发送到配置的文字服务。
+- **更新检查**：Windows 请求本站的更新清单；macOS 通过 Sparkle 获取 GitHub 上的更新信息。
 
-输入过程中，当前正在输入的那一串拼写会通过 HTTPS 发给 Google 的 input-tools 服务，换回一条额外候选。Google 收到的是这串拼写、你的 IP 和常规请求元数据。**不会**发送的：已上屏的文本、词库内容、学习到的词频、设置项、任何账号数据。
+macOS 的本地 Whisper 模式在本机识别音频，但如果同时开启在线文字润色，识别出的文字仍会发送到润色服务。第三方服务通常也能获得 IP 地址和常规请求信息，后续处理与保存方式以其隐私政策为准。
 
-关掉它：
+## 如何减少联网
 
-- **Windows** — 设置 → 输入 → 云候选；或在 `%LOCALAPPDATA%\metasequoiaime\config.toml` 的 `[general]` 下写 `cloud_candidates = false`
-- **Linux** — `metasequoia-ime-settings` 里取消对应勾选；或在 `config.ini` 的 `[online]` 组写 `cloud-enabled=false`
+- **Windows**：在“设置 → 输入”中关闭云候选，并关闭 AI 辅助、在线翻译与语音输入。更新检查仅在主动点击时进行。
+- **Linux**：在设置中关闭云候选与 AI 联想，翻译服务保留为 `local`，不使用云端语音工具。
+- **macOS**：如需使用本地语音识别，请选择本地 Whisper 并关闭在线文字润色；如不需要自动更新检查，可在更新设置中关闭。
 
-## 一次全关
+配置文件与具体操作见各平台[使用指南](/docs/windows/)及下方的原始隐私说明。
 
-想要一台完全不联网的输入法：
+## 本机数据与 API 凭据
 
-- **Windows** — `config.toml` 里把 `[general] cloud_candidates`、`[ai_assistant] enabled`、`[tencent_tmt] enabled`、`[voice_input] voice_input` 全部设为 `false`。更新检查本来就只在你点按钮时才跑。
-- **Linux** — `config.ini` 的 `[online]` 组设 `cloud-enabled=false`，翻译服务商保持默认的 `local`，AI 与语音默认就是关闭的。
-- **macOS** — 输入引擎本身不联网，不需要额外操作；如果不想要每日更新检查，在 Sparkle 的更新设置里关掉自动检查即可。
+设置、学习记录和用户词库保存在当前用户目录，受该账号的文件权限保护。备份、同步或分享这些文件前，请检查是否包含个人词条、日志或服务凭据。
 
-## 没有遥测
+- **Windows**：数据位于 `%LOCALAPPDATA%\metasequoiaime\`；API 凭据以明文保存在 `config.toml` 中。
+- **macOS**：设置保存在系统偏好设置中，词库数据位于 `~/Library/Application Support/metasequoiaime/`；API 凭据使用系统钥匙串。
+- **Linux**：配置和数据分别位于用户的 XDG 配置与数据目录；API 凭据使用桌面 Secret Service。
 
-没有任何分析、遥测、崩溃上报或使用度量，也没有链接任何这类第三方 SDK。这一条可以自己复核：在 Windows 仓的 `server/`、`windows/`、`ui/`、`ui-html/`、`installer/` 目录里搜 `telemetry`、`analytics`、`sentry`、`matomo`、`posthog`、`amplitude`、`mixpanel`、`crashpad`、`breakpad`，结果为空。
+Windows 和 Linux 的剪贴板历史默认关闭，开启后会在本机保存复制内容。请勿公开分享含凭据的配置文件。
 
-## 本机数据存在哪
+各平台对日志、学习记录及数据清理的具体行为，请以原始隐私说明为准；官网访问和反馈表单另按下文处理。
 
-设置、学习到的词频、自造词、日志都只写在当前用户的目录下，仅受该账号的文件权限保护：
+## 浏览官网
 
-- **Windows** — `%LOCALAPPDATA%\metasequoiaime\`（`config.toml`、`msime_user.db`、`log\`）
-- **macOS** — 系统偏好设置 + `~/Library/Application Support/metasequoiaime/`
-- **Linux** — `${XDG_CONFIG_HOME:-$HOME/.config}/metasequoiaime/config.ini` 与 `${XDG_DATA_HOME:-$HOME/.local/share}/metasequoiaime/`
+官网通过 Cloudflare 提供服务，页面请求会涉及 IP 地址和常规访问、安全处理信息。社区统计由本站提供，贡献者头像从 GitHub 加载。点击第三方链接后，将进入相应网站。
 
-日志记录的是进程生命周期和错误状况，不记录输入内容。剪贴板历史三个平台都默认关闭；Linux 上即使开启，也会跳过密码管理器标记为机密的条目（识别 KeePassXC、Bitwarden、1Password、Chromium 设置的标记）。
+## 官网反馈表单
 
-### API token 的存放方式各平台不同
+提交表单时，文字、截图及自愿填写的联系方式会经 Cloudflare Pages 转交 GitHub，公开发布为对应仓库的 Issue。无需 GitHub 账号，联系方式也可以全部留空。提交前可预览公开内容，请先遮挡截图中的个人信息，不要填写密码、API 凭据或不愿公开的输入记录。
 
-- **macOS** — 系统钥匙串
-- **Linux** — 桌面 Secret Service（GNOME Keyring 或兼容实现），按服务商隔离，不写进 `config.ini`、日志或诊断信息
-- **Windows** — **明文存放在 `config.toml` 里**。这一点弱于另外两个平台：任何能读到该文件的程序都能读到 token。请使用仅用于此用途的、权限受限的 token，并在备份或同步用户目录时把这个文件当作机密对待。
+表单使用 Cloudflare Turnstile 减少自动化垃圾提交，验证组件会与 Cloudflare 通信。验证令牌仅用于服务端校验，不写入 Issue；GitHub 提交凭据保存在服务端。
 
-## 原文与核对
+## 原始说明与问题反馈
 
-这一页是汇总，以各平台仓库里的原文为准。每条说法都点名了对应的配置文件与键名，可以直接对着源码核对：
+以上内容依据各平台仓库的隐私说明整理。功能可能随版本调整，详细数据流程请查看：
 
-- [Windows](https://github.com/metasequoiaime/MSIME-Windows/blob/main/PRIVACY.md)
-- [macOS / iOS](https://github.com/metasequoiaime/MSIME-Apple/blob/main/PRIVACY.md)
-- [Linux](https://github.com/metasequoiaime/MSIME-Linux/blob/main/PRIVACY.md)
+- [Windows 隐私说明](https://github.com/metasequoiaime/MSIME-Windows/blob/main/PRIVACY.md)
+- [macOS / iOS 仓库隐私说明](https://github.com/metasequoiaime/MSIME-Apple/blob/main/PRIVACY.md)
+- [Linux 隐私说明](https://github.com/metasequoiaime/MSIME-Linux/blob/main/PRIVACY.md)
 
-水杉输入法不出售、不共享个人数据，安装和使用也不会创建任何账号。如果将来新增了会联网的功能，这份说明必须在该功能发布之前更新。
-
-发现隐私或安全问题请按[安全策略](https://github.com/metasequoiaime/.github/blob/main/SECURITY.md)私下报告，不要提交公开 issue。
-
-## 官网需求上报表单
-
-主动提交官网需求表单时，所选分类、标题、使用场景、期望行为、使用环境、补充说明及自愿填写的联系方式会由 Cloudflare Pages 转交 GitHub，公开发布为对应仓库的 Issue。无需 GitHub 账号。QQ 号码及昵称、微信、GitHub 用户名和 Email 均为选填，可以全部留空；填写的联系方式会随 Issue 公开，请只提供愿意公开的账号。请勿填写密码、令牌、真实输入记录或其他不愿公开的信息。
-
-表单使用 Cloudflare Turnstile 验证以减少自动化垃圾提交，验证组件会与 Cloudflare 通信。验证 token 仅用于服务端校验，不写入 Issue；GitHub 提交凭据仅保存在服务端。提交前可以预览公开内容，提交后可以通过返回的链接查看 Issue。安全问题请使用上述安全策略中的私下报告渠道。
+安全漏洞或涉及隐私的问题，请按[安全策略](https://github.com/metasequoiaime/.github/blob/main/SECURITY.md)私下报告。

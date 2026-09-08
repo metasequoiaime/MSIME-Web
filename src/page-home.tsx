@@ -92,27 +92,27 @@ const FEATURES = [
   {
     kicker: "云候选与 AI",
     title: "本地优先，云端可选",
-    desc: "谷歌云候选插入第一页第 2 项，DeepSeek AI 联想插入第 3 项。两者都需要网络，接口异常时不影响本地候选；API Token 只保存在本机配置里。",
+    desc: "拼音转换和词库查询在本机完成。Windows 和 Linux 默认开启云候选，可在设置中关闭；AI 联想需配置服务。联网内容与默认状态见隐私说明。",
   },
   {
     kicker: "界面与工具",
-    title: "候选窗之外的部分",
-    desc: "候选窗支持横排与纵排、自定义字体与皮肤，另有悬浮工具栏、语音输入、手写识别板和屏幕键盘，各界面主题都可以单独设置。",
+    title: "候选窗与输入工具",
+    desc: "Windows 版提供横排与竖排候选窗、字体与皮肤设置，以及悬浮工具栏、语音输入、手写识别板和屏幕键盘。功能页展示实际界面与使用示例。",
   },
 ] as const;
 
 const HERO_STATS = [
   { value: "3 套", label: "输入方案", isText: false },
   { value: "5 套", label: "辅助码方案", isText: false },
-  { value: "4 个", label: "平台前端", isText: false },
-  { value: "GPL-3.0", label: "100% 开源", isText: true },
+  { value: "4 个", label: "平台开发方向", isText: false },
+  { value: "GPL-3.0", label: "开源许可", isText: true },
 ] as const;
 
 const PLATFORMS = [
-  { name: "Windows 10 / 11", desc: "纯 TSF 前端 + 常驻 Server", status: "公开测试", isLive: true },
-  { name: "macOS 12+", desc: "InputMethodKit + AppKit", status: "开发中", isLive: false },
-  { name: "Linux", desc: "IBus 前端，另含 GTK 设置程序", status: "开发中", isLive: false },
-  { name: "iOS", desc: "宿主 App + 键盘扩展", status: "开发中", isLive: false },
+  { name: "Windows 10 / 11", desc: "支持全拼、双拼和五笔", status: "公开测试", isLive: true },
+  { name: "macOS 12+", desc: "提供安装包与使用指南", status: "测试版本", isLive: true },
+  { name: "Linux", desc: "适用于使用 IBus 的桌面环境", status: "测试版本", isLive: true },
+  { name: "iOS", desc: "尚未提供公开下载", status: "开发中", isLive: false },
 ] as const;
 
 export function HomePage() {
@@ -139,10 +139,10 @@ export function HomePage() {
             </div>
 
             <h1 className="hero-title">
-              改善中英文输入体验，<span>一套引擎，四个平台</span>
+              水杉输入法，<span>让中文输入更顺手</span>
             </h1>
 
-            <p className="hero-desc">全拼、双拼、五笔共用同一套跨平台 C++ 引擎，Windows、macOS、Linux 与 iOS 前端各自原生实现界面与文本注入。</p>
+            <p className="hero-desc">支持全拼、双拼和五笔，可按习惯调整候选窗、词库与辅助码。Windows、macOS 和 Linux 提供下载，iOS 版仍在开发中，各平台功能以对应版本说明为准。</p>
 
             <p className="hero-quote">墨池飞出北溟鱼，笔锋杀尽中山兔。</p>
 
@@ -220,7 +220,7 @@ export function HomePage() {
 
       <section className="container section">
         <div className="section-eyebrow" data-reveal>
-          <span>能力</span>
+          <span>输入功能</span>
           <span className="section-rule" />
         </div>
 
@@ -242,10 +242,10 @@ export function HomePage() {
         </div>
 
         <div className="card open-card" data-reveal>
-          <h2>100% 开源，GPL-3.0</h2>
-          <p>输入法能看到用户输入的一切，隐私边界不该只靠承诺保证，而该能被任何人读代码检查。桌面工具软件长期由少数大厂主导，我们想留一个用户可以自己改、自己分发的选择。</p>
+          <h2>代码公开，欢迎参与</h2>
+          <p>输入法会处理输入内容。公开源码和隐私说明，方便你了解本地处理与联网功能的边界，也欢迎你参与检查和改进。使用、修改与分发代码时，请遵循对应仓库的开源许可。</p>
           <p>
-            项目长期招募贡献者，方向不限于写代码 —— 词库、文档、本地化、兼容性测试同样算贡献。主仓的 Issue 已经按可接手程度分类，<code>no-code</code> 完全不需要写代码。
+            欢迎参与代码、词库、文档、翻译和兼容性测试。可以先查看各仓库的 Issue（问题与任务），其中标有 <code>no-code</code> 的任务以非代码工作为主，请以任务说明为准。
           </p>
           <div className="btn-row">
             <a className="btn btn-primary" href="https://github.com/metasequoiaime" target="_blank" rel="noreferrer">
@@ -267,10 +267,10 @@ export function HomePage() {
         </div>
 
         <h2 className="section-title" data-reveal>
-          四个平台，一套引擎
+          选择你的平台
         </h2>
         <p className="section-lead" data-reveal>
-          前端各自原生实现，下载与安装说明统一在下载页。
+          各平台共用输入引擎，但界面、功能和发布进度有所不同。请在下载页查看对应版本与安装说明。
         </p>
 
         <div className="platform-list" data-reveal>

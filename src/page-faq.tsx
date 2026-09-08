@@ -71,7 +71,7 @@ export function FaqPage() {
           </fieldset>
           <div className="faq-results">
             <p role="status">{query || category ? `找到 ${matches.length} 个问题` : `共 ${faq.questions.length} 个问题 · 以 Windows 为主`}</p>
-            <button type="button" className="btn btn-ghost" disabled={!matches.length} onClick={() => setExpanded(previous => matches.every(question => previous.has(question.id)) ? new Set([...previous].filter(id => !matches.some(question => question.id === id))) : new Set([...previous, ...matches.map(question => question.id)]))}>{matches.length > 0 && matches.every(question => expanded.has(question.id)) ? "收起当前问题" : "展开当前问题"}</button>
+            <button type="button" className="btn btn-ghost" disabled={!matches.length} onClick={() => setExpanded(previous => matches.every(question => previous.has(question.id)) ? new Set([...previous].filter(id => !matches.some(question => question.id === id))) : new Set([...previous, ...matches.map(question => question.id)]))}>{matches.length > 0 && matches.every(question => expanded.has(question.id)) ? "收起全部结果" : "展开全部结果"}</button>
           </div>
         </section>
         {faq.categories.map(group => {
@@ -90,7 +90,7 @@ export function FaqPage() {
           </section>;
         })}
         {!matches.length && <section className="card faq-empty"><h2>暂时没有匹配的问题</h2><p>试试更短的关键词，或查看全部问题。</p><button type="button" className="btn btn-ghost" onClick={() => { setQuery(""); setCategory(""); }}>清除筛选</button></section>}
-        <section className="card faq-help"><h2>还没找到答案？</h2><p>遇到故障时，请带上版本号、复现步骤和截图。想增加或改进功能，也可以通过官网提交需求。</p><div className="btn-row"><Link className="btn btn-ghost" to="/docs/$guide/" params={{ guide: "windows" }}>查看完整指南</Link><a className="btn btn-ghost" href="https://github.com/metasequoiaime/MSIME-Windows/issues">查看与反馈 Windows 问题 ↗</a><Link className="btn btn-primary" to="/feedback/">提交功能需求</Link></div></section>
+        <section className="card faq-help"><h2>还没找到答案？</h2><p>遇到故障时，请带上版本号、复现步骤和截图。想增加或改进功能，也可以通过官网提交需求。</p><div className="btn-row"><Link className="btn btn-ghost" to="/docs/$guide/" params={{ guide: "windows" }}>查看完整指南</Link><a className="btn btn-ghost" href="https://github.com/metasequoiaime/MSIME-Windows/issues">查看与反馈 Windows 问题 ↗</a><Link className="btn btn-primary" to="/feedback/">提交问题或建议</Link></div></section>
       </div>
     </main>
   </>;

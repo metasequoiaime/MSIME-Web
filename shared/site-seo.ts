@@ -3,15 +3,15 @@ export const SITE_NAME = "水杉输入法";
 export const GUIDE_NAMES = { windows: "Windows", macos: "macOS", "macos-voice": "macOS 语音", linux: "Linux" } as const;
 export const seoPages: Record<string, { title: string; description: string; noindex?: boolean; canonicalPath?: string }> = {
   "/": { title: "水杉输入法 MSIME｜开源中文输入法", description: "水杉输入法（MSIME）是开源中文输入法，各平台共用 C++ 引擎。查看 Windows、macOS 和 Linux 下载、功能、使用指南与常见问题。" },
-  "/features/": { title: "功能与界面｜水杉输入法", description: "查看水杉输入法的候选窗、皮肤、词库与输入功能，了解可自定义的界面和实际使用效果。" },
+  "/features/": { title: "功能与界面｜水杉输入法", description: "以 Windows 版为例，查看水杉输入法的候选窗、皮肤、词库与输入功能，了解设置方法和实际界面。" },
   "/download/": { title: "下载 Windows、macOS 与 Linux 版｜水杉输入法", description: "下载水杉输入法 Windows、macOS 和 Linux 版本，查看最新发布、安装包、签名状态与 SHA256 校验方法。" },
   "/docs/": { canonicalPath: "/docs/windows/", title: "使用文档与安装指南｜水杉输入法", description: "水杉输入法 Windows、macOS、macOS 语音与 Linux 使用指南，选择平台查看安装、配置和日常使用方法。" },
   "/faq/": { title: "常见问题与故障排查 Q&A｜水杉输入法", description: "水杉输入法常见问题与排查方法：字体方框、安装启动、快捷键、候选窗口和翻译，附相关指南及 Issue 来源。" },
   "/code/": { title: "开源仓库与贡献入口｜水杉输入法", description: "浏览水杉输入法各平台、公共引擎、输入方案、词库与文档的开源仓库，了解项目分工和贡献入口。" },
   "/about/": { title: "关于项目与开发者｜水杉输入法", description: "了解水杉输入法的项目理念、开源许可、开发者与社区联系方式。" },
-  "/price/": { title: "价格与服务说明｜水杉输入法", description: "了解水杉输入法的免费功能、联网服务与费用说明，按实际需求选择使用方式。" },
+  "/price/": { title: "价格与付费计划｜水杉输入法", description: "水杉输入法当前可免费使用。查看后续自愿付费支持计划，以及第三方联网服务的费用说明。" },
   "/privacy/": { title: "隐私与联网功能说明｜水杉输入法", description: "了解水杉输入法哪些功能会联网、默认状态、数据用途，以及如何关闭联网功能。" },
-  "/feedback/": { title: "问题反馈与功能建议｜水杉输入法", description: "无需 GitHub 账号，选择平台提交水杉输入法的问题或功能建议，支持截图和提交前预览。" },
+  "/feedback/": { title: "问题反馈与功能建议｜水杉输入法", description: "无需 GitHub 账号，选择平台反馈问题或提出建议，支持截图与预览。提交内容将公开发布到 GitHub。" },
   "/resume/": { title: "陆凡 | 软件工程师 / 独立开发者", description: "陆凡的软件工程师个人简历", noindex: true },
 };
 for (const [id, name] of Object.entries(GUIDE_NAMES)) seoPages[`/docs/${id}/`] = {

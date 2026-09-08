@@ -7,7 +7,7 @@
 适用于 Windows 10 和 Windows 11。当前最新版本：**v{{version}}**
 
 - [GitHub Release 下载]({{releaseUrl}}) — 官方发布位置，随包附带校验值
-- [阿里云盘下载](https://www.alipan.com/s/wKbWStNYVLZ)（提取码：`27qi`）— 加速镜像，国内直连更快；这是第三方网盘，项目无法控制其内容，请务必用下方的 SHA256 核对
+- [阿里云盘下载](https://www.alipan.com/s/wKbWStNYVLZ)（提取码：`27qi`）— 备用镜像，访问速度因网络而异；下载后请与官方发布的 SHA256 核对
 
 ### 安装说明
 
@@ -29,13 +29,13 @@
 
 #### 核对构建来源
 
-除了 SHA256，Windows 安装包还带有 GitHub 的构建来源证明（build provenance attestation），它能证明这个文件确实由本项目仓库的发布流水线构建，而不只是证明文件没被改动。安装 [GitHub CLI](https://cli.github.com) 后运行：
+除了 SHA256，Windows 安装包还带有 GitHub 的构建来源证明（build provenance attestation），可用于核对文件与本项目构建工作流的关联。安装 [GitHub CLI](https://cli.github.com) 后运行：
 
 ```powershell
 gh attestation verify .\{{installerName}} --repo metasequoiaime/MSIME-Windows
 ```
 
-通过时会打印出触发构建的工作流与 commit。这一步不需要登录，也不依赖代码签名证书。
+通过时会打印出触发构建的工作流与 commit。该检查与代码签名验证不同；命令的登录与网络要求请以 GitHub CLI 的提示为准。
 
 ## macOS
 
@@ -61,8 +61,6 @@ macOS 版内置 Sparkle 自动更新，安装后可从输入法菜单中的「�
 
 ## 隐私
 
-输入法能看到你敲下的每一个键，所以装之前值得先看一眼它会不会联网。
+本地输入处理不需要联网。Windows 和 Linux 的云候选默认开启，可在安装或设置中关闭；AI 联想、在线翻译、语音输入与更新检查的行为因平台和设置而异。
 
-本地转换（拼音切分、候选排序、词频学习）完全不联网。会联网的功能里，**只有云候选是装完就生效的**——它在 Windows 和 Linux 上默认开启，输入过程中会把当前正在输入的那一串拼写发给 Google 的 input-tools 服务；AI 联想、候选翻译、语音输入都要你自己填入 API token 之后才会发出任何请求。
-
-完整的联网功能清单、各平台默认状态、以及一次全部关掉的方法，见[隐私说明](/privacy/)。
+安装前可查看[隐私说明](/privacy/)，了解发送的数据、默认设置和关闭方式。
