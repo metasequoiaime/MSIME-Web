@@ -220,3 +220,13 @@ test('FAQ platform controls and original screenshots are available in both langu
     assert.ok(doc.querySelector('main').textContent.includes('WhiteCloud-OuO'));
   }
 });
+
+test('iOS public beta links explicitly select iOS and beta exposes both Apple platforms', () => {
+  for (const path of ['/download/', '/zh-TW/download/', '/beta/', '/zh-TW/beta/']) {
+    const doc = document(path);
+    const links = [...doc.querySelectorAll('a')].filter(link => /iOS|TestFlight/.test(link.textContent) && /\/beta\//.test(link.getAttribute('href') ?? ''));
+    assert.ok(links.length > 0, path);
+    for (const link of links) assert.equal(new URL(link.getAttribute('href'), SITE_ORIGIN).searchParams.get('platform'), 'ios', path);
+    if (path.includes('/beta/')) assert.deepEqual([...doc.querySelectorAll('.beta-platforms button')].map(button => button.textContent), ['macOS', 'iOS']);
+  }
+});

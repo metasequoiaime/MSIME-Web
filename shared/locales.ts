@@ -1,6 +1,6 @@
 /** All public product pages share layout and behavior across these locales. */
 export const traditionalPages = {
-  '/beta/': { title: 'iOS 公測｜水杉輸入法', description: '加入水杉 iOS 鍵盤公測，透過 TestFlight 安裝，查看安裝、啟用方式和測試版本說明。' },
+  '/beta/': { title: 'macOS 與 iOS 公測｜水杉輸入法', description: '加入水杉輸入法 macOS 與 iOS 公測，查看 macOS 安裝套件、使用指南與 iOS TestFlight 安裝入口。' },
   '/': { title: '水杉輸入法 MSIME｜開源中文輸入法', description: '認識水杉輸入法的全拼、雙拼與五筆功能，下載 Windows、macOS 或 Linux 版本，透過 TestFlight 加入 iOS 公測。' },
   '/features/': { title: '功能與介面｜水杉輸入法', description: '以 Windows 版為例，了解水杉輸入法的候選字視窗、輔助碼、佈景主題與詞庫設定。' },
   '/download/': { title: '下載與安裝｜水杉輸入法', description: '下載水杉輸入法 Windows、macOS 與 Linux 版本，或透過 TestFlight 加入 iOS 公測，查看安裝指南與 SHA256。' },
