@@ -977,7 +977,12 @@ html {
   animation: riseIn 0.62s cubic-bezier(0.2, 0.7, 0.2, 1) 0.06s both;
 }
 
-.hero-title span {
+.hero-title > span {
+  display: block;
+  white-space: nowrap;
+}
+
+.hero-title .hero-slogan {
   color: var(--icon-color);
 }
 
@@ -1851,7 +1856,6 @@ html {
   .header-actions { gap: 4px; }
   .hero { padding-top: 32px; gap: 24px; }
   .hero-title { font-size: clamp(28px, 7.8vw, 36px); line-height: 1.3; margin-top: 16px; letter-spacing: -.025em; }
-  .hero-title span { display: block; }
   .hero-eyebrow-text { font-size: 10px; letter-spacing: .16em; }
   .hero-desc { margin-top: 18px; font-size: 16px; line-height: 1.75; }
   .hero-quote { font-size: 13px; margin-top: 14px; }
