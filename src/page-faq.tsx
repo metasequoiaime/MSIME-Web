@@ -48,8 +48,8 @@ export function FaqPage() {
   const query = get("q");
   const categoryId = choice("category", ["", ...categoryIds] as const, "");
   const category = categoryId ? faq.categories[categoryIds.indexOf(categoryId)] ?? "" : "";
-  const setQuery = (value: string) => update({ q: value || undefined }, true);
-  const setCategory = (value: string) => update({ category: categoryIds[faq.categories.indexOf(value)] });
+  const setQuery = (value: string) => update({ q: value || undefined }, true, false);
+  const setCategory = (value: string) => update({ category: categoryIds[faq.categories.indexOf(value)] }, false, false);
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
   const root = useRef<HTMLDivElement>(null);
   useInternalLinks(root);
@@ -81,7 +81,7 @@ export function FaqPage() {
         <section className="card faq-tools" aria-label={t("查找问题")}>
           <fieldset className="faq-platforms">
             <legend>{t("选择平台")}</legend>
-            <div className="faq-platform-options">{platforms.map(value => <label key={value} className={platform === value ? "is-selected" : ""}><input type="radio" name="faq-platform" value={value} checked={platform === value} onChange={() => { update({ platform: platformIds[platforms.indexOf(value)], q: undefined, category: undefined }); setExpanded(new Set()); }} /><span>{value}</span></label>)}</div>
+            <div className="faq-platform-options">{platforms.map(value => <label key={value} className={platform === value ? "is-selected" : ""}><input type="radio" name="faq-platform" value={value} checked={platform === value} onChange={() => { update({ platform: platformIds[platforms.indexOf(value)], q: undefined, category: undefined }, false, false); setExpanded(new Set()); }} /><span>{value}</span></label>)}</div>
           </fieldset>
           {platformQuestions.length > 0 && <><label htmlFor="faq-search">{t("搜索常见问题")}</label>
           <input id="faq-search" type="search" placeholder={t("例如：方框、字体、设置打不开、Shift、翻译")} value={query} onChange={event => setQuery(event.target.value)} />
@@ -108,7 +108,7 @@ export function FaqPage() {
             </details>))}
           </section>;
         }))}
-        {t(platformQuestions.length > 0 && !matches.length && <section className="card faq-empty"><h2>{t("暂时没有匹配的问题")}</h2><p>{t("试试更短的关键词，或查看全部问题。")}</p><button type="button" className="btn btn-ghost" onClick={() => { update({ q: undefined, category: undefined }); }}>{t("清除筛选")}</button></section>)}
+        {t(platformQuestions.length > 0 && !matches.length && <section className="card faq-empty"><h2>{t("暂时没有匹配的问题")}</h2><p>{t("试试更短的关键词，或查看全部问题。")}</p><button type="button" className="btn btn-ghost" onClick={() => { update({ q: undefined, category: undefined }, false, false); }}>{t("清除筛选")}</button></section>)}
         {platformQuestions.length === 0 && <section className="card faq-empty" role="status"><h2>{t(platform === "macOS" || platform === "iOS" ? `${platform} 已开放公测` : `${platform} 常见问题正在整理`)}</h2><p>{t(platform === "macOS" || platform === "iOS" ? "欢迎安装体验。此平台的常见问题正在整理，遇到问题可查看使用说明或提交反馈。" : "此平台暂未整理问答。你可以先查看下方的使用入口，或提交遇到的问题。")}</p>{platform === "macOS" && <Link className="btn btn-primary" to="/download/" search={{ platform: "macos" }}>{t("下载 macOS 公测版")}</Link>}{platform === "iOS" && <Link className="btn btn-primary" to="/beta/">{t("加入 iOS 公测")}</Link>}</section>}
         <section className="card faq-help"><h2>{t("还没找到答案？")}</h2><p>{t("遇到故障时，请带上版本号、复现步骤和截图。想增加或改进功能，也可以通过官网提交需求。")}</p><div className="btn-row">{(platform === "Windows" || platform === "macOS" || platform === "Linux") && <Link className="btn btn-ghost" to="/docs/$guide/" params={{ guide: platform.toLowerCase() }}>{t(`查看 ${platform} 指南`)}</Link>}{platform === "iOS" && <Link className="btn btn-ghost" to="/beta/">{t("查看 iOS 公测说明")}</Link>}{platform === "Windows" && <a className="btn btn-ghost" href="https://github.com/metasequoiaime/MSIME-Windows/issues">{t("查看 Windows 已有反馈 ↗")}</a>}<Link className="btn btn-primary" to="/feedback/" search={{ target: platform === "macOS" || platform === "iOS" ? "apple" : platform === "Linux" ? "linux" : platform === "Windows" ? "windows" : undefined }}>{t("提交问题或建议")}</Link></div></section>
       </div>

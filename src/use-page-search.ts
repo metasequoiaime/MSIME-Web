@@ -16,8 +16,8 @@ export function usePageSearch() {
     const value = get(key);
     return values.includes(value as T) ? value as T : fallback;
   };
-  const update = (patch: Record<string, string | undefined>, replace = false) => {
-    void navigate({ to: "./", search: previous => ({ ...previous, ...patch }), replace, resetScroll: false, hash: true });
+  const update = (patch: Record<string, string | undefined>, replace = false, preserveHash = true) => {
+    void navigate({ to: "./", search: previous => ({ ...previous, ...patch }), replace, resetScroll: false, hash: preserveHash ? true : "" });
   };
   return { get, choice, update, ready };
 }
