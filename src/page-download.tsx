@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import downloadSource from "./content/download.md?raw";
 import { ContentPage } from "./page-content";
@@ -212,7 +212,9 @@ const groupByArch = (downloads: PlatformRelease["downloads"]) => {
  * 在这之前，这一页最主要的操作是正文项目符号里的一个文字链接，和旁边的镜像链接、说明文字一样重 —— 来下载的人得先读一段才找得到它。这里把它提到页头之下，并且让人自己选平台：按 UA 猜到的那个只是默认选中，三个入口一直都在。
  */
 function DownloadPanel({ platforms }: { platforms: Partial<Record<Platform, PlatformRelease>> | undefined }) {
-  const [platform, setPlatform] = useState(detectPlatform);
+  const [platform, setPlatform] = useState<Platform>("windows");
+  // Start with the static snapshot, then select the visitor platform before paint.
+  useLayoutEffect(() => setPlatform(detectPlatform()), []);
   const current = platforms?.[platform];
   const primary = current?.downloads[0];
 
