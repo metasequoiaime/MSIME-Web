@@ -34,28 +34,30 @@ export const feedbackSchema = z.object({
 });
 export type Feedback = z.infer<typeof feedbackSchema>;
 
-// 用户文字置于引用块，避免伪造模板标题；打断 @ 提及，避免匿名表单触发批量通知。
-const quote = (value: string) => (value || "未填写").replaceAll("@", "@\u200b").split(/\r?\n/).map(line => `> ${line}`).join("\n");
+// 保留用户 Markdown 的段落和列表；打断 @ 提及，避免匿名表单触发批量通知。
+const content = (value: string) => value.trim().replaceAll("@", "@\u200b");
 // 联系方式按代码字面量展示，保留可复制的 @，也不触发 GitHub 提及或解释 Markdown。
 const contactLiteral = (value: string) => {
   const delimiter = "`".repeat(Math.max(0, ...(value.match(/`+/g) ?? []).map(part => part.length)) + 1);
-  return `${delimiter} ${value} ${delimiter}`;
+  return `${delimiter} ${value.replaceAll("|", "\\|")} ${delimiter}`;
 };
 export function formatIssue(data: Feedback) {
-  const contacts = contactFields.flatMap(field => {
+  const contacts = contactFields.filter(field => field.name !== "qq" && field.name !== "qqNickname").flatMap(field => {
     const value = data[field.name]?.trim();
-    return value ? [`> ${field.label}：${contactLiteral(value)}`] : [];
+    return value ? [`| ${field.label} | ${contactLiteral(value)} |`] : [];
   });
+  const qq = [data.qq?.trim(), data.qqNickname?.trim()].filter((value): value is string => Boolean(value)).map(contactLiteral);
+  if (qq.length) contacts.unshift(`| QQ | ${qq.join(" · ")} |`);
   return {
     title: `[需求] ${data.title.replaceAll("@", "@\u200b")}`,
     body: [
-      "## 需求归属", targets[data.target].label,
-      "## 使用场景与问题", quote(data.background),
-      "## 期望行为", quote(data.expected),
-      "## 使用环境与版本", quote(data.environment),
-      "## 补充说明", quote(data.extra),
-      ...(contacts.length ? ["## 联系方式（提交者自愿公开，未经验证）", contacts.join("\n\n")] : []),
-      "---", "通过水杉输入法官网需求表单提交。提交者已确认以上内容公开发布。",
+      `**需求归属：** ${targets[data.target].label} · [官网提交](https://msime.app/feedback/)`,
+      "## 使用场景与问题", content(data.background),
+      "## 期望行为", content(data.expected),
+      ...(data.environment.trim() ? ["## 使用环境与版本", content(data.environment)] : []),
+      ...(data.extra.trim() ? ["## 补充说明", content(data.extra)] : []),
+      ...(contacts.length ? ["## 联系方式", ["| 渠道 | 联系方式 |", "| --- | --- |", ...contacts].join("\n"), "*联系方式由提交者自愿公开，未经验证。*"] : []),
+      "---", "由官网需求表单自动创建。提交者已同意公开以上内容，需求待维护者评估。",
     ].join("\n\n"),
   };
 }

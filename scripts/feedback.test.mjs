@@ -90,10 +90,11 @@ test('ambiguous GitHub write is not retried and provides a link to check for dup
   assert.equal(body.issuesUrl, 'https://github.com/metasequoiaime/MSIME-Windows/issues');
   assert.equal(calls.length, 3);
 });
-test('user text cannot inject template headings or active mentions', () => {
-  const issue = formatIssue({ ...form, extra: '## invented\n@team' });
-  assert.ok(issue.body.includes('> ## invented\n> @\u200bteam'));
-  assert.ok(!issue.body.includes('\n## invented'));
+test('user Markdown preserves lists and paragraphs without active mentions', () => {
+  const issue = formatIssue({ ...form, extra: '**补充**\n\n- 第一项\n- @team' });
+  assert.ok(issue.body.includes('**补充**\n\n- 第一项\n- @\u200bteam'));
+  assert.ok(!issue.body.includes('## 补充说明\n\n>'));
+  assert.ok(!formatIssue({ ...form, environment: '', extra: '' }).body.includes('未填写'));
 });
 
 test('optional contacts are published verbatim as code without mention notifications', async t => {
@@ -103,7 +104,8 @@ test('optional contacts are published verbatim as code without mention notificat
   assert.equal(response.status, 201);
   const issue = JSON.parse(calls.at(-1).options.body);
   for (const value of Object.values(contacts)) assert.ok(issue.body.includes(`\` ${value} \``));
-  assert.ok(issue.body.includes('联系方式（提交者自愿公开，未经验证）'));
+  assert.ok(issue.body.includes('| QQ | ` 123456789 ` · ` 测试昵称 ` |'));
+  assert.ok(issue.body.includes('联系方式由提交者自愿公开，未经验证。'));
   assert.ok(!formatIssue(form).body.includes('## 联系方式'));
 });
 
