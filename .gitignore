@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local Pages secrets
+.dev.vars
+.dev.vars.*
+.env
+.env.*
+output/
+.playwright-cli/
+.wrangler/

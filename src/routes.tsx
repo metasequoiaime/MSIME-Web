@@ -84,6 +84,12 @@ const privacyRoute = createRoute({
   component: lazyRouteComponent(() => import("./page-privacy"), "PrivacyPage"),
 });
 
+const feedbackRoute = createRoute({
+  getParentRoute: () => shellRoute,
+  path: "/feedback",
+  component: lazyRouteComponent(() => import("./page-feedback"), "FeedbackPage"),
+});
+
 const resumeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/resume",
@@ -91,7 +97,7 @@ const resumeRoute = createRoute({
 });
 
 const routeTree = rootRoute.addChildren([
-  shellRoute.addChildren([indexRoute, featuresRoute, docsRoute, downloadRoute, aboutRoute, codeRoute, priceRoute, privacyRoute]),
+  shellRoute.addChildren([indexRoute, featuresRoute, docsRoute, downloadRoute, aboutRoute, codeRoute, priceRoute, privacyRoute, feedbackRoute]),
   resumeRoute,
 ]);
 

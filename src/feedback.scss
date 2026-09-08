@@ -1,0 +1,52 @@
+.feedback-page {
+  .feedback-heading { max-width: 760px; margin-bottom: 2rem; }
+  h1 { color: var(--lg-heading); font-size: clamp(1.9rem, 5vw, 2.8rem); margin: .6rem 0 1rem; }
+  p { line-height: 1.8; }
+  .feedback-kicker { color: var(--primary-color); font-size: .85rem; font-weight: 600; letter-spacing: .08em; }
+  .feedback-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 1.5rem; align-items: start; }
+  .feedback-form { padding: clamp(1.2rem, 3vw, 2rem); min-width: 0; }
+  fieldset { border: 0; min-width: 0; }
+  legend { font-size: 1.3rem; font-weight: 600; color: var(--lg-heading); margin-bottom: 1.5rem; }
+  label { display: block; color: var(--text-body); font-weight: 600; margin-top: 1.25rem; }
+  label > span, .feedback-hint { font-size: .85rem; color: var(--text-muted); font-weight: 400; }
+  input:not([type=checkbox]), select, textarea { display: block; width: 100%; margin-top: .6rem; border: 1px solid var(--hair-3); border-radius: 10px; background: var(--card-2); color: var(--text-body); font: inherit; font-weight: 400; padding: .8rem 1rem; }
+  textarea { resize: vertical; line-height: 1.7; }
+  input::placeholder, textarea::placeholder { color: var(--text-muted); }
+  input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; }
+  .feedback-consent { display: flex; gap: .75rem; align-items: start; line-height: 1.7; }
+  input[type=checkbox] { flex: 0 0 auto; width: 18px; height: 18px; margin-top: 3px; accent-color: var(--primary-color); }
+  .feedback-contacts { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--hair-3); }
+  .feedback-contacts h2 { font-size: 1.1rem; margin-bottom: .5rem; color: var(--lg-heading); }
+  .feedback-contacts h2 span { font-size: .85rem; color: var(--text-muted); font-weight: 400; }
+  .feedback-contact-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1rem; }
+  @media (max-width: 550px) { .feedback-contact-grid { grid-template-columns: minmax(0, 1fr); } }
+  .feedback-preview { margin-top: 1.5rem; padding: 1rem; border: 1px solid var(--hair-3); border-radius: 10px; }
+  summary { cursor: pointer; }
+  .feedback-issue { margin-top: 1.25rem; overflow-wrap: anywhere; }
+  .feedback-issue-title { font-size: 1.4rem; line-height: 1.5; color: var(--lg-heading); margin-bottom: 1.5rem; }
+  .feedback-issue-body {
+    color: var(--text-body); font-size: .9rem; line-height: 1.8;
+    h1, h2, h3, h4, h5, h6 { color: var(--lg-heading); font-size: 1.1rem; margin: 1.5rem 0 .75rem; line-height: 1.5; }
+    h1, h2 { padding-bottom: .5rem; border-bottom: 1px solid var(--hair-3); }
+    p, ul, ol, blockquote, pre, table { margin: .75rem 0; }
+    ul, ol { padding-left: 1.5rem; }
+    blockquote { padding: 0 1rem; border-left: 3px solid var(--hair-3); color: var(--text-content); }
+    code { padding: .15rem .35rem; background: var(--card-2); border-radius: 4px; font-size: .85em; }
+    pre { padding: 1rem; overflow-x: auto; background: var(--card-2); border-radius: 8px; }
+    pre code { padding: 0; background: none; }
+    table { display: block; overflow-x: auto; border-collapse: collapse; }
+    th, td { padding: .4rem .7rem; border: 1px solid var(--hair-3); }
+    img { max-width: 100%; height: auto; }
+  }
+  .feedback-verification { margin: 1.5rem 0; }
+  .feedback-error { border-left: 3px solid var(--primary-color); padding: .7rem 1rem; background: var(--accent-soft); margin-bottom: 1rem; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .feedback-aside { padding: 1.5rem; }
+  .feedback-aside h2 { font-size: 1.15rem; margin: .5rem 0; }
+  .feedback-aside h3 { font-size: 1rem; margin: 1.5rem 0 .5rem; }
+  .feedback-aside p { font-size: .9rem; color: var(--text-content); }
+  hr { border: 0; border-top: 1px solid var(--hair-3); margin-top: 1.5rem; }
+  .feedback-success { padding: 2rem; }
+  .feedback-success p { margin: 1rem 0 1.5rem; }
+  @media (max-width: 850px) { .feedback-layout { grid-template-columns: minmax(0, 1fr); } }
+}
