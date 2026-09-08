@@ -1,2 +1,5 @@
 # Domain redirects are configured with Cloudflare Single/Bulk Redirects.
 # Pages _redirects only accepts relative source paths; do not put hostnames here.
+
+/beta.md /download.md 301
+/zh-TW/beta.md /zh-TW/download.md 301

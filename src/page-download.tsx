@@ -1,7 +1,6 @@
 import { usePageSearch } from "./use-page-search";
 import { useLocale } from "./use-locale";
 import { useQuery } from "@tanstack/react-query";
-import { LocaleLink as Link } from "./locale-link";
 import { useEffect, useLayoutEffect, useMemo } from "react";
 import { z } from "zod";
 import downloadSource from "./content/download.md?raw";
@@ -140,14 +139,14 @@ const fillTemplate = (
     .replaceAll("{{linuxPackages}}", linux.packages);
 };
 
-// 取不到 platforms.json 时的兜底去处。iOS 不在这里：它没有发布产物，去处是站内那一页，见 BETA_PAGE。
+// 取不到 platforms.json 时的发布页兜底；iOS 直接通过 TestFlight 安装。
 const RELEASE_PAGES: Record<Exclude<Platform, "ios">, string> = {
   windows: RELEASES_PAGE_URL,
   macos: "https://github.com/metasequoiaime/MSIME-Apple/releases",
   linux: "https://github.com/metasequoiaime/MSIME-Linux/releases",
 };
 
-const BETA_PAGE = "/beta/" as const;
+const TESTFLIGHT_LINK = "https://testflight.apple.com/join/bUzPvyqt";
 
 const readableSize = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 
@@ -250,11 +249,10 @@ function DownloadPanel({ platforms }: { platforms: Partial<Record<Platform, Plat
       </nav>
 
       <div className="download-panel-action">
-        {/* iOS 这一栏没有可下的文件，按钮通向站内的公测页；用路由的 Link，点了不整页重载 */}
         {platform === "ios" ? (
-          <Link className="btn btn-lg btn-primary" to={BETA_PAGE} search={{ platform: "ios" }}>
-            {t("查看 iOS 公测")}
-          </Link>
+          <a className="btn btn-lg btn-primary" href={TESTFLIGHT_LINK} target="_blank" rel="noreferrer">
+            {t("通过 TestFlight 安装 iOS 版")}
+          </a>
         ) : (
           <a className="btn btn-lg btn-primary" href={primary?.url ?? RELEASE_PAGES[platform]} rel="noreferrer">
             {t(primary
@@ -326,6 +324,8 @@ const fetchUpdateManifest = async (): Promise<UpdateManifest> => {
 };
 
 export function DownloadPage() {
+  const { choice, ready } = usePageSearch();
+  const platform = choice("platform", PLATFORMS, "windows");
   // 页面自己的三平台清单。update.json 另有其主（Windows 客户端的「检查更新」），两者互不干扰。
   const platforms = useQuery({
     queryKey: ["platforms"],
@@ -346,7 +346,7 @@ export function DownloadPage() {
     if (manifest.error) console.warn("[download] failed to load update manifest:", manifest.error);
   }, [manifest.error]);
 
-  const source = useMemo(() => {
+  const fullSource = useMemo(() => {
     // 两份清单都在路上时先不渲染正文，免得先写一版「暂时无法获取」再改口
     if (manifest.isPending || platforms.isPending) return null;
     const table = platforms.data?.platforms;
@@ -354,11 +354,16 @@ export function DownloadPage() {
     return fillTemplate(manifest.data.version, manifest.data.releaseUrl, manifest.data, table);
   }, [manifest.isPending, manifest.data, platforms.isPending, platforms.data]);
 
+  const source = useMemo(() => {
+    if (!ready || !fullSource) return fullSource;
+    return fullSource.split(/(?=^## )/m).filter((section, index) => index === 0 || section.startsWith(`## ${PLATFORM_LABELS[platform]}\n`) || section.startsWith("## 隐私\n")).join("");
+  }, [fullSource, ready, platform]);
+
   return (
     <ContentPage
       documentTitle="下载 | 水杉输入法"
       description="下载水杉输入法"
-      kicker={manifest.data ? `Windows v${manifest.data.version}` : "下载"}
+      kicker="下载与安装"
       source={source}
       // 页头取未代入版本号的模板：正文会随清单重渲染，标题和摘要不该跟着闪一下
       heroSource={downloadSource}

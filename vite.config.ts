@@ -22,7 +22,6 @@ export default defineConfig({
         feedback: resolve(projectRoot, "feedback/index.html"),
         about: resolve(projectRoot, "about/index.html"),
         download: resolve(projectRoot, "download/index.html"),
-        beta: resolve(projectRoot, "beta/index.html"),
         price: resolve(projectRoot, "price/index.html"),
         privacy: resolve(projectRoot, "privacy/index.html"),
         resume: resolve(projectRoot, "resume/index.html"),
