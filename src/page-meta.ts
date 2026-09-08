@@ -1,3 +1,4 @@
+import { languageAlternates } from "../shared/locales";
 import { useLayoutEffect, useRef } from "react";
 import { useLocation } from "@tanstack/react-router";
 import { markdownPath, pageSeo, serializeJsonLd, structuredData } from "../shared/site-seo";
@@ -10,6 +11,11 @@ export const usePageMeta = (_title?: string, _description?: string) => {
     if (path !== initialPath.current) document.documentElement.removeAttribute("data-prerendered");
     const page = pageSeo(path);
     document.title = page.title;
+    document.documentElement.lang = page.language;
+    document.head.querySelectorAll('link[hreflang]').forEach(element => { element.remove(); });
+    for (const alternate of languageAlternates(page.path)) {
+      const link = document.createElement('link'); link.rel = 'alternate'; link.hreflang = alternate.lang; link.href = `https://msime.app${alternate.path}`; document.head.append(link);
+    }
     const meta = (attribute: "name" | "property", name: string, content: string) => {
       let element = document.head.querySelector<HTMLMetaElement>(`meta[${attribute}="${name}"]`);
       if (!element) { element = document.createElement("meta"); element.setAttribute(attribute, name); document.head.append(element); }
@@ -22,6 +28,7 @@ export const usePageMeta = (_title?: string, _description?: string) => {
       meta(prefix === "og" ? "property" : "name", `${prefix}:description`, page.description);
     }
     meta("property", "og:url", page.canonical ?? "");
+    meta("property", "og:locale", page.language === "zh-Hant-TW" ? "zh_TW" : "zh_CN");
     document.head.querySelector('link[rel="canonical"]')?.remove();
     document.head.querySelector('link[rel="alternate"][type="text/markdown"]')?.remove();
     if (page.canonical) {

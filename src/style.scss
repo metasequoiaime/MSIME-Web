@@ -1929,3 +1929,9 @@ html[data-prerendered] .hero-content > * {
   opacity: 1;
   transform: none;
 }
+
+/* Use region-appropriate glyphs without downloading an additional font. */
+html:lang(zh-Hant-TW) body {
+  font-family: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+}
+.header-language { white-space: nowrap; font-size: .875rem; }

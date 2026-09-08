@@ -1,0 +1,23 @@
+.traditional-site {
+  .traditional-header { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; padding-block: 1.25rem; }
+  .traditional-header nav, .traditional-footer nav { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; }
+  .traditional-nav { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; padding-block: 1rem; border-block: 1px solid var(--border-color, #8884); }
+  .traditional-nav a[aria-current="page"] { font-weight: 700; text-decoration: underline; text-underline-offset: .4em; }
+  .traditional-content { max-width: 960px; padding-block: 2.5rem; line-height: 1.85; overflow-wrap: anywhere; }
+  .traditional-home-actions { margin-block: 1.5rem 2.5rem; }
+  h1 { line-height: 1.35; margin-bottom: 1rem; font-size: clamp(2rem, 5vw, 3rem); }
+  h2 { margin: 2rem 0 1rem; }
+  p { margin-block: 1rem; }
+  .traditional-content img { max-width: 100%; height: auto; border-radius: 12px; }
+  .traditional-download { margin-block: 2rem; padding: clamp(1rem, 3vw, 2rem); }
+  fieldset { border: 0; padding: 0; margin: 0; }
+  legend { margin-bottom: .75rem; font-weight: 700; }
+  .traditional-packages { padding: 0; list-style: none; }
+  .traditional-packages li { padding-block: 1rem; border-bottom: 1px solid var(--border-color, #8884); }
+  .traditional-packages code { white-space: normal; overflow-wrap: anywhere; }
+  .traditional-search { display: grid; gap: .5rem; }
+  .traditional-search input { width: 100%; padding: .8rem; border: 1px solid #8888; border-radius: 8px; background: transparent; color: inherit; }
+  .traditional-question { padding: 1rem 1.25rem; margin-block: 1rem; }
+  summary { cursor: pointer; font-weight: 600; }
+  .traditional-footer { border-top: 1px solid var(--border-color, #8884); padding-block: 2rem; }
+}

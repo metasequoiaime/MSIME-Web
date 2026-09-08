@@ -142,3 +142,11 @@ Issue 作者为 App 的机器人账号（例如 `msime-feedback[bot]`）。后�
 初次启动使用 TanStack Router 的 SSR 状态恢复并由 React hydrateRoot 接管静态正文；构建为当前页面生成 modulepreload，不预取其他页面。路由恢复脚本作为同源带内容哈希的资源输出，避免额外内联脚本撑大 CSP。主题在接管前保持与静态快照一致，随后在绘制前应用偏好。文档首段在静态构建时就放入页头，不依赖浏览器二次移动。
 
 安装截图保持 Docs 原文不变，在网站渲染时使用本地 WebP、尺寸声明和响应式候选。派生文件可用 `cwebp -q 85 -resize 480 0 public/screenshots/install-finish.png -o public/screenshots/install-finish-480.webp` 和 `cwebp -q 85 public/screenshots/install-finish.png -o public/screenshots/install-finish.webp` 重建。
+
+### 繁体中文第一阶段
+
+- `/zh-TW/`、`/zh-TW/features/`、`/zh-TW/download/`、`/zh-TW/faq/`、`/zh-TW/feedback/` 提供台湾繁体中文核心页面，语言标记为 `zh-Hant-TW`；原简体网址保持不变。手动切换语言，不依据 IP 或浏览器语言强制跳转。
+- 文案在 `src/locales/zh-TW/` 维护，按台湾用语人工整理；网页语言不改变输入法输出模式。下载仍读 `public/platforms.json`，版本、资源链接与校验值不另存一份。
+- FAQ 为固定 MSIME-Docs FAQ 的繁体摘要，保留原始证据链接。`faqSourceSha256` 与产物检查要求上游 FAQ 变更后重新核对翻译，不自动转换或静默沿用旧内容。
+- 第一阶段的反馈页面是繁体入口，链接至可填写繁体中文的现有简体表单；指南、价格、隐私与外部 Issue 範本未宣称已有繁体版本，链接明确标记简体。完整指南翻译留到第二阶段，并在 MSIME-Docs 维护。
+- `shared/locales.ts` 统一控制已翻译网址；HTML、站点地图与客户端使用互相对应的 `hreflang`（简体、繁体、x-default），每个语言版本采用自身 canonical，并生成静态正文和 Markdown。

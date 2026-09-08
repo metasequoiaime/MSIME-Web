@@ -152,3 +152,39 @@ test('static guide hero includes its introductory paragraph before hydration', (
     assert.equal(doc.querySelector('link[href^="/assets/router-state-"]').getAttribute('as'), 'script');
   }
 });
+
+test('Traditional Chinese core pages have reciprocal locale metadata and real translated content', async () => {
+  const { traditionalPages, traditionalPath } = await import('../shared/locales.ts');
+  for (const base of Object.keys(traditionalPages)) {
+    const path = traditionalPath(base);
+    const tw = document(path);
+    assert.equal(tw.documentElement.lang, 'zh-Hant-TW');
+    assert.equal(tw.querySelector('meta[property="og:locale"]').content, 'zh_TW');
+    assert.equal(tw.querySelector('link[rel=canonical]').href, `${SITE_ORIGIN}${path}`);
+    for (const [route, locale] of [[base, 'zh-Hans'], [path, 'zh-Hant-TW']]) {
+      for (const doc of [document(base), tw]) assert.equal(doc.querySelector(`link[hreflang="${locale}"]`).href, `${SITE_ORIGIN}${route}`);
+    }
+    assert.equal(tw.querySelector('link[hreflang="x-default"]').href, `${SITE_ORIGIN}${base}`);
+    assert.match(tw.querySelector('main').textContent, /輸入|問題/);
+    assert.ok(read('sitemap.xml').includes(`hreflang="zh-Hant-TW" href="${SITE_ORIGIN}${path}"`));
+  }
+  assert.equal(document('/docs/windows/').querySelector('link[hreflang]'), null, 'do not advertise untranslated guides');
+  assert.ok(document('/zh-TW/feedback/').querySelector('main a[href="/feedback/"]').textContent.includes('簡體'));
+  const twDownload = document('/zh-TW/download/');
+  const release = JSON.parse(read('platforms.json')).platforms.windows;
+  assert.ok(twDownload.querySelector('main').textContent.includes(release.version));
+  assert.ok(twDownload.querySelector(`a[href="${release.downloads[0].url}"]`), 'downloads use the same published assets');
+  assert.ok(twDownload.querySelector('main').textContent.includes(release.downloads[0].sha256));
+});
+
+test('Traditional FAQ summaries track the reviewed source and expose all answers without JavaScript', async () => {
+  const { createHash } = await import('node:crypto');
+  const { questions, faqSourceSha256 } = await import('../src/locales/zh-TW/faq.ts');
+  const source = readFileSync('vendor/MSIME-Docs/guides/faq.md', 'utf8');
+  assert.equal(createHash('sha256').update(source).digest('hex'), faqSourceSha256, 'Review the Traditional FAQ when the source changes');
+  assert.equal(questions.length, [...source.matchAll(/^### /gm)].length);
+  const doc = document('/zh-TW/faq/');
+  const schema = [...doc.querySelectorAll('script[type="application/ld+json"]')].map(node => JSON.parse(node.textContent)).find(item => item['@type'] === 'FAQPage');
+  assert.equal(schema.mainEntity.length, questions.length);
+  for (const question of questions) assert.ok(doc.querySelector('main').textContent.includes(question.answer));
+});

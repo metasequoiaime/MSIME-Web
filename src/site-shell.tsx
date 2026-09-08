@@ -1,3 +1,4 @@
+import { baseLocalePath, traditionalPages, traditionalPath } from "../shared/locales";
 import { Link, Outlet, useLocation, useRouterState } from "@tanstack/react-router";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { THEME_CHOICES, THEME_LABELS, useTheme } from "./theme";
@@ -331,6 +332,7 @@ function SiteFooter({ inert }: { inert: boolean }) {
 }
 
 export function SiteShell() {
+  const languagePath = useLocation({ select: value => value.pathname });
   const [menuIsOpen, setMenuIsOpen] = useState(false);
   const closeMenu = useCallback(() => {
     setMenuIsOpen(false);
@@ -365,6 +367,7 @@ export function SiteShell() {
               <span>GitHub</span>
             </a>
 
+            <a className="header-language" lang="zh-Hant-TW" hrefLang="zh-Hant-TW" href={traditionalPath(baseLocalePath(languagePath) in traditionalPages ? baseLocalePath(languagePath) : '/')} aria-label="切换到繁体中文">繁體</a>
             <ThemeSwitcher />
 
             <button
