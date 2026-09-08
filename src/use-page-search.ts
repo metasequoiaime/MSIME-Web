@@ -16,8 +16,9 @@ export function usePageSearch() {
     const value = get(key);
     return values.includes(value as T) ? value as T : fallback;
   };
+  // Changing an option is not a request to revisit the URL's existing section anchor.
   const update = (patch: Record<string, string | undefined>, replace = false, preserveHash = true) => {
-    void navigate({ to: "./", search: previous => ({ ...previous, ...patch }), replace, resetScroll: false, hash: preserveHash ? true : "" });
+    void navigate({ to: "./", search: previous => ({ ...previous, ...patch }), replace, resetScroll: false, hashScrollIntoView: false, hash: preserveHash ? true : "" });
   };
   return { get, choice, update, ready };
 }
