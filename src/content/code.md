@@ -5,8 +5,8 @@
 ## 平台前端
 
 - [MSIME-Windows](https://github.com/metasequoiaime/MSIME-Windows)：Windows 产品，包含 TSF DLL、常驻 Server、GUI 库、WebView 页面与安装器。
-- [MSIME-Apple](https://github.com/metasequoiaime/MSIME-Apple)：Apple 平台前端。macOS 与 iOS 已开放公测；macOS 使用 InputMethodKit 与 AppKit，iOS 提供宿主 App 与键盘扩展。
-- [MSIME-Linux](https://github.com/metasequoiaime/MSIME-Linux)：Linux 前端，基于 IBus，另含 GTK 设置程序、剪贴板历史和屏幕键盘等桌面工具。
+- [MSIME-Apple](https://github.com/metasequoiaime/MSIME-Apple)：Apple 平台前端。macOS 与 iOS 已开放公开测试；macOS 使用 InputMethodKit 与 AppKit，iOS 提供宿主 App 与键盘扩展。
+- [MSIME-Linux](https://github.com/metasequoiaime/MSIME-Linux)：Linux 前端，正在开发中，基于 IBus，另含 GTK 设置程序、剪贴板历史和屏幕键盘等桌面工具。
 
 ## 引擎与后端
 

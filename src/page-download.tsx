@@ -191,7 +191,7 @@ const PLATFORM_HINTS: Record<Platform, string> = {
   windows: "适用于 Windows 10 与 Windows 11",
   macos: "适用于 macOS 12 及以上",
   ios: "适用于 iOS 15 及以上，通过 TestFlight 安装",
-  linux: "IBus 前端",
+  linux: "开发中，基于 IBus",
 };
 
 /**
@@ -306,7 +306,7 @@ function DownloadPanel({ platforms }: { platforms: Partial<Record<Platform, Plat
           t("通过 TestFlight 安装，无需开发者账号。")
         ) : current ? (
           <>
-            {t(current.prerelease ? "公开测试版本，" : "")}{t("发布于")}{t(current.publishedAt.slice(0, 10))}{t("。")}{" "}<a href={current.releaseUrl} rel="noreferrer">{t("发布说明与校验值 ↗")}</a></>
+            {t(platform === "linux" ? "开发构建，" : "公开测试版本，")}{t("发布于")}{t(current.publishedAt.slice(0, 10))}{t("。")}{" "}<a href={current.releaseUrl} rel="noreferrer">{t("发布说明与校验值 ↗")}</a></>
         ) : (
           t("安装步骤见下方说明。")
         ))}

@@ -298,7 +298,7 @@ function SiteFooter({ inert }: { inert: boolean }) {
             <div className="site-footer-col-title">{t("产品")}</div>
             <div className="site-footer-links">
               <Link to="/download/">{t("下载")}</Link>
-              <Link to="/download/" search={{ platform: "ios" }}>{t("iOS 公测")}</Link>
+              <Link to="/download/" search={{ platform: "ios" }}>{t("iOS 公开测试")}</Link>
               <Link to="/price/">{t("价格")}</Link>
               <Link to="/docs/$guide/" params={{ guide: "windows" }}>{t("文档")}</Link>
               <Link to="/faq/">{t("常见问题 Q&A")}</Link>
