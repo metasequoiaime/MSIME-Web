@@ -1,2 +1,2 @@
-# Keep the production pages.dev mirror on the public canonical domain.
-https://metasequoiaime.pages.dev/* https://msime.app/:splat 301
+# Domain redirects are configured with Cloudflare Single/Bulk Redirects.
+# Pages _redirects only accepts relative source paths; do not put hostnames here.

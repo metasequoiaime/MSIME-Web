@@ -151,7 +151,7 @@ export function HomePage() {
                 下载
                 <img src="/img/icons/Download.svg" alt="" className="btn-icon" />
               </Link>
-              <Link className="btn btn-lg btn-ghost" to="/docs/">
+              <Link className="btn btn-lg btn-ghost" to="/docs/$guide/" params={{ guide: "windows" }}>
                 阅读文档
               </Link>
             </div>

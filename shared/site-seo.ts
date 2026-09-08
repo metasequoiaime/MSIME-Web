@@ -35,7 +35,6 @@ export function structuredData(path: string) {
   if (page.path === "/") graph.push({ "@type": "SoftwareApplication", "@id": `${SITE_ORIGIN}/#software`, name: SITE_NAME, alternateName: ["MSIME", "MetasequoiaIME"], applicationCategory: "UtilitiesApplication", operatingSystem: ["Windows", "macOS", "Linux"], url: `${SITE_ORIGIN}/`, downloadUrl: `${SITE_ORIGIN}/download/`, isAccessibleForFree: true, offers: { "@type": "Offer", price: 0, priceCurrency: "CNY", url: `${SITE_ORIGIN}/price/` }, license: "https://github.com/metasequoiaime/MSIME-Web/blob/main/LICENSE", publisher: { "@id": organization["@id"] } });
   if (page.path !== "/") {
     const crumbs = [{ "@type": "ListItem", position: 1, name: "首页", item: `${SITE_ORIGIN}/` }];
-    if (page.path.startsWith("/docs/") && page.path !== "/docs/") crumbs.push({ "@type": "ListItem", position: 2, name: "使用文档", item: `${SITE_ORIGIN}/docs/` });
     crumbs.push({ "@type": "ListItem", position: crumbs.length + 1, name: page.title.split("｜")[0], item: page.canonical });
     graph.push({ "@type": "BreadcrumbList", itemListElement: crumbs });
   }

@@ -1,7 +1,6 @@
 import { createMemoryHistory, createRootRoute, createRoute, createRouter, lazyRouteComponent, Link, Outlet } from "@tanstack/react-router";
 import { usePageMeta } from "./page-meta";
 import { docsSearchSchema } from "./docs-search";
-import { HomePage } from "./page-home";
 import { SiteShell } from "./site-shell";
 
 function NotFoundPage() {
@@ -16,7 +15,7 @@ function NotFoundPage() {
             <Link className="btn btn-primary" to="/">
               回到首页
             </Link>
-            <Link className="btn btn-ghost" to="/docs/">
+            <Link className="btn btn-ghost" to="/docs/$guide/" params={{ guide: "windows" }}>
               查看文档
             </Link>
           </div>
@@ -45,8 +44,8 @@ const shellRoute = createRoute({
   notFoundComponent: NotFoundPage,
 });
 
-// 首页不拆包：它是最常见的落地页，而且不需要 markdown 渲染器。其余各页的正文各自成块，只有真的打开才下载。
-const indexRoute = createRoute({ getParentRoute: () => shellRoute, path: "/", component: HomePage });
+// 各页独立加载，文档访客无需下载首页演示和社区图表。
+const indexRoute = createRoute({ getParentRoute: () => shellRoute, path: "/", component: lazyRouteComponent(() => import("./page-home"), "HomePage") });
 
 const featuresRoute = createRoute({
   getParentRoute: () => shellRoute,

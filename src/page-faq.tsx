@@ -90,7 +90,7 @@ export function FaqPage() {
           </section>;
         })}
         {!matches.length && <section className="card faq-empty"><h2>暂时没有匹配的问题</h2><p>试试更短的关键词，或查看全部问题。</p><button type="button" className="btn btn-ghost" onClick={() => { setQuery(""); setCategory(""); }}>清除筛选</button></section>}
-        <section className="card faq-help"><h2>还没找到答案？</h2><p>遇到故障时，请带上版本号、复现步骤和截图。想增加或改进功能，也可以通过官网提交需求。</p><div className="btn-row"><Link className="btn btn-ghost" to="/docs/">查看完整指南</Link><a className="btn btn-ghost" href="https://github.com/metasequoiaime/MSIME-Windows/issues">查看与反馈 Windows 问题 ↗</a><Link className="btn btn-primary" to="/feedback/">提交功能需求</Link></div></section>
+        <section className="card faq-help"><h2>还没找到答案？</h2><p>遇到故障时，请带上版本号、复现步骤和截图。想增加或改进功能，也可以通过官网提交需求。</p><div className="btn-row"><Link className="btn btn-ghost" to="/docs/$guide/" params={{ guide: "windows" }}>查看完整指南</Link><a className="btn btn-ghost" href="https://github.com/metasequoiaime/MSIME-Windows/issues">查看与反馈 Windows 问题 ↗</a><Link className="btn btn-primary" to="/feedback/">提交功能需求</Link></div></section>
       </div>
     </main>
   </>;

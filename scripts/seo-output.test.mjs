@@ -119,3 +119,36 @@ test('duplicate guide bodies share a canonical and AI indexes include them only 
   assert.equal(app.aggregateRating, undefined);
   assert.equal(app.review, undefined);
 });
+
+
+test('internal navigation and breadcrumbs use canonical pages without duplicate levels', () => {
+  for (const [path] of publicPages) {
+    const doc = document(path);
+    assert.equal(doc.querySelectorAll('a[href="/docs/"]').length, 0, path);
+    const graph = [...doc.querySelectorAll('script[type="application/ld+json"]')].flatMap(el => JSON.parse(el.textContent)['@graph'] ?? []);
+    const crumbs = graph.find(item => item['@type'] === 'BreadcrumbList')?.itemListElement ?? [];
+    assert.equal(new Set(crumbs.map(item => item.item)).size, crumbs.length, path);
+    for (const crumb of crumbs) assert.equal(pageSeo(new URL(crumb.item).pathname).canonical, crumb.item);
+  }
+});
+
+test('document screenshots reserve layout and use responsive local images', () => {
+  const img = document('/docs/windows/').querySelector('img[alt="安装完成截图"]');
+  assert.equal(img.getAttribute('width'), '998');
+  assert.equal(img.getAttribute('height'), '767');
+  assert.equal(img.getAttribute('loading'), 'lazy');
+  assert.match(img.getAttribute('srcset'), /480w.*998w/);
+  for (const item of img.getAttribute('srcset').split(',')) assert.ok(existsSync(`dist${item.trim().split(' ')[0]}`));
+});
+
+
+test('static guide hero includes its introductory paragraph before hydration', () => {
+  for (const guide of ['windows', 'macos', 'macos-voice', 'linux']) {
+    const doc = document(`/docs/${guide}/`);
+    const lead = doc.querySelector('#page-lead').textContent.trim();
+    assert.ok(lead.length > 10, guide);
+    assert.ok(!doc.querySelector('.docs-article').textContent.trim().startsWith(lead), guide);
+    assert.ok(doc.querySelector('script[src^="/assets/router-state-"]'));
+    assert.equal(doc.querySelector('link[href^="/assets/router-state-"]').getAttribute('as'), 'script');
+  }
+});

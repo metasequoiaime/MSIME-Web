@@ -1094,6 +1094,12 @@ html {
  *
  * 卡片自己有标题栏和圆角，"这是一个窗口"由外框负责表达，所以裁掉录屏下半截不会显得残缺。宽屏保留顶部窗口 chrome（它说明这是真实应用里的输入），只压掉空白正文。
  */
+// Reserve the media area while the preferred theme replaces the static video.
+.hero-media-frame {
+  aspect-ratio: 1346 / 660;
+  overflow: hidden;
+}
+
 .hero-screenshot video,
 .hero-screenshot img {
   display: block;
@@ -1852,7 +1858,7 @@ html {
   .hero-buttons { margin-top: 24px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .hero-buttons .btn { width: 100%; min-height: 48px; padding-inline: 10px; font-size: 16px; }
   .hero-demo { grid-row: 2; }
-  .hero-media-frame { overflow: hidden; }
+  .hero-media-frame { aspect-ratio: 4 / 3; }
   .hero-screenshot video, .hero-screenshot img {
     aspect-ratio: 4 / 3; object-position: 32% 34%; transform: scale(1.75); transform-origin: 32% 34%;
   }
