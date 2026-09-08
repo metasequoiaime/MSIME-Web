@@ -63,13 +63,13 @@ export function DocsPage() {
   if (guideId && !GUIDES.some(item => item.id === guideId)) return <main className="content-page"><div className="container"><h1>{t("指南不存在")}</h1><Link to="/docs/$guide/" params={{ guide: "windows" }}>{t("查看 Windows 使用指南")}</Link></div></main>;
   return (
     <>
-      <PageHero kicker="文档" title={t(content.title)} leadHtml={content.leadHtml} />
+      <PageHero kicker="文档" title={t("水杉输入法使用文档")} leadHtml={t("选择你使用的平台，查看安装、配置与日常使用指南。")} />
 
       <main className="docs-page">
         <div className="container docs-toolbar">
           <nav className="docs-platforms" id="docs-platforms" aria-label={t("平台")}>
             {GUIDES.map(candidate => (
-              <Link key={candidate.id} className={`docs-platform${candidate.id === guide.id ? " is-active" : ""}`} to="/docs/$guide/" params={{ guide: candidate.id }} aria-current={candidate.id === guide.id ? "page" : undefined}>{t(candidate.label)}</Link>
+              <Link key={candidate.id} className={`docs-platform${candidate.id === guide.id ? " is-active" : ""}`} to="/docs/$guide/" params={{ guide: candidate.id }} resetScroll={false} aria-current={candidate.id === guide.id ? "page" : undefined}>{t(candidate.label)}</Link>
             ))}
           </nav>
           <Link className="docs-faq-link" to="/faq/" search={{ platform: guide.id.startsWith("macos") ? "macos" : guide.id }}>{t("常见问题 Q&A →")}</Link>
@@ -107,9 +107,15 @@ export function DocsPage() {
             id="docs-content"
             ref={articleRef}
             aria-live="polite"
-            // biome-ignore lint/security/noDangerouslySetInnerHtml: 正文来自随仓库固定的 MSIME-Docs gitlink，markdown-it 关掉了 html 透传
-            dangerouslySetInnerHTML={{ __html: content.html }}
-          />
+          >
+            <header className="docs-guide-intro">
+              <h2>{t(`${guide.label} 使用指南`)}</h2>
+              {/* biome-ignore lint/security/noDangerouslySetInnerHtml: 简介来自固定 MSIME-Docs gitlink，markdown-it 禁用 HTML 透传 */}
+              <div dangerouslySetInnerHTML={{ __html: content.leadHtml }} />
+            </header>
+            {/* biome-ignore lint/security/noDangerouslySetInnerHtml: 正文来自固定 MSIME-Docs gitlink，markdown-it 禁用 HTML 透传 */}
+            <div dangerouslySetInnerHTML={{ __html: content.html }} />
+          </article>
         </div>
       </main>
     </>
