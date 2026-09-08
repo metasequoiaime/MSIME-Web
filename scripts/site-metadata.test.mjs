@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { test } from 'node:test';
+import { seoPages } from '../shared/site-seo.ts';
 
 const root = new URL('../', import.meta.url);
 const read = path => readFileSync(new URL(path, root), 'utf8');
@@ -17,10 +18,9 @@ const pageDirectories = () =>
 // 简历页是个人页面，入口里带 noindex，不进站点地图。
 const NOINDEX = ['/resume/'];
 
-test('the sitemap lists every indexable page and nothing else', () => {
-  const listed = [...read('public/sitemap.xml').matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
-  const expected = ['/', ...pageDirectories().filter(p => !NOINDEX.includes(p))].map(p => `${SITE}${p}`);
-  assert.deepEqual([...listed].sort(), [...expected].sort());
+test('the SEO registry includes every entry page', () => {
+  for (const path of ['/', ...pageDirectories()]) assert.ok(seoPages[path], path);
+  assert.equal(Object.keys(seoPages).filter(path => path.startsWith('/docs/') && path !== '/docs/').length, 4);
 });
 
 test('pages excluded from the sitemap actually say so in their own markup', () => {
@@ -30,10 +30,11 @@ test('pages excluded from the sitemap actually say so in their own markup', () =
   }
 });
 
-test('robots points at the sitemap and blocks the same pages', () => {
+test('robots exposes the sitemap and permits reading noindex directives', () => {
   const robots = read('public/robots.txt');
   assert.match(robots, new RegExp(`^Sitemap: ${SITE}/sitemap\\.xml$`, 'm'));
-  for (const path of NOINDEX) assert.match(robots, new RegExp(`^Disallow: ${path}$`, 'm'));
+  for (const path of NOINDEX) assert.doesNotMatch(robots, new RegExp(`^Disallow: ${path}$`, 'm'));
+  assert.match(robots, /^Disallow: \/api\/$/m);
 });
 
 test('every page carries a canonical and sharing metadata that match its own address', () => {

@@ -1,5 +1,5 @@
-import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { Link, useNavigate, useSearch, useParams } from "@tanstack/react-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import linuxGuide from "../vendor/MSIME-Docs/guides/linux.md?raw";
 import macosGuide from "../vendor/MSIME-Docs/guides/macos.md?raw";
 import macosVoiceGuide from "../vendor/MSIME-Docs/guides/macos-voice.md?raw";
@@ -7,7 +7,6 @@ import windowsGuide from "../vendor/MSIME-Docs/guides/windows.md?raw";
 import { renderContent } from "./markdown";
 import { PageHero } from "./page-content";
 import { usePageMeta } from "./page-meta";
-import { detectPlatform } from "./platform";
 import { linkGuideCrossReferences, useTocScrollSpy, withHeadingIds } from "./toc";
 import { useInternalLinks } from "./use-internal-links";
 import { TocNav } from "./toc-nav";
@@ -20,18 +19,17 @@ const GUIDES = [
   { id: "linux", label: "Linux", source: linuxGuide },
 ] as const;
 
-type GuideId = (typeof GUIDES)[number]["id"];
 
 const GUIDE_IDS = GUIDES.map((guide) => guide.id);
 
-/** 没有 ?platform= 时按 UA 猜。三个系统各自对应一份主指南，macOS 语音那份要自己点。 */
-const guideIdFromUserAgent = (): GuideId => detectPlatform();
-
 export function DocsPage() {
-  const { platform } = useSearch({ from: "/site-shell/docs" });
+  const { platform } = useSearch({ strict: false });
+  const params = useParams({ strict: false });
   const navigate = useNavigate({ from: "/docs" });
-  const [uaGuide] = useState(guideIdFromUserAgent);
-  const guideId = platform ?? uaGuide;
+  const guideId = params.guide ?? platform;
+  useEffect(() => {
+    if (platform && !params.guide) void navigate({ to: "/docs/$guide/", params: { guide: platform }, search: {}, replace: true, hash: window.location.hash.slice(1) });
+  }, [platform, params.guide, navigate]);
 
   const [sidebarIsOpen, setSidebarIsOpen] = useState(false);
   const articleRef = useRef<HTMLElement>(null);
@@ -48,12 +46,14 @@ export function DocsPage() {
   const { activeId, lockUntilScrollEnds } = useTocScrollSpy(content.toc, articleRef, tocRef, sidebarRef);
   useInternalLinks(articleRef);
 
-  usePageMeta("文档 | 水杉输入法", "水杉输入法文档");
+  usePageMeta(guideId ? `${guide.label} 使用指南 | 水杉输入法` : "文档 | 水杉输入法", guideId ? `水杉输入法 ${guide.label} 使用指南：安装、配置、输入与常见问题排查。` : "水杉输入法 Windows、macOS、macOS 语音与 Linux 使用指南，选择平台查看安装和配置方法。");
 
   const closeSidebar = useCallback(() => {
     setSidebarIsOpen(false);
   }, []);
 
+  if (!guideId) return <main className="content-page"><div className="container"><h1>水杉输入法使用文档</h1><p>选择你使用的平台，查看安装、配置与日常使用指南。</p><div className="btn-row">{GUIDES.map(item => <Link className="btn btn-ghost" key={item.id} to="/docs/$guide/" params={{ guide: item.id }}>{item.label} 使用指南</Link>)}</div><p><Link to="/faq/">遇到问题？查看常见问题 Q&A</Link></p></div></main>;
+  if (!GUIDES.some(item => item.id === guideId)) return <main className="content-page"><div className="container"><h1>指南不存在</h1><Link to="/docs/">返回文档目录</Link></div></main>;
   return (
     <>
       <PageHero kicker="文档" title={content.title} leadHtml={content.leadHtml} />
@@ -80,19 +80,7 @@ export function DocsPage() {
 
             <nav className="docs-platforms" id="docs-platforms" aria-label="平台">
               {GUIDES.map((candidate) => (
-                <button
-                  key={candidate.id}
-                  className={`docs-platform${candidate.id === guideId ? " is-active" : ""}`}
-                  type="button"
-                  aria-current={candidate.id === guideId ? "page" : "false"}
-                  onClick={() => {
-                    // replace so the platform tabs do not fill the back button with history entries; hash 一并清掉，否则切了平台还会跳回上一份指南的锚点
-                    void navigate({ search: () => ({ platform: candidate.id }), hash: "", replace: true });
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                >
-                  {candidate.label}
-                </button>
+                <Link key={candidate.id} className={`docs-platform${candidate.id === guideId ? " is-active" : ""}`} to="/docs/$guide/" params={{ guide: candidate.id }} aria-current={candidate.id === guideId ? "page" : undefined}>{candidate.label}</Link>
               ))}
             </nav>
 

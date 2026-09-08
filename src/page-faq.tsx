@@ -1,3 +1,4 @@
+import { serializeJsonLd } from "../shared/site-seo";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import faqSource from "../vendor/MSIME-Docs/guides/faq.md?raw";
@@ -58,6 +59,7 @@ export function FaqPage() {
   const matches = faq.questions.filter(question => (!category || question.category === category) && words.every(word => `${question.title} ${question.text}`.toLocaleLowerCase().includes(word)));
 
   return <>
+    <script type="application/ld+json">{serializeJsonLd({ "@context": "https://schema.org", "@type": "FAQPage", "@id": "https://msime.app/faq/#faq", mainEntity: faq.questions.map(question => ({ "@type": "Question", name: question.title, acceptedAnswer: { "@type": "Answer", text: question.text.trim() } })) })}</script>
     <PageHero kicker="使用帮助" title={faq.title} leadHtml={faq.leadHtml} />
     <main className="content-page faq-page">
       <div className="container" ref={root}>

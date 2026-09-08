@@ -18,7 +18,7 @@ export const linkGuideCrossReferences = (html: string, knownGuides: readonly str
     const match = /^([\w-]+)\.md(#.*)?$/.exec(href);
     if (!match || !knownGuides.includes(match[1])) return;
 
-    link.setAttribute("href", `/docs/?platform=${match[1]}${match[2] ?? ""}`);
+    link.setAttribute("href", `/docs/${match[1]}/${match[2] ?? ""}`);
   });
 
   return holder.innerHTML;

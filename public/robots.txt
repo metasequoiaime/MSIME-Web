@@ -1,5 +1,8 @@
-# 简历页是个人页面，入口 HTML 里也带 noindex，这里一并拦住。
+# Public HTML, assets and Markdown are available to search and AI crawlers.
+# OAI-SearchBot, Claude-SearchBot and PerplexityBot follow the same public policy.
+# Crawl resume/ so its noindex directive can be read; API uploads are not search content.
 User-agent: *
-Disallow: /resume/
+Allow: /
+Disallow: /api/
 
 Sitemap: https://msime.app/sitemap.xml

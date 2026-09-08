@@ -1,0 +1,2 @@
+# Keep the production pages.dev mirror on the public canonical domain.
+https://metasequoiaime.pages.dev/* https://msime.app/:splat 301

@@ -1,9 +1,11 @@
-import { createRootRoute, createRoute, createRouter, lazyRouteComponent, Link, Outlet } from "@tanstack/react-router";
+import { createMemoryHistory, createRootRoute, createRoute, createRouter, lazyRouteComponent, Link, Outlet } from "@tanstack/react-router";
+import { usePageMeta } from "./page-meta";
 import { docsSearchSchema } from "./docs-search";
 import { HomePage } from "./page-home";
 import { SiteShell } from "./site-shell";
 
 function NotFoundPage() {
+  usePageMeta();
   return (
     <main className="content-page">
       <div className="container">
@@ -24,7 +26,12 @@ function NotFoundPage() {
   );
 }
 
-const rootRoute = createRootRoute({ component: Outlet });
+function RootLayout() {
+  usePageMeta();
+  return <Outlet />;
+}
+
+const rootRoute = createRootRoute({ component: RootLayout });
 
 /**
  * 无路径的布局层：顶栏、导航和页脚都挂在这里，站内换页时它们不重挂，导航胶囊才能连续地滑过去。
@@ -52,6 +59,12 @@ const docsRoute = createRoute({
   path: "/docs",
   component: lazyRouteComponent(() => import("./page-docs"), "DocsPage"),
   validateSearch: docsSearchSchema,
+});
+
+const guideRoute = createRoute({
+  getParentRoute: () => shellRoute,
+  path: "/docs/$guide",
+  component: lazyRouteComponent(() => import("./page-docs"), "DocsPage"),
 });
 
 const faqRoute = createRoute({
@@ -103,11 +116,12 @@ const resumeRoute = createRoute({
 });
 
 const routeTree = rootRoute.addChildren([
-  shellRoute.addChildren([indexRoute, featuresRoute, docsRoute, faqRoute, downloadRoute, aboutRoute, codeRoute, priceRoute, privacyRoute, feedbackRoute]),
+  shellRoute.addChildren([indexRoute, featuresRoute, docsRoute, guideRoute, faqRoute, downloadRoute, aboutRoute, codeRoute, priceRoute, privacyRoute, feedbackRoute]),
   resumeRoute,
 ]);
 
-export const router = createRouter({
+export const makeRouter = (url?: string) => createRouter({
+  ...(url ? { history: createMemoryHistory({ initialEntries: [url] }), isServer: true } : {}),
   routeTree,
   // 站点部署成目录结构，规范地址一直带尾斜杠（`/docs/` 而不是 `/docs`）。生成的链接必须跟着带，直接访问才不会先吃一次跳转。
   trailingSlash: "always",
@@ -120,6 +134,6 @@ export const router = createRouter({
 
 declare module "@tanstack/react-router" {
   interface Register {
-    router: typeof router;
+    router: ReturnType<typeof makeRouter>;
   }
 }

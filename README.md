@@ -113,3 +113,20 @@ Issue 作者为 App 的机器人账号（例如 `msime-feedback[bot]`）。后�
 `/faq/` 提供按分类筛选、全文搜索、折叠展开及问题锚点。正文唯一来源为 MSIME-Docs 的 `guides/faq.md`：一级标题和首段用于页头，二级标题作为分类，三级标题作为问答，正文使用现有安全 Markdown 渲染器。导航、页脚、文档页及需求表单提供入口。
 
 维护时先核对 Issue 的最终回复和适用版本，区分已解决、临时处理、未确认结论；字体工具栏问题 #232 仍开放，不能标成已修复。FAQ 内容先在 Docs 合入，再将 Web 的 Docs gitlink 更新到包含 FAQ 的已合并提交，最后通过正常 PR 发布网站。仅更新 Web gitlink 不会包含 Docs 工作区里尚未提交的 FAQ 文件。
+
+### SEO 与 AI 内容入口
+
+`pnpm build` 先构建浏览器资源，再在 Node 中渲染同一套 React 页面，生成可直接阅读的静态 HTML；不依赖构建环境安装浏览器。交互仍由浏览器端 React 接管，下载与社区数据从仓库内已生成的 JSON 快照注入，后续更新仍沿用现有自动 PR 和 Pages Git 发布。
+
+- 页面标题、描述、canonical、Open Graph、Twitter 卡片和站点结构化数据统一由 `shared/site-seo.ts` 管理，客户端换页同步更新。
+- `/docs/` 为文档目录；四份指南使用 `/docs/windows/`、`/docs/macos/`、`/docs/macos-voice/`、`/docs/linux/`。旧 `?platform=` 地址通过 Pages Function 301 跳转并保留其他参数。
+- `/sitemap.xml` 从可索引页面注册表生成；不伪造 `lastmod`。简历和 404 带 `noindex`，但允许爬虫读取该指令。
+- `/llms.txt` 提供 AI 可读索引，`/llms-full.txt` 合并公开页面正文。每个公开页面还有 `.md` 副本（首页为 `/index.md`），由静态页面的正文生成，文档附带固定 Docs commit。Markdown 响应通过 HTTP canonical 指向 HTML，并用 `noindex` 避免重复索引。
+- FAQ 结构化数据来自页面实际显示的 18 条问答；不添加虚构评价、价格或评分。`llms.txt` 是社区提案，不是搜索引擎或 AI 推荐的保证。
+- `robots.txt` 允许公开正文、静态资源和 AI Markdown 抓取，排除反馈 API。沿用原有公开抓取策略，不把 AI 搜索与模型训练混为一谈，也不通过 User-Agent 返回不同内容。
+
+构建最后自动运行 `scripts/seo-output.test.mjs`，检查静态正文、元数据、所有指南、FAQ、资源路径、站点地图、AI 内容覆盖、noindex 与旧地址跳转；也可对现有产物执行 `pnpm test:seo`。新增页面时更新注册表和路由即可，地图与 AI 文件不手动维护。
+
+上线后可在 Google Search Console / Bing Webmaster Tools 的已有域名资源中提交 `https://msime.app/sitemap.xml`，检查抓取、canonical、索引覆盖和搜索表现。站点验证凭据不写入仓库；当前改动不声称已向未授权的外部站长账户提交。Cloudflare 自定义域名应保持搜索抓取器可访问，生产 `pages.dev` 镜像通过 301 归一到正式域名。
+
+参考：[Google 搜索技术要求](https://developers.google.com/search/docs/essentials/technical)、[noindex 与抓取](https://developers.google.com/search/docs/crawling-indexing/block-indexing)、[OpenAI 抓取器](https://developers.openai.com/api/docs/bots)、[llms.txt 提案](https://llmstxt.org/)。
