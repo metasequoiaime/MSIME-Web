@@ -16,3 +16,13 @@
 
 /community.json
   Cache-Control: no-cache
+
+# HTML must revalidate after deployments; hashed assets retain their immutable cache.
+/
+  Cache-Control: no-cache
+
+/*/
+  Cache-Control: no-cache
+
+/*.html
+  Cache-Control: no-cache

@@ -66,6 +66,14 @@ export function DocsPage() {
       <PageHero kicker="文档" title={t(content.title)} leadHtml={content.leadHtml} />
 
       <main className="docs-page">
+        <div className="container docs-toolbar">
+          <nav className="docs-platforms" id="docs-platforms" aria-label={t("平台")}>
+            {GUIDES.map(candidate => (
+              <Link key={candidate.id} className={`docs-platform${candidate.id === guide.id ? " is-active" : ""}`} to="/docs/$guide/" params={{ guide: candidate.id }} aria-current={candidate.id === guide.id ? "page" : undefined}>{t(candidate.label)}</Link>
+            ))}
+          </nav>
+          <Link className="docs-faq-link" to="/faq/" search={{ platform: guide.id.startsWith("macos") ? "macos" : guide.id }}>{t("常见问题 Q&A →")}</Link>
+        </div>
         <div className="container docs-shell">
           <aside className={`docs-sidebar${sidebarIsOpen ? " is-open" : ""}`} ref={sidebarRef} aria-label={t("文档导航")}>
             <button
@@ -84,14 +92,6 @@ export function DocsPage() {
                 </svg>
               </span>
             </button>
-
-            <nav className="docs-platforms" id="docs-platforms" aria-label={t("平台")}>
-              {t(GUIDES.map((candidate) => (
-                <Link key={candidate.id} className={`docs-platform${candidate.id === guide.id ? " is-active" : ""}`} to="/docs/$guide/" params={{ guide: candidate.id }} aria-current={candidate.id === guide.id ? "page" : undefined}>{t(candidate.label)}</Link>
-              )))}
-            </nav>
-
-            <Link className="btn btn-ghost" to="/faq/">{t("常见问题 Q&A ↗")}</Link>
 
             <TocNav
               entries={content.toc}
