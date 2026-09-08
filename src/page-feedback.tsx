@@ -1,5 +1,6 @@
 import { acceptsScreenshot, canAttach, initialAnswers, issueTemplateSchema, validateAnswers } from "../shared/feedback-templates";
 import type { Answers, IssueTemplate } from "../shared/feedback-templates";
+import { ScreenshotViewer } from "./screenshot-viewer";
 import { FeedbackFields } from "./feedback-fields";
 import { screenshotError } from "../shared/feedback-images";
 import { useEffect, useRef, useState } from "react";
@@ -44,6 +45,8 @@ export function FeedbackPage() {
   usePageMeta("需求上报 | 水杉输入法", "提交功能需求，自动分流到对应的 GitHub 仓库。");
   const [form, setForm] = useState<Feedback>(emptyForm);
   const [screenshots, setScreenshots] = useState<LocalScreenshot[]>([]);
+  const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
+  const previewBody = useRef<HTMLDivElement>(null);
   const [screenshotsEnabled, setScreenshotsEnabled] = useState(false);
   const [readingImages, setReadingImages] = useState(false);
   const [imageError, setImageError] = useState("");
@@ -219,11 +222,35 @@ export function FeedbackPage() {
   }
 
   const previewIssue = template ? formatIssue(form, template, screenshots.map(item => ({ field: item.field, url: item.url }))) : undefined;
-  const renderUpload = (field = "") => <input id={`screenshots-${field || "general"}`} type="file" accept="image/png,image/jpeg,image/webp" multiple disabled={!screenshotsEnabled || busy || readingImages} onChange={event => { const files = Array.from(event.target.files ?? []); event.target.value = ""; void addScreenshots(files, field); }} />;
+  const renderUpload = (field = "") => <div className="feedback-upload">
+    <input id={`screenshots-${field || "general"}`} aria-label="选择截图" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden disabled={!screenshotsEnabled || busy || readingImages || screenshots.length >= 3} onChange={event => { const files = Array.from(event.target.files ?? []); event.target.value = ""; void addScreenshots(files, field); }} />
+    <button type="button" className="btn btn-ghost" disabled={!screenshotsEnabled || busy || readingImages || screenshots.length >= 3} onClick={() => document.getElementById(`screenshots-${field || "general"}`)?.click()}>{readingImages ? "正在读取…" : screenshots.length >= 3 ? "已选满 3 张" : "＋ 选择截图"}</button>
+    <span aria-live="polite">已选 {screenshots.length} / 3 张 · 点击缩略图查看大图</span>
+  </div>;
+  useEffect(() => {
+    const root = previewBody.current;
+    if (!root || tab !== "preview" || !previewIssue?.body) return;
+    const cleanups: (() => void)[] = [];
+    root.querySelectorAll("img").forEach(image => {
+      const screenshot = screenshots.find(item => item.url === image.getAttribute("src"));
+      if (!screenshot) return;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "feedback-preview-image";
+      button.setAttribute("aria-label", `放大查看 ${screenshot.file.name}`);
+      image.replaceWith(button);
+      button.append(image);
+      const open = () => setSelectedScreenshot(screenshot.id);
+      button.addEventListener("click", open);
+      cleanups.push(() => { button.removeEventListener("click", open); button.replaceWith(image); });
+    });
+    return () => { cleanups.forEach(cleanup => { cleanup(); }); };
+  }, [tab, previewIssue?.body, screenshots]);
   const selectTab = (value: "edit" | "preview", focus = false) => { setTab(value); if (focus) document.getElementById(`feedback-tab-${value}`)?.focus(); };
 
   return (
     <main className="content-page feedback-page">
+      <ScreenshotViewer images={screenshots} selected={selectedScreenshot} onClose={() => setSelectedScreenshot(null)} />
       <div className="container">
         <div className="feedback-heading">
           <p className="feedback-kicker">一起改进水杉输入法</p>
@@ -267,8 +294,8 @@ export function FeedbackPage() {
                 {readingImages && <p role="status">正在读取截图…</p>}
                 {imageError && <p className="feedback-error" role="alert">{imageError}</p>}
                 <div className="feedback-image-grid">{screenshots.map((item, index) => <figure key={item.id}>
-                  <img src={item.url} alt={`截图 ${index + 1}：${item.file.name}`} />
-                  <figcaption>{item.file.name}</figcaption>
+                  <button type="button" className="feedback-thumbnail" aria-label={`放大查看 ${item.file.name}`} onClick={() => setSelectedScreenshot(item.id)}><img src={item.url} alt={`截图 ${index + 1}：${item.file.name}`} /><span>放大查看 ↗</span></button>
+                  <figcaption title={item.file.name}>{item.file.name}<small>{(item.file.size / 1024 / 1024).toFixed(2)} MiB</small></figcaption>
                   <label>截图位置<select aria-label={`截图 ${index + 1} 的位置`} value={item.field} onChange={event => setScreenshots(items => items.map(image => image.id === item.id ? { ...image, field: event.target.value } : image))}><option value="">单独的截图小节</option>{template?.fields.filter(field => canAttach(field) && acceptsScreenshot(field, item.file.type)).map(field => <option key={field.id} value={field.id}>{field.label}</option>)}</select></label>
                   <button type="button" className="btn btn-ghost" aria-label={`移除截图 ${index + 1}`} onClick={() => setScreenshots(items => items.filter((_, i) => i !== index))}>移除</button>
                 </figure>)}</div>
@@ -289,7 +316,7 @@ export function FeedbackPage() {
               {previewIssue && !templateLoading && !templateError ? <article className="feedback-issue">
                 <h2 className="feedback-issue-title">{previewIssue.title || "尚未填写标题"}</h2>
                 {/* biome-ignore lint/security/noDangerouslySetInnerHtml: markdown-it 禁用 HTML 透传并校验链接协议。 */}
-                <div className="feedback-issue-body" dangerouslySetInnerHTML={{ __html: markdown.render(previewIssue.body) }} />
+                <div ref={previewBody} className="feedback-issue-body" dangerouslySetInnerHTML={{ __html: markdown.render(previewIssue.body) }} />
               </article> : <p className="feedback-hint">请先在“填写”中加载仓库模板。</p>}
             </div>
             <fieldset disabled={busy || readingImages}>
