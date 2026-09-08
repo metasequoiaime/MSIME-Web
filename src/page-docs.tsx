@@ -52,8 +52,7 @@ export function DocsPage() {
     setSidebarIsOpen(false);
   }, []);
 
-  if (!guideId) return <main className="content-page"><div className="container"><h1>水杉输入法使用文档</h1><p>选择你使用的平台，查看安装、配置与日常使用指南。</p><div className="btn-row">{GUIDES.map(item => <Link className="btn btn-ghost" key={item.id} to="/docs/$guide/" params={{ guide: item.id }}>{item.label} 使用指南</Link>)}</div><p><Link to="/faq/">遇到问题？查看常见问题 Q&A</Link></p></div></main>;
-  if (!GUIDES.some(item => item.id === guideId)) return <main className="content-page"><div className="container"><h1>指南不存在</h1><Link to="/docs/">返回文档目录</Link></div></main>;
+  if (guideId && !GUIDES.some(item => item.id === guideId)) return <main className="content-page"><div className="container"><h1>指南不存在</h1><Link to="/docs/">返回文档目录</Link></div></main>;
   return (
     <>
       <PageHero kicker="文档" title={content.title} leadHtml={content.leadHtml} />
@@ -80,7 +79,7 @@ export function DocsPage() {
 
             <nav className="docs-platforms" id="docs-platforms" aria-label="平台">
               {GUIDES.map((candidate) => (
-                <Link key={candidate.id} className={`docs-platform${candidate.id === guideId ? " is-active" : ""}`} to="/docs/$guide/" params={{ guide: candidate.id }} aria-current={candidate.id === guideId ? "page" : undefined}>{candidate.label}</Link>
+                <Link key={candidate.id} className={`docs-platform${candidate.id === guide.id ? " is-active" : ""}`} to="/docs/$guide/" params={{ guide: candidate.id }} aria-current={candidate.id === guide.id ? "page" : undefined}>{candidate.label}</Link>
               ))}
             </nav>
 

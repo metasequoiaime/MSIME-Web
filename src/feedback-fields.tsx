@@ -22,19 +22,19 @@ export function FeedbackFields({ template, answers, onChange, upload }: {
     const text = typeof answers[field.id] === "string" ? answers[field.id] as string : "";
     const toggle = (label: string, checked: boolean) => onChange(field.id, checked ? [...selected, label] : selected.filter(item => item !== label));
     const id = `answer-${field.id}`;
-    const hint = field.description ? `${id}-hint` : undefined;
-    const label = <>{field.label}{field.required && <span className="feedback-required" aria-hidden="true"> *</span>}</>;
-    const description = field.description && <div id={hint} className="feedback-hint"><TemplateMarkdown source={field.description} /></div>;
+    const hint = `${id}-hint`;
+    const label = <>{field.label}{(field.required || field.options.some(option => option.required)) ? <span className="feedback-required">（必填）</span> : <span className="feedback-optional">（可选）</span>}</>;
+    const description = <div id={hint} className="feedback-hint">{field.description && <TemplateMarkdown source={field.description} />}{field.type === "dropdown" && <span>{field.multiple ? "可选择多项" : "请选择一项"}</span>}{field.type === "checkboxes" && <span>{field.options.some(option => option.required) ? "请逐项阅读并确认带 * 的项目" : "可选择多项，也可以跳过"}</span>}</div>;
     if (field.type === "checkboxes" || (field.type === "dropdown" && field.multiple)) return <fieldset className="feedback-choice-field" key={field.id} data-feedback-field={field.id} aria-describedby={hint}>
       <legend>{label}</legend>{description}
-      {field.options.map(option => <label className="feedback-consent" key={option.label}>
+      {field.options.map(option => <label className="feedback-consent feedback-option" key={option.label}>
         <input type="checkbox" checked={selected.includes(option.label)} required={field.type === "checkboxes" && option.required} onChange={event => toggle(option.label, event.target.checked)} />
         <span><TemplateMarkdown source={option.label} inline />{option.required && <span className="feedback-required" aria-hidden="true"> *</span>}</span>
       </label>)}
     </fieldset>;
     if (field.type === "dropdown") return <fieldset className="feedback-choice-field" key={field.id} data-feedback-field={field.id} aria-describedby={hint}>
       <legend>{label}</legend>{description}
-      {field.options.map(option => <label className="feedback-consent" key={option.label}>
+      {field.options.map(option => <label className="feedback-consent feedback-option" key={option.label}>
         <input type="radio" name={id} value={option.label} checked={selected[0] === option.label} required={field.required} onChange={() => onChange(field.id, [option.label])} />
         <span>{option.label}</span>
       </label>)}
