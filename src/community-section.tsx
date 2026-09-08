@@ -3,9 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { StarHistoryChart } from "./star-history-chart";
 import { useReveal } from "./use-reveal";
 
-/** 社区统计来自本站快照；头像来自 GitHub CDN。校验由 communitySchema 统一处理。 */
+/** 同源接口提供 GitHub 最新可用统计；静态数据保留给首屏与故障回退。 */
 const fetchCommunity = async () => {
-  const response = await fetch("/community.json");
+  const response = await fetch("/api/community");
   if (!response.ok) throw new Error(`Community snapshot returned ${response.status}`);
   const { communitySchema } = await import("./community-data");
   return communitySchema.parse(await response.json());
@@ -18,7 +18,10 @@ export function CommunitySection() {
   const community = useQuery({
     queryKey: ["community"],
     queryFn: fetchCommunity,
-    staleTime: Number.POSITIVE_INFINITY,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
     retry: 1,
   });
 
@@ -40,7 +43,12 @@ export function CommunitySection() {
       <h2 className="section-title" data-reveal>
         {t("开源社区动态")}</h2>
       <p className="section-lead" data-reveal>
-        {t("以下数据随站点更新，可能与 GitHub 当前数据有差异。贡献者头像由 GitHub 提供。")}</p>
+        {t("每分钟自动刷新。提交数可能因 GitHub 缓存而延迟，贡献者头像由 GitHub 提供。")}</p>
+
+      <p className="community-people-note">
+        {t(community.data.stale || community.isError ? "暂时无法更新，显示最近可用数据：" : "数据获取时间：")}
+        <time dateTime={community.data.generatedAt}>{community.data.generatedAt.replace("T", " ").replace(/\.\d+Z$/, " UTC")}</time>
+      </p>
 
       <div className="community-grid" data-reveal>
         <div className="card community-chart-card">

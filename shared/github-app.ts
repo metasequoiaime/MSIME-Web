@@ -15,7 +15,7 @@ function der(tag: number, bytes: Uint8Array): Uint8Array<ArrayBuffer> {
   return new Uint8Array([tag, ...length, ...bytes]);
 }
 
-export async function installationToken(config: z.infer<typeof githubAppConfig>, repo: string) {
+async function createInstallationToken(config: z.infer<typeof githubAppConfig>, scope: object) {
   const pem = config.GITHUB_APP_PRIVATE_KEY;
   const match = pem.match(/^-----BEGIN (RSA PRIVATE KEY|PRIVATE KEY)-----\s+([A-Za-z0-9+/=\s]+)\s+-----END \1-----$/);
   if (!match || pem.length > 16_384) throw new Error("Invalid App key");
@@ -40,9 +40,15 @@ export async function installationToken(config: z.infer<typeof githubAppConfig>,
       "X-GitHub-Api-Version": "2022-11-28",
       "User-Agent": "MSIME-Web-feedback",
     },
-    body: JSON.stringify({ repositories: [repo], permissions: { issues: "write" } }),
+    body: JSON.stringify(scope),
     signal: AbortSignal.timeout(10_000),
   });
   if (!response.ok) throw new Error("App authentication failed");
   return z.object({ token: z.string().min(1) }).parse(await response.json()).token;
 }
+
+export const installationToken = (config: z.infer<typeof githubAppConfig>, repo: string) =>
+  createInstallationToken(config, { repositories: [repo], permissions: { issues: "write" } });
+
+export const communityToken = (config: z.infer<typeof githubAppConfig>) =>
+  createInstallationToken(config, { permissions: { metadata: "read" } });

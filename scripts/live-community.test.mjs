@@ -1,0 +1,50 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { cachedCommunity, loadCommunity } from '../shared/live-community.ts';
+
+const fallback = { generatedAt: '2026-09-01T00:00:00Z', totalStars: 1, repoCount: 1, starHistory: [{ month: '2026-09', stars: 1 }], contributors: [{ login: 'human', avatarUrl: 'https://avatars.githubusercontent.com/u/1', url: 'https://github.com/human', contributions: 1, repos: 1 }] };
+const memoryCache = () => {
+  let stored;
+  return { match: async () => stored?.clone(), put: async (_, value) => { stored = value; } };
+};
+test('cache refresh is shared, reused for one minute and failure keeps its original timestamp', async () => {
+  const cache = memoryCache();
+  const key = new Request('https://msime.app/api/community');
+  let calls = 0;
+  const load = async () => { calls++; await new Promise(resolve => setTimeout(resolve, 5)); return { ...fallback, stale: false }; };
+  await Promise.all([cachedCommunity(key, cache, load, fallback), cachedCommunity(key, cache, load, fallback)]);
+  assert.equal(calls, 1);
+  await cachedCommunity(key, cache, load, fallback);
+  assert.equal(calls, 1);
+  await cache.put(key, Response.json({ checkedAt: 0, data: fallback }));
+  const failed = await cachedCommunity(key, cache, async () => { throw new Error('rate limited'); }, fallback);
+  assert.equal(failed.stale, true);
+  assert.equal(failed.generatedAt, fallback.generatedAt);
+  await cachedCommunity(key, cache, load, fallback);
+  assert.equal(calls, 1, 'failures also back off for one minute');
+});
+test('live collection follows pagination, excludes forks and does not hide contributor failures', async () => {
+  const urls = [];
+  const request = async (url, options) => {
+    urls.push(url);
+    assert.equal(options.headers.Authorization, 'Bearer test');
+    if (url.includes('/orgs/')) return Response.json([{ name: 'repo', fork: false, private: false, archived: false, stargazers_count: 2 }, { name: 'fork', fork: true, private: false, archived: false, stargazers_count: 100 }]);
+    if (url.includes('/contributors')) return Response.json([{ login: 'human', type: 'User', avatar_url: fallback.contributors[0].avatarUrl, html_url: fallback.contributors[0].url, contributions: 4 }]);
+    return Response.json([{ starred_at: '2026-09-01T00:00:00Z' }], { headers: url.includes('page=2') ? {} : { link: '<https://api.github.com/example>; rel="next"' } });
+  };
+  const result = await loadCommunity('test', request);
+  assert.equal(result.totalStars, 2);
+  assert.equal(result.repoCount, 1);
+  assert.equal(result.contributors[0].contributions, 4);
+  assert.equal(result.starHistory.at(-1).stars, 2);
+  assert.equal(urls.length, 4);
+  await assert.rejects(loadCommunity('test', async (url, options) => url.includes('/contributors') ? new Response(null, { status: 403 }) : request(url, options)), /unavailable/);
+});
+test('endless pagination is rejected instead of silently publishing partial totals', async () => {
+  let calls = 0;
+  await assert.rejects(loadCommunity('test', async () => {
+    calls++;
+    return Response.json([], { headers: { link: '<https://api.github.com/example>; rel="next"' } });
+  }), /budget/);
+  assert.equal(calls, 45);
+});
