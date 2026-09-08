@@ -324,6 +324,8 @@ const fetchUpdateManifest = async (): Promise<UpdateManifest> => {
 };
 
 export function DownloadPage() {
+  const { choice, ready } = usePageSearch();
+  const platform = choice("platform", PLATFORMS, "windows");
   // 页面自己的三平台清单。update.json 另有其主（Windows 客户端的「检查更新」），两者互不干扰。
   const platforms = useQuery({
     queryKey: ["platforms"],
@@ -344,7 +346,7 @@ export function DownloadPage() {
     if (manifest.error) console.warn("[download] failed to load update manifest:", manifest.error);
   }, [manifest.error]);
 
-  const source = useMemo(() => {
+  const fullSource = useMemo(() => {
     // 两份清单都在路上时先不渲染正文，免得先写一版「暂时无法获取」再改口
     if (manifest.isPending || platforms.isPending) return null;
     const table = platforms.data?.platforms;
@@ -352,11 +354,16 @@ export function DownloadPage() {
     return fillTemplate(manifest.data.version, manifest.data.releaseUrl, manifest.data, table);
   }, [manifest.isPending, manifest.data, platforms.isPending, platforms.data]);
 
+  const source = useMemo(() => {
+    if (!ready || !fullSource) return fullSource;
+    return fullSource.split(/(?=^## )/m).filter((section, index) => index === 0 || section.startsWith(`## ${PLATFORM_LABELS[platform]}\n`) || section.startsWith("## 隐私\n")).join("");
+  }, [fullSource, ready, platform]);
+
   return (
     <ContentPage
       documentTitle="下载 | 水杉输入法"
       description="下载水杉输入法"
-      kicker={manifest.data ? `Windows v${manifest.data.version}` : "下载"}
+      kicker="下载与安装"
       source={source}
       // 页头取未代入版本号的模板：正文会随清单重渲染，标题和摘要不该跟着闪一下
       heroSource={downloadSource}
