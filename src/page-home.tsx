@@ -1,3 +1,4 @@
+import { usePageMeta } from "./page-meta";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { CommunitySection } from "./community-section";
@@ -115,6 +116,7 @@ const PLATFORMS = [
 ] as const;
 
 export function HomePage() {
+  usePageMeta();
   const videoRef = useRef<HTMLVideoElement>(null);
   const { isLight } = useTheme();
 

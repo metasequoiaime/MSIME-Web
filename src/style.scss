@@ -1914,3 +1914,12 @@ html {
   .header-github { min-height: 44px; }
   .theme-button { width: 44px; height: 44px; }
 }
+
+/* Static first paint must show content immediately, including with JavaScript disabled. */
+html[data-prerendered] .page-hero :is(p, h1),
+html[data-prerendered] .docs-shell > :is(.docs-sidebar, .docs-article),
+html[data-prerendered] .hero-content > * {
+  animation: none !important;
+  opacity: 1;
+  transform: none;
+}

@@ -6,10 +6,11 @@
   "packageManager": "pnpm@10.15.0",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && node scripts/csp-hashes.mjs dist",
+    "build": "tsc && vite build && vite build --ssr src/entry-static.tsx --outDir dist-ssr && node --experimental-strip-types scripts/build-seo.mjs && node scripts/csp-hashes.mjs dist && node --experimental-strip-types --test scripts/seo-output.test.mjs",
     "preview": "vite preview",
     "lint": "biome lint .",
-    "test": "node --test scripts/generate-update.test.mjs scripts/generate-community.test.mjs scripts/site-metadata.test.mjs scripts/generate-platforms.test.mjs scripts/csp-hashes.test.mjs && node --experimental-strip-types --test scripts/feedback.test.mjs"
+    "test": "node --test scripts/generate-update.test.mjs scripts/generate-community.test.mjs scripts/site-metadata.test.mjs scripts/generate-platforms.test.mjs scripts/csp-hashes.test.mjs && node --experimental-strip-types --test scripts/feedback.test.mjs",
+    "test:seo": "node --experimental-strip-types --test scripts/seo-output.test.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.12",
@@ -17,8 +18,10 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
+    "linkedom": "^0.18.13",
     "sass": "^1.103.1",
     "swiper": "^14.2.0",
+    "turndown": "^7.2.4",
     "typescript": "~7.0.2",
     "vite": "^8.2.2"
   },

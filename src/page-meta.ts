@@ -1,21 +1,35 @@
-import { useLayoutEffect } from "react";
+import { useLayoutEffect, useRef } from "react";
+import { useLocation } from "@tanstack/react-router";
+import { markdownPath, pageSeo, serializeJsonLd, structuredData } from "../shared/site-seo";
 
-/**
- * 客户端换页只改地址栏，标题和描述得自己跟上。
- *
- * 每个入口 HTML 里仍然写着本页的静态 title 和 description —— 直接访问该地址时那份才是首帧和爬虫看到的内容，这里只负责站内跳转之后的同步。
- */
-export const usePageMeta = (title: string, description: string) => {
+/** Metadata uses the same registry as the static build, including SPA navigation. */
+export const usePageMeta = (_title?: string, _description?: string) => {
+  const path = useLocation({ select: location => location.pathname });
+  const initialPath = useRef(path);
   useLayoutEffect(() => {
-    document.title = title;
-
-    let meta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
-    if (!meta) {
-      meta = document.createElement("meta");
-      meta.name = "description";
-      document.head.appendChild(meta);
+    if (path !== initialPath.current) document.documentElement.removeAttribute("data-prerendered");
+    const page = pageSeo(path);
+    document.title = page.title;
+    const meta = (attribute: "name" | "property", name: string, content: string) => {
+      let element = document.head.querySelector<HTMLMetaElement>(`meta[${attribute}="${name}"]`);
+      if (!element) { element = document.createElement("meta"); element.setAttribute(attribute, name); document.head.append(element); }
+      element.content = content;
+    };
+    meta("name", "description", page.description);
+    meta("name", "robots", page.noindex ? "noindex, follow" : "index, follow, max-image-preview:large");
+    for (const prefix of ["og", "twitter"]) {
+      meta(prefix === "og" ? "property" : "name", `${prefix}:title`, page.title);
+      meta(prefix === "og" ? "property" : "name", `${prefix}:description`, page.description);
     }
-
-    meta.content = description;
-  }, [title, description]);
+    meta("property", "og:url", page.canonical ?? "");
+    document.head.querySelector('link[rel="canonical"]')?.remove();
+    document.head.querySelector('link[rel="alternate"][type="text/markdown"]')?.remove();
+    if (page.canonical) {
+      const canonical = document.createElement("link"); canonical.rel = "canonical"; canonical.href = page.canonical; document.head.append(canonical);
+      if (!page.noindex) { const alternate = document.createElement("link"); alternate.rel = "alternate"; alternate.type = "text/markdown"; alternate.href = markdownPath(page.path); alternate.title = "Markdown"; document.head.append(alternate); }
+    }
+    document.getElementById("site-structured-data")?.remove();
+    const data = structuredData(path);
+    if (data) { const script = document.createElement("script"); script.id = "site-structured-data"; script.type = "application/ld+json"; script.textContent = serializeJsonLd(data); document.head.append(script); }
+  }, [path]);
 };

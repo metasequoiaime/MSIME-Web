@@ -19,6 +19,7 @@ const isThemeChoice = (value: unknown): value is ThemeChoice =>
 
 /** The inline bootstrap in each HTML head already wrote `data-theme` before first paint, so read it back rather than storage: it is the value the document is actually rendering with. */
 const readInitialTheme = (): ThemeChoice => {
+  if (typeof window === "undefined") return "system";
   const applied = document.documentElement.dataset.theme;
   if (isThemeChoice(applied)) return applied;
 
@@ -30,7 +31,7 @@ const readInitialTheme = (): ThemeChoice => {
   }
 };
 
-const prefersLight = () => window.matchMedia(LIGHT_QUERY).matches;
+const prefersLight = () => typeof window !== "undefined" && window.matchMedia(LIGHT_QUERY).matches;
 
 const resolveIsLight = (theme: ThemeChoice, systemIsLight: boolean) =>
   theme === "light" ? true : theme === "dark" ? false : systemIsLight;

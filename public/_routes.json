@@ -5,7 +5,9 @@
     "/api/feedback/",
     "/api/feedback-images/*",
     "/api/feedback-templates",
-    "/api/feedback-templates/"
+    "/api/feedback-templates/",
+    "/docs",
+    "/docs/"
   ],
   "exclude": []
 }
