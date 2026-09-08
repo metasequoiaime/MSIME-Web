@@ -195,7 +195,7 @@ function NavMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
   return (
     // biome-ignore lint/a11y/useAriaPropsSupportedByRole: 手机展开时为 modal dialog，桌面为 navigation；两种角色均支持 aria-label。
     <div ref={menuRef} className={`nav-menu${isOpen ? " show" : ""}`} id="nav-menu" aria-label={t("站点导航")} role={isOpen ? "dialog" : "navigation"} aria-modal={isOpen || undefined}>
-      <div className="nav-mobile-heading" aria-hidden="true">{t("探索水杉")}</div>
+      <div className="nav-mobile-heading" aria-hidden="true"><img src="/msime-logo.png" width="30" height="30" alt="" />{t("水杉输入法")}</div>
       <button className="btn-close" id="btn-close" type="button" aria-label={t("关闭导航菜单")} onClick={onClose}>
         <img src="/img/icons/Close_round.svg" alt="" className="nav-icon" />
       </button>
@@ -215,6 +215,9 @@ function NavMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
           </li>
         )))}
       </ul>
+      <div className="nav-mobile-footer">
+        <a href="https://github.com/metasequoiaime" target="_blank" rel="noreferrer"><GithubMark />GitHub<span aria-hidden="true">↗</span></a>
+      </div>
     </div>
   );
 }
