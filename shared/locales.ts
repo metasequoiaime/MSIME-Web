@@ -1,9 +1,9 @@
 /** All public product pages share layout and behavior across these locales. */
 export const traditionalPages = {
-  '/beta/': { title: 'iOS TestFlight 測試｜水杉輸入法', description: '透過 TestFlight 試用水杉 iOS 鍵盤，查看安裝、啟用方式和測試版本說明。' },
-  '/': { title: '水杉輸入法 MSIME｜開源中文輸入法', description: '認識水杉輸入法的全拼、雙拼與五筆功能，下載 Windows、macOS 或 Linux 版本，查看常見問題與回報方式。' },
+  '/beta/': { title: 'iOS 公測｜水杉輸入法', description: '加入水杉 iOS 鍵盤公測，透過 TestFlight 安裝，查看安裝、啟用方式和測試版本說明。' },
+  '/': { title: '水杉輸入法 MSIME｜開源中文輸入法', description: '認識水杉輸入法的全拼、雙拼與五筆功能，下載 Windows、macOS 或 Linux 版本，透過 TestFlight 加入 iOS 公測。' },
   '/features/': { title: '功能與介面｜水杉輸入法', description: '以 Windows 版為例，了解水杉輸入法的候選字視窗、輔助碼、佈景主題與詞庫設定。' },
-  '/download/': { title: '下載與安裝｜水杉輸入法', description: '下載水杉輸入法 Windows、macOS 與 Linux 版本，選擇安裝套件、核對 SHA256 並查看安裝指南。' },
+  '/download/': { title: '下載與安裝｜水杉輸入法', description: '下載水杉輸入法 Windows、macOS 與 Linux 版本，或透過 TestFlight 加入 iOS 公測，查看安裝指南與 SHA256。' },
   '/faq/': { title: '常見問題與疑難排解｜水杉輸入法', description: '水杉輸入法常見問題：字型方框、安裝與啟動、快捷鍵、候選字和連線功能的排查方式。' },
   '/feedback/': { title: '回報問題與提出建議｜水杉輸入法', description: '了解如何回報水杉輸入法問題或提出功能建議。可使用繁體中文描述，提交內容會公開刊登於 GitHub。' },
   '/about/': { title: '關於專案與開發者｜水杉輸入法', description: '認識水杉輸入法的理念、開源授權、開發者與參與方式。' },

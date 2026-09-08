@@ -1,3 +1,4 @@
+import { useSearchReady } from "./use-page-search";
 import { LocaleLink as Link } from "./locale-link";
 import { useLocale } from "./use-locale";
 import { baseLocalePath, traditionalPages, traditionalPath, isTraditional } from "../shared/locales";
@@ -297,7 +298,7 @@ function SiteFooter({ inert }: { inert: boolean }) {
             <div className="site-footer-col-title">{t("产品")}</div>
             <div className="site-footer-links">
               <Link to="/download/">{t("下载")}</Link>
-              <Link to="/beta/">{t("iOS 内测")}</Link>
+              <Link to="/beta/">{t("iOS 公测")}</Link>
               <Link to="/price/">{t("价格")}</Link>
               <Link to="/docs/$guide/" params={{ guide: "windows" }}>{t("文档")}</Link>
               <Link to="/faq/">{t("常见问题 Q&A")}</Link>
@@ -340,6 +341,8 @@ function SiteFooter({ inert }: { inert: boolean }) {
 export function SiteShell() {
   const { t } = useLocale();
   const languagePath = useLocation({ select: value => value.pathname });
+  const searchReady = useSearchReady();
+  const languageSearch = useLocation({ select: value => value.searchStr });
   const [menuIsOpen, setMenuIsOpen] = useState(false);
   const closeMenu = useCallback(() => {
     setMenuIsOpen(false);
@@ -373,7 +376,7 @@ export function SiteShell() {
               <span>GitHub</span>
             </a>
 
-            <a className="header-language" lang={isTraditional(languagePath) ? "zh-Hans" : "zh-Hant-TW"} hrefLang={isTraditional(languagePath) ? "zh-Hans" : "zh-Hant-TW"} href={isTraditional(languagePath) ? (baseLocalePath(languagePath) === "/docs/" ? "/docs/windows/" : baseLocalePath(languagePath)) : traditionalPath(baseLocalePath(languagePath) in traditionalPages ? baseLocalePath(languagePath) : '/')} aria-label={isTraditional(languagePath) ? "切換到簡體中文" : "切换到繁体中文"} title={isTraditional(languagePath) ? "切換到簡體中文" : "切换到繁体中文"}>{isTraditional(languagePath) ? "简" : "繁"}</a>
+            <a className="header-language" lang={isTraditional(languagePath) ? "zh-Hans" : "zh-Hant-TW"} hrefLang={isTraditional(languagePath) ? "zh-Hans" : "zh-Hant-TW"} href={(isTraditional(languagePath) ? (baseLocalePath(languagePath) === "/docs/" ? "/docs/windows/" : baseLocalePath(languagePath)) : traditionalPath(baseLocalePath(languagePath) in traditionalPages ? baseLocalePath(languagePath) : '/')) + (searchReady ? languageSearch : "")} aria-label={isTraditional(languagePath) ? "切換到簡體中文" : "切换到繁体中文"} title={isTraditional(languagePath) ? "切換到簡體中文" : "切换到繁体中文"}>{isTraditional(languagePath) ? "简" : "繁"}</a>
             <ThemeSwitcher />
 
             <button

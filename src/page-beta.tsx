@@ -5,7 +5,7 @@ import { useReveal } from "./use-reveal";
 import "./beta.scss";
 
 /*
- * iOS 内测页。
+ * iOS 公测页。
  *
  * 这里只有一条 TestFlight 公开链接，没有表单。收邮箱再调 App Store Connect API 建测试员，把人放进的是同一个外部测试组，
  * 结果一样，代价却是本站要部署一份 Apple 私钥，还得在输入框前面加人机验证——否则那个地址栏就是一台替人发邀请信的中继。
@@ -21,14 +21,14 @@ export function BetaPage() {
     <>
       <PageHero
         kicker="TestFlight"
-        title="iOS 内测"
-        leadHtml="水杉输入法的 iOS 键盘还在内测。用 iPhone 打开 TestFlight 链接就能装，不需要邮箱，也不需要开发者账号。"
+        title="iOS 公测"
+        leadHtml="水杉输入法的 iOS 键盘已开放公测。用 iPhone 打开 TestFlight 链接就能装，不需要邮箱，也不需要开发者账号。"
       />
 
       <main className="content-page">
         <div className="container docs-content beta-content">
           <section className="doc-card beta-action" data-reveal>
-            <h2>{t("加入内测")}</h2>
+            <h2>{t("加入公测")}</h2>
             <p>{t("在 iPhone 上点下面的按钮即可安装。本站不收集任何信息。")}</p>
 
             <a className="btn btn-primary btn-lg beta-cta" href={TESTFLIGHT_LINK} target="_blank" rel="noreferrer">{t("在 TestFlight 中打开")}</a>

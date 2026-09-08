@@ -1,3 +1,4 @@
+import { usePageSearch } from "./use-page-search";
 import traditionalFaqSource from "../vendor/MSIME-Docs/guides/zh-TW/faq.md?raw";
 import { LocaleLink as Link } from "./locale-link";
 import { useLocale } from "./use-locale";
@@ -12,7 +13,8 @@ import { useInternalLinks } from "./use-internal-links";
 import "./faq.scss";
 
 const platforms = ["Windows", "macOS", "Linux", "iOS", "Android"] as const;
-type Platform = typeof platforms[number];
+const platformIds = ["windows", "macos", "linux", "ios", "android"] as const;
+const categoryIds = ["fonts", "installation", "input", "data"] as const;
 
 type Question = { id: string; title: string; category: string; html: string; text: string };
 
@@ -40,21 +42,25 @@ export function FaqPage() {
   const { t, tw, path } = useLocale();
   usePageMeta("常见问题 Q&A | 水杉输入法", "水杉输入法常见问题：字体方框、安装启动、快捷键、候选与翻译排查。");
   const faq = useMemo(() => readFaq(tw ? traditionalFaqSource : faqSource, path), [tw, path]);
-  const [platform, setPlatform] = useState<Platform>("Windows");
-  const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("");
+  const { choice, get, update } = usePageSearch();
+  const platformId = choice("platform", platformIds, "windows");
+  const platform = platforms[platformIds.indexOf(platformId)];
+  const query = get("q");
+  const categoryId = choice("category", ["", ...categoryIds] as const, "");
+  const category = categoryId ? faq.categories[categoryIds.indexOf(categoryId)] ?? "" : "";
+  const setQuery = (value: string) => update({ q: value || undefined }, true, false);
+  const setCategory = (value: string) => update({ category: categoryIds[faq.categories.indexOf(value)] }, false, false);
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
   const root = useRef<HTMLDivElement>(null);
   useInternalLinks(root);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reveal only on document or hash changes, not filtering.
   useEffect(() => {
     const revealHash = () => {
       let id: string;
       try { id = decodeURIComponent(window.location.hash.slice(1)); } catch { return; }
       if (!faq.questions.some(question => question.id === id)) return;
-      setPlatform("Windows");
-      setQuery("");
-      setCategory("");
+      update({ platform: "windows", q: undefined, category: undefined }, true);
       setExpanded(previous => new Set([...previous, id]));
       requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({ block: "start" }));
     };
@@ -75,7 +81,7 @@ export function FaqPage() {
         <section className="card faq-tools" aria-label={t("查找问题")}>
           <fieldset className="faq-platforms">
             <legend>{t("选择平台")}</legend>
-            <div className="faq-platform-options">{platforms.map(value => <label key={value} className={platform === value ? "is-selected" : ""}><input type="radio" name="faq-platform" value={value} checked={platform === value} onChange={() => { setPlatform(value); setQuery(""); setCategory(""); setExpanded(new Set()); }} /><span>{value}</span></label>)}</div>
+            <div className="faq-platform-options">{platforms.map(value => <label key={value} className={platform === value ? "is-selected" : ""}><input type="radio" name="faq-platform" value={value} checked={platform === value} onChange={() => { update({ platform: platformIds[platforms.indexOf(value)], q: undefined, category: undefined }, false, false); setExpanded(new Set()); }} /><span>{value}</span></label>)}</div>
           </fieldset>
           {platformQuestions.length > 0 && <><label htmlFor="faq-search">{t("搜索常见问题")}</label>
           <input id="faq-search" type="search" placeholder={t("例如：方框、字体、设置打不开、Shift、翻译")} value={query} onChange={event => setQuery(event.target.value)} />
@@ -102,9 +108,9 @@ export function FaqPage() {
             </details>))}
           </section>;
         }))}
-        {t(platformQuestions.length > 0 && !matches.length && <section className="card faq-empty"><h2>{t("暂时没有匹配的问题")}</h2><p>{t("试试更短的关键词，或查看全部问题。")}</p><button type="button" className="btn btn-ghost" onClick={() => { setQuery(""); setCategory(""); }}>{t("清除筛选")}</button></section>)}
-        {platformQuestions.length === 0 && <section className="card faq-empty" role="status"><h2>{t(`${platform} 常见问题正在整理`)}</h2><p>{t("此平台暂未整理问答。你可以先查看下方的使用入口，或提交遇到的问题。")}</p></section>}
-        <section className="card faq-help"><h2>{t("还没找到答案？")}</h2><p>{t("遇到故障时，请带上版本号、复现步骤和截图。想增加或改进功能，也可以通过官网提交需求。")}</p><div className="btn-row">{(platform === "Windows" || platform === "macOS" || platform === "Linux") && <Link className="btn btn-ghost" to="/docs/$guide/" params={{ guide: platform.toLowerCase() }}>{t(`查看 ${platform} 指南`)}</Link>}{platform === "iOS" && <Link className="btn btn-ghost" to="/beta/">{t("查看 iOS 试用说明")}</Link>}{platform === "Windows" && <a className="btn btn-ghost" href="https://github.com/metasequoiaime/MSIME-Windows/issues">{t("查看 Windows 已有反馈 ↗")}</a>}<Link className="btn btn-primary" to="/feedback/">{t("提交问题或建议")}</Link></div></section>
+        {t(platformQuestions.length > 0 && !matches.length && <section className="card faq-empty"><h2>{t("暂时没有匹配的问题")}</h2><p>{t("试试更短的关键词，或查看全部问题。")}</p><button type="button" className="btn btn-ghost" onClick={() => { update({ q: undefined, category: undefined }, false, false); }}>{t("清除筛选")}</button></section>)}
+        {platformQuestions.length === 0 && <section className="card faq-empty" role="status"><h2>{t(platform === "macOS" || platform === "iOS" ? `${platform} 已开放公测` : `${platform} 常见问题正在整理`)}</h2><p>{t(platform === "macOS" || platform === "iOS" ? "欢迎安装体验。此平台的常见问题正在整理，遇到问题可查看使用说明或提交反馈。" : "此平台暂未整理问答。你可以先查看下方的使用入口，或提交遇到的问题。")}</p>{platform === "macOS" && <Link className="btn btn-primary" to="/download/" search={{ platform: "macos" }}>{t("下载 macOS 公测版")}</Link>}{platform === "iOS" && <Link className="btn btn-primary" to="/beta/">{t("加入 iOS 公测")}</Link>}</section>}
+        <section className="card faq-help"><h2>{t("还没找到答案？")}</h2><p>{t("遇到故障时，请带上版本号、复现步骤和截图。想增加或改进功能，也可以通过官网提交需求。")}</p><div className="btn-row">{(platform === "Windows" || platform === "macOS" || platform === "Linux") && <Link className="btn btn-ghost" to="/docs/$guide/" params={{ guide: platform.toLowerCase() }}>{t(`查看 ${platform} 指南`)}</Link>}{platform === "iOS" && <Link className="btn btn-ghost" to="/beta/">{t("查看 iOS 公测说明")}</Link>}{platform === "Windows" && <a className="btn btn-ghost" href="https://github.com/metasequoiaime/MSIME-Windows/issues">{t("查看 Windows 已有反馈 ↗")}</a>}<Link className="btn btn-primary" to="/feedback/" search={{ target: platform === "macOS" || platform === "iOS" ? "apple" : platform === "Linux" ? "linux" : platform === "Windows" ? "windows" : undefined }}>{t("提交问题或建议")}</Link></div></section>
       </div>
     </main>
   </>;

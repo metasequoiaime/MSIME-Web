@@ -111,9 +111,9 @@ const HERO_STATS = [
 
 const PLATFORMS = [
   { name: "Windows 10 / 11", desc: "支持全拼、双拼和五笔", status: "公开测试", isLive: true },
-  { name: "macOS 12+", desc: "提供安装包与使用指南", status: "测试版本", isLive: true },
+  { name: "macOS 12+", desc: "提供安装包与使用指南", status: "公测", isLive: true },
   { name: "Linux", desc: "适用于使用 IBus 的桌面环境", status: "测试版本", isLive: true },
-  { name: "iOS", desc: "尚未提供公开下载", status: "开发中", isLive: false },
+  { name: "iOS", desc: "通过 TestFlight 安装", status: "公测", isLive: true },
 ] as const;
 
 export function HomePage() {
@@ -144,7 +144,7 @@ export function HomePage() {
               {t("水杉输入法，")}<span>{t("让中文输入更顺手")}</span>
             </h1>
 
-            <p className="hero-desc">{t("支持全拼、双拼和五笔，可按习惯调整候选窗、词库与辅助码。Windows、macOS 和 Linux 提供下载，iOS 版仍在开发中，各平台功能以对应版本说明为准。")}</p>
+            <p className="hero-desc">{t("支持全拼、双拼和五笔，可按习惯调整候选窗、词库与辅助码。Windows、macOS 和 Linux 提供下载，macOS 与 iOS 已开放公测，iOS 通过 TestFlight 安装，各平台功能以对应版本说明为准。")}</p>
 
             <p className="hero-quote">{t("墨池飞出北溟鱼，笔锋杀尽中山兔。")}</p>
 

@@ -1,7 +1,8 @@
+import { usePageSearch } from "./use-page-search";
 import { useLocale } from "./use-locale";
 import { useQuery } from "@tanstack/react-query";
 import { LocaleLink as Link } from "./locale-link";
-import { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo } from "react";
 import { z } from "zod";
 import downloadSource from "./content/download.md?raw";
 import { ContentPage } from "./page-content";
@@ -218,9 +219,15 @@ const groupByArch = (downloads: PlatformRelease["downloads"]) => {
  */
 function DownloadPanel({ platforms }: { platforms: Partial<Record<Platform, PlatformRelease>> | undefined }) {
   const { t } = useLocale();
-  const [platform, setPlatform] = useState<Platform>("windows");
-  // Start with the static snapshot, then select the visitor platform before paint.
-  useLayoutEffect(() => setPlatform(detectPlatform()), []);
+  const { choice, update, get, ready } = usePageSearch();
+  const requestedPlatform = get("platform");
+  const platform = choice("platform", PLATFORMS, "windows");
+  const setPlatform = (value: Platform) => update({ platform: value });
+  // Explicit links take precedence over device detection, including on back/forward.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only normalize when the URL platform changes.
+  useLayoutEffect(() => {
+    if (ready && !PLATFORMS.includes(requestedPlatform as Platform)) update({ platform: detectPlatform() }, true);
+  }, [requestedPlatform, ready]);
   const current = platforms?.[platform];
   const primary = current?.downloads[0];
 
@@ -243,10 +250,10 @@ function DownloadPanel({ platforms }: { platforms: Partial<Record<Platform, Plat
       </nav>
 
       <div className="download-panel-action">
-        {/* iOS 这一栏没有可下的文件，按钮通向站内的内测页；用路由的 Link，点了不整页重载 */}
+        {/* iOS 这一栏没有可下的文件，按钮通向站内的公测页；用路由的 Link，点了不整页重载 */}
         {platform === "ios" ? (
           <Link className="btn btn-lg btn-primary" to={BETA_PAGE}>
-            {t("查看 iOS 内测")}
+            {t("查看 iOS 公测")}
           </Link>
         ) : (
           <a className="btn btn-lg btn-primary" href={primary?.url ?? RELEASE_PAGES[platform]} rel="noreferrer">

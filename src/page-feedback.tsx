@@ -1,3 +1,4 @@
+import { usePageSearch } from "./use-page-search";
 import { useLocale } from "./use-locale";
 import { acceptsScreenshot, canAttach, initialAnswers, issueTemplateSchema, validateAnswers } from "../shared/feedback-templates";
 import type { Answers, IssueTemplate } from "../shared/feedback-templates";
@@ -46,7 +47,11 @@ type Draft = { title: string; answers: Answers; screenshots: LocalScreenshot[] }
 export function FeedbackPage() {
   const { t, tw, href } = useLocale();
   usePageMeta("问题与建议 | 水杉输入法", "反馈问题或提出建议，提交内容将公开发布到 GitHub。");
-  const [form, setForm] = useState<Feedback>(emptyForm);
+  const { get, choice, update } = usePageSearch();
+  const targetResult = feedbackSchema.shape.target.safeParse(get("target"));
+  const requestedTarget = targetResult.success ? targetResult.data : "windows";
+  const requestedTemplate = get("template");
+  const [form, setForm] = useState<Feedback>(() => ({ ...emptyForm, target: requestedTarget, templateId: requestedTemplate }));
   const [screenshots, setScreenshots] = useState<LocalScreenshot[]>([]);
   const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
   const previewBody = useRef<HTMLDivElement>(null);
@@ -57,7 +62,8 @@ export function FeedbackPage() {
   const [templateError, setTemplateError] = useState("");
   const [templateLoading, setTemplateLoading] = useState(true);
   const [reload, setReload] = useState(0);
-  const [tab, setTab] = useState<"edit" | "preview">("edit");
+  const tab = choice("tab", ["edit", "preview"] as const, "edit");
+  const setTab = (value: "edit" | "preview") => update({ tab: value });
   const drafts = useRef<Record<string, Draft>>({});
   const template = catalog.target === form.target ? catalog.templates.find(item => item.id === form.templateId) : undefined;
   const [consent, setConsent] = useState(false);
@@ -87,6 +93,20 @@ export function FeedbackPage() {
     setScreenshots((draft?.screenshots ?? []).map(image => ({ ...image, field: image.field && !next.fields.some(field => field.id === image.field && acceptsScreenshot(field, image.file.type)) ? "" : image.field })));
     setError("");
   }
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: URL navigation restores selection; editing a draft must not reselect its template.
+  useEffect(() => {
+    if (requestedTarget !== form.target) {
+      saveDraft();
+      setForm(previous => ({ ...previous, target: requestedTarget, templateId: requestedTemplate, templateRevision: "", answers: {} }));
+      setScreenshots([]);
+      setImageError("");
+      setError("");
+    } else if (catalog.target === requestedTarget && catalog.templates.length) {
+      const next = catalog.templates.find(item => item.id === requestedTemplate) ?? catalog.templates[0];
+      if (next.id !== form.templateId) { saveDraft(); chooseTemplate(next); }
+    }
+  }, [requestedTarget, requestedTemplate, catalog]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: 只在仓库或刷新次数变化时加载，模板选择与输入不触发请求。
   useEffect(() => {
@@ -306,7 +326,7 @@ export function FeedbackPage() {
               <p id="feedback-target-hint" className="feedback-hint">{t("先选你正在使用的平台。想反馈网站或文档，也可以在这里选择。")}</p>
               <div className="feedback-target-grid" role="radiogroup" aria-label={t("反馈对象")} aria-describedby="feedback-target-hint">
                 {t(Object.entries(targets).map(([key, target]) => <label className="feedback-consent feedback-option" key={key}>
-                  <input type="radio" name="target" value={key} checked={form.target === key} onChange={() => { saveDraft(); setForm({ ...form, target: feedbackSchema.shape.target.parse(key), templateId: "", templateRevision: "", answers: {} }); setScreenshots([]); setImageError(""); setError(""); }} />
+                  <input type="radio" name="target" value={key} checked={form.target === key} onChange={() => update({ target: key, template: undefined, tab: "edit" })} />
                   <span>{t(target.label)}</span>
                 </label>))}
               </div>
@@ -318,7 +338,7 @@ export function FeedbackPage() {
                 <fieldset className="feedback-choice-field feedback-template-picker">
                   <legend>{t("2. 你想反馈什么？")}</legend>
                   {t(catalog.templates.map(item => <label className="feedback-consent" key={item.id}>
-                    <input type="radio" name="issue-template" value={item.id} checked={template.id === item.id} onChange={() => { saveDraft(); chooseTemplate(item); }} />
+                    <input type="radio" name="issue-template" value={item.id} checked={template.id === item.id} onChange={() => update({ template: item.id })} />
                     <span><strong>{t(item.name)}</strong><small>{t(item.description)}</small></span>
                   </label>))}
                 </fieldset>
