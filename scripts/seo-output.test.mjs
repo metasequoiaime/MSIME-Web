@@ -202,3 +202,21 @@ test('Traditional documents track complete source and preserve executable exampl
   assert.equal(schema.mainEntity.length, 18);
   for (const answer of doc.querySelectorAll('.faq-answer')) assert.ok(answer.textContent.length > 50);
 });
+
+
+test('FAQ platform controls and original screenshots are available in both languages', () => {
+  for (const path of ['/faq/', '/zh-TW/faq/']) {
+    const doc = document(path);
+    assert.deepEqual([...doc.querySelectorAll('input[name="faq-platform"]')].map(input => input.value), ['Windows', 'macOS', 'Linux', 'iOS', 'Android']);
+    const images = [...doc.querySelectorAll('.faq-answer img')];
+    assert.equal(images.length, 8);
+    for (const img of images) {
+      assert.match(img.getAttribute('src'), /^\/assets\/.*\.png$/);
+      assert.ok(existsSync(`dist${img.getAttribute('src')}`));
+      assert.ok(Number(img.getAttribute('width')) > 0 && Number(img.getAttribute('height')) > 0);
+      assert.equal(img.parentElement.getAttribute('href'), img.getAttribute('src'));
+      assert.equal(img.parentElement.getAttribute('target'), '_blank');
+    }
+    assert.ok(doc.querySelector('main').textContent.includes('WhiteCloud-OuO'));
+  }
+});

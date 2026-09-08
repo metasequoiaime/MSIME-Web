@@ -11,6 +11,9 @@ import { withHeadingIds } from "./toc";
 import { useInternalLinks } from "./use-internal-links";
 import "./faq.scss";
 
+const platforms = ["Windows", "macOS", "Linux", "iOS", "Android"] as const;
+type Platform = typeof platforms[number];
+
 type Question = { id: string; title: string; category: string; html: string; text: string };
 
 function readFaq(source: string, path: string) {
@@ -37,6 +40,7 @@ export function FaqPage() {
   const { t, tw, path } = useLocale();
   usePageMeta("常见问题 Q&A | 水杉输入法", "水杉输入法常见问题：字体方框、安装启动、快捷键、候选与翻译排查。");
   const faq = useMemo(() => readFaq(tw ? traditionalFaqSource : faqSource, path), [tw, path]);
+  const [platform, setPlatform] = useState<Platform>("Windows");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
@@ -48,6 +52,7 @@ export function FaqPage() {
       let id: string;
       try { id = decodeURIComponent(window.location.hash.slice(1)); } catch { return; }
       if (!faq.questions.some(question => question.id === id)) return;
+      setPlatform("Windows");
       setQuery("");
       setCategory("");
       setExpanded(previous => new Set([...previous, id]));
@@ -59,23 +64,28 @@ export function FaqPage() {
   }, [faq]);
 
   const words = query.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
-  const matches = faq.questions.filter(question => (!category || question.category === category) && words.every(word => `${question.title} ${question.text}`.toLocaleLowerCase().includes(word)));
+  const platformQuestions = platform === "Windows" ? faq.questions : [];
+  const matches = platformQuestions.filter(question => (!category || question.category === category) && words.every(word => `${question.title} ${question.text}`.toLocaleLowerCase().includes(word)));
 
   return <>
-    <script type="application/ld+json">{serializeJsonLd({ "@context": "https://schema.org", "@type": "FAQPage", "@id": `https://msime.app${path}#faq`, mainEntity: faq.questions.map(question => ({ "@type": "Question", name: question.title, acceptedAnswer: { "@type": "Answer", text: question.text.trim() } })) })}</script>
-    <PageHero kicker="使用帮助" title={t(faq.title)} leadHtml={faq.leadHtml} />
+    {platformQuestions.length > 0 && <script type="application/ld+json">{serializeJsonLd({ "@context": "https://schema.org", "@type": "FAQPage", "@id": `https://msime.app${path}#faq`, mainEntity: platformQuestions.map(question => ({ "@type": "Question", name: question.title, acceptedAnswer: { "@type": "Answer", text: question.text.trim() } })) })}</script>}
+    <PageHero kicker="使用帮助" title={t(faq.title)} leadHtml={t("先选择你使用的平台，再搜索问题或按分类查看排查步骤。")} />
     <main className="content-page faq-page">
       <div className="container" ref={root}>
         <section className="card faq-tools" aria-label={t("查找问题")}>
-          <label htmlFor="faq-search">{t("搜索常见问题")}</label>
+          <fieldset className="faq-platforms">
+            <legend>{t("选择平台")}</legend>
+            <div className="faq-platform-options">{platforms.map(value => <label key={value} className={platform === value ? "is-selected" : ""}><input type="radio" name="faq-platform" value={value} checked={platform === value} onChange={() => { setPlatform(value); setQuery(""); setCategory(""); setExpanded(new Set()); }} /><span>{value}</span></label>)}</div>
+          </fieldset>
+          {platformQuestions.length > 0 && <><label htmlFor="faq-search">{t("搜索常见问题")}</label>
           <input id="faq-search" type="search" placeholder={t("例如：方框、字体、设置打不开、Shift、翻译")} value={query} onChange={event => setQuery(event.target.value)} />
           <fieldset className="faq-filters" aria-label={t("问题分类")}>
             {t(["", ...faq.categories].map(value => <button key={value} type="button" className={`btn ${category === value ? "btn-primary" : "btn-ghost"}`} aria-pressed={category === value} onClick={() => setCategory(value)}>{t(value || "全部问题")}</button>))}
           </fieldset>
           <div className="faq-results">
-            <p role="status">{t(query || category ? `找到 ${matches.length} 个问题` : `共 ${faq.questions.length} 个问题 · 以 Windows 为主`)}</p>
+            <p role="status">{t(query || category ? `找到 ${matches.length} 个问题` : `${platform} · 共 ${platformQuestions.length} 个问题`)}</p>
             <button type="button" className="btn btn-ghost" disabled={!matches.length} onClick={() => setExpanded(previous => matches.every(question => previous.has(question.id)) ? new Set([...previous].filter(id => !matches.some(question => question.id === id))) : new Set([...previous, ...matches.map(question => question.id)]))}>{t(matches.length > 0 && matches.every(question => expanded.has(question.id)) ? "收起全部结果" : "展开全部结果")}</button>
-          </div>
+          </div></>}
         </section>
         {t(faq.categories.map(group => {
           const items = matches.filter(question => question.category === group);
@@ -92,8 +102,9 @@ export function FaqPage() {
             </details>))}
           </section>;
         }))}
-        {t(!matches.length && <section className="card faq-empty"><h2>{t("暂时没有匹配的问题")}</h2><p>{t("试试更短的关键词，或查看全部问题。")}</p><button type="button" className="btn btn-ghost" onClick={() => { setQuery(""); setCategory(""); }}>{t("清除筛选")}</button></section>)}
-        <section className="card faq-help"><h2>{t("还没找到答案？")}</h2><p>{t("遇到故障时，请带上版本号、复现步骤和截图。想增加或改进功能，也可以通过官网提交需求。")}</p><div className="btn-row"><Link className="btn btn-ghost" to="/docs/$guide/" params={{ guide: "windows" }}>{t("查看完整指南")}</Link><a className="btn btn-ghost" href="https://github.com/metasequoiaime/MSIME-Windows/issues">{t("查看与反馈 Windows 问题 ↗")}</a><Link className="btn btn-primary" to="/feedback/">{t("提交问题或建议")}</Link></div></section>
+        {t(platformQuestions.length > 0 && !matches.length && <section className="card faq-empty"><h2>{t("暂时没有匹配的问题")}</h2><p>{t("试试更短的关键词，或查看全部问题。")}</p><button type="button" className="btn btn-ghost" onClick={() => { setQuery(""); setCategory(""); }}>{t("清除筛选")}</button></section>)}
+        {platformQuestions.length === 0 && <section className="card faq-empty" role="status"><h2>{t(`${platform} 常见问题正在整理`)}</h2><p>{t("此平台暂未整理问答。你可以先查看下方的使用入口，或提交遇到的问题。")}</p></section>}
+        <section className="card faq-help"><h2>{t("还没找到答案？")}</h2><p>{t("遇到故障时，请带上版本号、复现步骤和截图。想增加或改进功能，也可以通过官网提交需求。")}</p><div className="btn-row">{(platform === "Windows" || platform === "macOS" || platform === "Linux") && <Link className="btn btn-ghost" to="/docs/$guide/" params={{ guide: platform.toLowerCase() }}>{t(`查看 ${platform} 指南`)}</Link>}{platform === "iOS" && <Link className="btn btn-ghost" to="/beta/">{t("查看 iOS 试用说明")}</Link>}{platform === "Windows" && <a className="btn btn-ghost" href="https://github.com/metasequoiaime/MSIME-Windows/issues">{t("查看 Windows 已有反馈 ↗")}</a>}<Link className="btn btn-primary" to="/feedback/">{t("提交问题或建议")}</Link></div></section>
       </div>
     </main>
   </>;

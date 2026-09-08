@@ -1,7 +1,13 @@
 .faq-page {
   > .container { max-width: 1000px; }
   .faq-tools, .faq-help, .faq-empty { padding: clamp(1.25rem, 3vw, 2rem); }
-  .faq-tools label { display: block; font-weight: 600; color: var(--lg-heading); margin-bottom: .75rem; }
+  .faq-platforms { border: 0; padding: 0; margin: 0 0 1.5rem; min-width: 0; }
+  .faq-platforms legend { font-weight: 600; color: var(--lg-heading); margin-bottom: .75rem; }
+  .faq-platform-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .faq-platform-options label { display: flex; align-items: center; gap: .5rem; min-height: 44px; padding: .65rem 1rem; border: 1px solid var(--hair-3); border-radius: 10px; cursor: pointer; margin: 0; }
+  .faq-platform-options label.is-selected { background: var(--card-2); border-color: var(--primary-color); }
+  .faq-platform-options input { accent-color: var(--primary-color); }
+  .faq-tools > label { display: block; font-weight: 600; color: var(--lg-heading); margin-bottom: .75rem; }
   input[type=search] { width: 100%; padding: .9rem 1rem; font: inherit; color: var(--text-body); background: var(--card-2); border: 1px solid var(--hair-3); border-radius: 10px; }
   input:focus-visible, summary:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; }
   .faq-filters { border: 0; padding: 0; min-width: 0; display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
@@ -29,3 +35,6 @@
     .faq-question { scroll-margin-top: 90px; }
   }
 }
+
+.faq-answer img { max-width: 100%; width: auto; height: auto; display: block; }
+.faq-answer a:has(img) { display: block; width: fit-content; max-width: 100%; cursor: zoom-in; }
