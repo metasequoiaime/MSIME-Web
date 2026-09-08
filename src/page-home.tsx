@@ -141,7 +141,8 @@ export function HomePage() {
             </div>
 
             <h1 className="hero-title">
-              {t("水杉输入法，")}<span>{t("让中文输入更顺手")}</span>
+              <span>{t("水杉输入法")}</span>
+              <span className="hero-slogan">{t("随心输入，自在表达")}</span>
             </h1>
 
             <p className="hero-desc">{t("支持全拼、双拼和五笔，可按习惯调整候选窗、词库与辅助码。Windows、macOS 和 iOS 处于公开测试阶段，Linux 正在开发中。iOS 通过 TestFlight 安装，各平台功能以对应版本说明为准。")}</p>
