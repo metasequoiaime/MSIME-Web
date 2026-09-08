@@ -1,7 +1,8 @@
+import { usePageSearch } from "./use-page-search";
 import { useLocale } from "./use-locale";
 import { useQuery } from "@tanstack/react-query";
 import { LocaleLink as Link } from "./locale-link";
-import { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo } from "react";
 import { z } from "zod";
 import downloadSource from "./content/download.md?raw";
 import { ContentPage } from "./page-content";
@@ -218,9 +219,15 @@ const groupByArch = (downloads: PlatformRelease["downloads"]) => {
  */
 function DownloadPanel({ platforms }: { platforms: Partial<Record<Platform, PlatformRelease>> | undefined }) {
   const { t } = useLocale();
-  const [platform, setPlatform] = useState<Platform>("windows");
-  // Start with the static snapshot, then select the visitor platform before paint.
-  useLayoutEffect(() => setPlatform(detectPlatform()), []);
+  const { choice, update, get, ready } = usePageSearch();
+  const requestedPlatform = get("platform");
+  const platform = choice("platform", PLATFORMS, "windows");
+  const setPlatform = (value: Platform) => update({ platform: value });
+  // Explicit links take precedence over device detection, including on back/forward.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only normalize when the URL platform changes.
+  useLayoutEffect(() => {
+    if (ready && !PLATFORMS.includes(requestedPlatform as Platform)) update({ platform: detectPlatform() }, true);
+  }, [requestedPlatform, ready]);
   const current = platforms?.[platform];
   const primary = current?.downloads[0];
 

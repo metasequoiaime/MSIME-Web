@@ -35,7 +35,7 @@ export function DocsPage() {
   const navigate = useNavigate();
   const guideId = params.guide ?? platform;
   useEffect(() => {
-    if (platform && !params.guide) void navigate({ to: tw ? "/zh-TW/docs/$guide/" : "/docs/$guide/", params: { guide: platform }, search: {}, replace: true, hash: window.location.hash.slice(1) });
+    if (platform && !params.guide) void navigate({ to: tw ? "/zh-TW/docs/$guide/" : "/docs/$guide/", params: { guide: platform }, search: previous => ({ ...previous, platform: undefined }), replace: true, hash: window.location.hash.slice(1) });
   }, [platform, params.guide, navigate, tw]);
 
   const [sidebarIsOpen, setSidebarIsOpen] = useState(false);

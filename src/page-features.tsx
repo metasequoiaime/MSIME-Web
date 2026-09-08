@@ -1,6 +1,6 @@
 import { useLocale } from "./use-locale";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { usePageSearch } from "./use-page-search";
 import { PageHero } from "./page-content";
 import { usePageMeta } from "./page-meta";
 import { fetchPlatforms, type Dictionary } from "./platforms-data";
@@ -136,10 +136,15 @@ const breakAtSeparators = (path: string) =>
 
 export function FeaturesPage() {
   const { t } = useLocale();
-  const [view, setView] = useState<(typeof CANDIDATE_VIEWS)[number]["id"]>("helpcode");
-  const [settingsScheme, setSettingsScheme] = useState<"dark" | "light">("dark");
-  const [scheme, setScheme] = useState<"dark" | "light">("dark");
-  const [layout, setLayout] = useState<"vertical" | "horizontal">("vertical");
+  const { choice, update } = usePageSearch();
+  const view = choice("view", CANDIDATE_VIEWS.map(item => item.id), "helpcode");
+  const settingsScheme = choice("settings", ["dark", "light"] as const, "dark");
+  const scheme = choice("scheme", ["dark", "light"] as const, "dark");
+  const layout = choice("layout", ["vertical", "horizontal"] as const, "vertical");
+  const setView = (value: typeof view) => update({ view: value });
+  const setSettingsScheme = (value: typeof settingsScheme) => update({ settings: value });
+  const setScheme = (value: typeof scheme) => update({ scheme: value });
+  const setLayout = (value: typeof layout) => update({ layout: value });
   const platforms = useQuery({ queryKey: ["platforms"], queryFn: fetchPlatforms, staleTime: Number.POSITIVE_INFINITY, retry: 1 });
   const dictionary = platforms.data?.dictionary ?? null;
 
