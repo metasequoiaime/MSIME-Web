@@ -1,4 +1,10 @@
-import { Link, useNavigate, useSearch, useParams } from "@tanstack/react-router";
+import windowsGuideTw from "../vendor/MSIME-Docs/guides/zh-TW/windows.md?raw";
+import macosGuideTw from "../vendor/MSIME-Docs/guides/zh-TW/macos.md?raw";
+import macosVoiceGuideTw from "../vendor/MSIME-Docs/guides/zh-TW/macos-voice.md?raw";
+import linuxGuideTw from "../vendor/MSIME-Docs/guides/zh-TW/linux.md?raw";
+import { LocaleLink as Link } from "./locale-link";
+import { useLocale } from "./use-locale";
+import { useNavigate, useSearch, useParams } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import linuxGuide from "../vendor/MSIME-Docs/guides/linux.md?raw";
 import macosGuide from "../vendor/MSIME-Docs/guides/macos.md?raw";
@@ -23,13 +29,14 @@ const GUIDES = [
 const GUIDE_IDS = GUIDES.map((guide) => guide.id);
 
 export function DocsPage() {
+  const { t, tw, path } = useLocale();
   const { platform } = useSearch({ strict: false });
   const params = useParams({ strict: false });
-  const navigate = useNavigate({ from: "/docs" });
+  const navigate = useNavigate();
   const guideId = params.guide ?? platform;
   useEffect(() => {
-    if (platform && !params.guide) void navigate({ to: "/docs/$guide/", params: { guide: platform }, search: {}, replace: true, hash: window.location.hash.slice(1) });
-  }, [platform, params.guide, navigate]);
+    if (platform && !params.guide) void navigate({ to: tw ? "/zh-TW/docs/$guide/" : "/docs/$guide/", params: { guide: platform }, search: {}, replace: true, hash: window.location.hash.slice(1) });
+  }, [platform, params.guide, navigate, tw]);
 
   const [sidebarIsOpen, setSidebarIsOpen] = useState(false);
   const articleRef = useRef<HTMLElement>(null);
@@ -38,10 +45,11 @@ export function DocsPage() {
 
   const guide = useMemo(() => GUIDES.find((candidate) => candidate.id === guideId) ?? GUIDES[0], [guideId]);
   const content = useMemo(() => {
-    const rendered = renderContent(guide.source);
-    const linked = linkGuideCrossReferences(rendered.bodyHtml, GUIDE_IDS);
+    const translated = { windows: windowsGuideTw, macos: macosGuideTw, "macos-voice": macosVoiceGuideTw, linux: linuxGuideTw };
+    const rendered = renderContent(tw ? translated[guide.id] : guide.source, { localePath: path });
+    const linked = linkGuideCrossReferences(rendered.bodyHtml, GUIDE_IDS, tw ? "/zh-TW" : "");
     return { ...rendered, ...withHeadingIds(linked) };
-  }, [guide]);
+  }, [guide, tw, path]);
 
   const { activeId, lockUntilScrollEnds } = useTocScrollSpy(content.toc, articleRef, tocRef, sidebarRef);
   useInternalLinks(articleRef);
@@ -52,14 +60,14 @@ export function DocsPage() {
     setSidebarIsOpen(false);
   }, []);
 
-  if (guideId && !GUIDES.some(item => item.id === guideId)) return <main className="content-page"><div className="container"><h1>指南不存在</h1><Link to="/docs/$guide/" params={{ guide: "windows" }}>查看 Windows 使用指南</Link></div></main>;
+  if (guideId && !GUIDES.some(item => item.id === guideId)) return <main className="content-page"><div className="container"><h1>{t("指南不存在")}</h1><Link to="/docs/$guide/" params={{ guide: "windows" }}>{t("查看 Windows 使用指南")}</Link></div></main>;
   return (
     <>
-      <PageHero kicker="文档" title={content.title} leadHtml={content.leadHtml} />
+      <PageHero kicker="文档" title={t(content.title)} leadHtml={content.leadHtml} />
 
       <main className="docs-page">
         <div className="container docs-shell">
-          <aside className={`docs-sidebar${sidebarIsOpen ? " is-open" : ""}`} ref={sidebarRef} aria-label="文档导航">
+          <aside className={`docs-sidebar${sidebarIsOpen ? " is-open" : ""}`} ref={sidebarRef} aria-label={t("文档导航")}>
             <button
               className="docs-toc-toggle"
               id="docs-toc-toggle"
@@ -69,7 +77,7 @@ export function DocsPage() {
                 setSidebarIsOpen((open) => !open);
               }}
             >
-              <span>文档目录</span>
+              <span>{t("文档目录")}</span>
               <span className="docs-toc-toggle-icon" aria-hidden="true">
                 <svg viewBox="0 0 12 12" focusable="false" aria-hidden="true">
                   <path d="M2.25 4.25 6 8l3.75-3.75" />
@@ -77,13 +85,13 @@ export function DocsPage() {
               </span>
             </button>
 
-            <nav className="docs-platforms" id="docs-platforms" aria-label="平台">
-              {GUIDES.map((candidate) => (
-                <Link key={candidate.id} className={`docs-platform${candidate.id === guide.id ? " is-active" : ""}`} to="/docs/$guide/" params={{ guide: candidate.id }} aria-current={candidate.id === guide.id ? "page" : undefined}>{candidate.label}</Link>
-              ))}
+            <nav className="docs-platforms" id="docs-platforms" aria-label={t("平台")}>
+              {t(GUIDES.map((candidate) => (
+                <Link key={candidate.id} className={`docs-platform${candidate.id === guide.id ? " is-active" : ""}`} to="/docs/$guide/" params={{ guide: candidate.id }} aria-current={candidate.id === guide.id ? "page" : undefined}>{t(candidate.label)}</Link>
+              )))}
             </nav>
 
-            <Link className="btn btn-ghost" to="/faq/">常见问题 Q&A ↗</Link>
+            <Link className="btn btn-ghost" to="/faq/">{t("常见问题 Q&A ↗")}</Link>
 
             <TocNav
               entries={content.toc}

@@ -25,6 +25,7 @@ export const htmlFiles = (dir, found = []) => {
 /** CSP 的摘要算的是脚本节点里的原始文本，一个字节都不能差 —— 不能 trim。 */
 export const hashInlineScripts = (html) =>
   [...html.matchAll(INLINE_SCRIPT)]
+    .filter(match => !/^<script\b[^>]*\btype=['"]application\/(?:ld\+)?json['"]/i.test(match[0]))
     .map((match) => `'sha256-${createHash('sha256').update(match[1], 'utf8').digest('base64')}'`);
 
 /** 只动 script-src 这一条指令，其余原样留着。 */

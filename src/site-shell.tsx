@@ -1,5 +1,7 @@
-import { baseLocalePath, traditionalPages, traditionalPath } from "../shared/locales";
-import { Link, Outlet, useLocation, useRouterState } from "@tanstack/react-router";
+import { LocaleLink as Link } from "./locale-link";
+import { useLocale } from "./use-locale";
+import { baseLocalePath, traditionalPages, traditionalPath, isTraditional } from "../shared/locales";
+import { Outlet, useLocation, useRouterState } from "@tanstack/react-router";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { THEME_CHOICES, THEME_LABELS, useTheme } from "./theme";
 
@@ -24,6 +26,7 @@ function GithubMark() {
 }
 
 function ThemeSwitcher() {
+  const { t } = useLocale();
   const { theme, isLight, setTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const switcherRef = useRef<HTMLDivElement>(null);
@@ -64,7 +67,7 @@ function ThemeSwitcher() {
         type="button"
         aria-haspopup="true"
         aria-expanded={isOpen}
-        aria-label={`主题：${THEME_LABELS[theme]}`}
+        aria-label={t(`主题：${THEME_LABELS[theme]}`)}
         onClick={(event) => {
           event.stopPropagation();
           setIsOpen((open) => !open);
@@ -79,8 +82,8 @@ function ThemeSwitcher() {
         </svg>
       </button>
 
-      <div className="theme-options" id="theme-options" role="menu" aria-label="主题模式">
-        {THEME_CHOICES.map((choice) => (
+      <div className="theme-options" id="theme-options" role="menu" aria-label={t("主题模式")}>
+        {t(THEME_CHOICES.map((choice) => (
           <button
             key={choice}
             className={`theme-option${theme === choice ? " is-selected" : ""}`}
@@ -95,9 +98,9 @@ function ThemeSwitcher() {
               setTheme(choice, box && { x: box.left + box.width / 2, y: box.top + box.height / 2 });
             }}
           >
-            {THEME_LABELS[choice]}
+            {t(THEME_LABELS[choice])}
           </button>
-        ))}
+        )))}
       </div>
     </div>
   );
@@ -131,7 +134,8 @@ function RouteProgress() {
 }
 
 function NavMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const pathname = useLocation({ select: (location) => location.pathname });
+  const { t } = useLocale();
+  const pathname = useLocation({ select: (location) => baseLocalePath(location.pathname) });
   const listRef = useRef<HTMLUListElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const activeLinkRef = useRef<HTMLElement | null>(null);
@@ -189,9 +193,9 @@ function NavMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
 
   return (
     // biome-ignore lint/a11y/useAriaPropsSupportedByRole: 手机展开时为 modal dialog，桌面为 navigation；两种角色均支持 aria-label。
-    <div ref={menuRef} className={`nav-menu${isOpen ? " show" : ""}`} id="nav-menu" aria-label="站点导航" role={isOpen ? "dialog" : "navigation"} aria-modal={isOpen || undefined}>
-      <div className="nav-mobile-heading" aria-hidden="true">探索水杉</div>
-      <button className="btn-close" id="btn-close" type="button" aria-label="关闭导航菜单" onClick={onClose}>
+    <div ref={menuRef} className={`nav-menu${isOpen ? " show" : ""}`} id="nav-menu" aria-label={t("站点导航")} role={isOpen ? "dialog" : "navigation"} aria-modal={isOpen || undefined}>
+      <div className="nav-mobile-heading" aria-hidden="true">{t("探索水杉")}</div>
+      <button className="btn-close" id="btn-close" type="button" aria-label={t("关闭导航菜单")} onClick={onClose}>
         <img src="/img/icons/Close_round.svg" alt="" className="nav-icon" />
       </button>
 
@@ -201,14 +205,14 @@ function NavMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
         // 动画挂在活动链接的 ::before 上，事件从伪元素冒泡到链接再到这里。跑完就摘掉 is-sliding，下次换页才能重新触发。
         onAnimationEnd={() => listRef.current?.classList.remove("is-sliding")}
       >
-        {NAV_ITEMS.map((item) => (
+        {t(NAV_ITEMS.map((item) => (
           <li className="nav-item" key={item.to}>
             <Link to={item.to} params={item.label === "文档" ? { guide: "windows" } : {}} className="nav-link" {...(item.label === "文档" ? { "data-status": pathname.startsWith("/docs") ? "active" : "inactive" } : {})} activeOptions={{ exact: item.to === "/" }} onClick={onClose}>
               <img src={`/img/icons/nav/${item.icon}.svg`} alt="" className="nav-link-icon" />
-              {item.label}
+              {t(item.label)}
             </Link>
           </li>
-        ))}
+        )))}
       </ul>
     </div>
   );
@@ -271,6 +275,7 @@ function useHeaderAutoHide(menuIsOpen: boolean) {
 }
 
 function SiteFooter({ inert }: { inert: boolean }) {
+  const { t } = useLocale();
   return (
     <footer className="site-footer" inert={inert}>
       <div className="container">
@@ -278,44 +283,44 @@ function SiteFooter({ inert }: { inert: boolean }) {
           <div>
             <div className="site-footer-brand">
               <img src="/msime-logo.png" width="30" height="30" decoding="async" alt="" />
-              <span>水杉输入法</span>
+              <span>{t("水杉输入法")}</span>
             </div>
-            <p className="site-footer-desc">开源中文输入法，支持全拼、双拼与五笔。各平台的可用功能、下载和安装说明见对应页面。</p>
+            <p className="site-footer-desc">{t("开源中文输入法，支持全拼、双拼与五笔。各平台的可用功能、下载和安装说明见对应页面。")}</p>
             <div className="site-footer-chips">
               <a href="https://t.me/msimegroup" target="_blank" rel="noreferrer">Telegram</a>
-              <span>QQ 群 829919142</span>
-              <a href="mailto:metasequoiaime@gmail.com">邮箱</a>
+              <span>{t("QQ 群 829919142")}</span>
+              <a href="mailto:metasequoiaime@gmail.com">{t("邮箱")}</a>
             </div>
           </div>
 
           <div>
-            <div className="site-footer-col-title">产品</div>
+            <div className="site-footer-col-title">{t("产品")}</div>
             <div className="site-footer-links">
-              <Link to="/download/">下载</Link>
-              <Link to="/beta/">iOS 内测</Link>
-              <Link to="/price/">价格</Link>
-              <Link to="/docs/$guide/" params={{ guide: "windows" }}>文档</Link>
-              <Link to="/faq/">常见问题 Q&A</Link>
+              <Link to="/download/">{t("下载")}</Link>
+              <Link to="/beta/">{t("iOS 内测")}</Link>
+              <Link to="/price/">{t("价格")}</Link>
+              <Link to="/docs/$guide/" params={{ guide: "windows" }}>{t("文档")}</Link>
+              <Link to="/faq/">{t("常见问题 Q&A")}</Link>
             </div>
           </div>
 
           <div>
-            <div className="site-footer-col-title">项目</div>
+            <div className="site-footer-col-title">{t("项目")}</div>
             <div className="site-footer-links">
-              <Link to="/code/">开源代码</Link>
-              <Link to="/about/">关于</Link>
-              <Link to="/privacy/">隐私说明</Link>
-              <a href="https://github.com/metasequoiaime" target="_blank" rel="noreferrer">GitHub 组织</a>
+              <Link to="/code/">{t("开源代码")}</Link>
+              <Link to="/about/">{t("关于")}</Link>
+              <Link to="/privacy/">{t("隐私说明")}</Link>
+              <a href="https://github.com/metasequoiaime" target="_blank" rel="noreferrer">{t("GitHub 组织")}</a>
             </div>
           </div>
 
           <div>
-            <div className="site-footer-col-title">参与</div>
+            <div className="site-footer-col-title">{t("参与")}</div>
             <div className="site-footer-links">
-              <Link to="/feedback/">问题与建议</Link>
-              <a href="https://github.com/metasequoiaime/.github/blob/main/RECRUITING.md" target="_blank" rel="noreferrer">招募开源开发者</a>
-              <a href="https://github.com/metasequoiaime/.github/blob/main/CONTRIBUTING.md" target="_blank" rel="noreferrer">贡献指南</a>
-              <a href="https://github.com/metasequoiaime/.github/blob/main/CODE_OF_CONDUCT.md" target="_blank" rel="noreferrer">行为准则</a>
+              <Link to="/feedback/">{t("问题与建议")}</Link>
+              <a href="https://github.com/metasequoiaime/.github/blob/main/RECRUITING.md" target="_blank" rel="noreferrer">{t("招募开源开发者")}</a>
+              <a href="https://github.com/metasequoiaime/.github/blob/main/CONTRIBUTING.md" target="_blank" rel="noreferrer">{t("贡献指南")}</a>
+              <a href="https://github.com/metasequoiaime/.github/blob/main/CODE_OF_CONDUCT.md" target="_blank" rel="noreferrer">{t("行为准则")}</a>
             </div>
           </div>
         </div>
@@ -323,7 +328,7 @@ function SiteFooter({ inert }: { inert: boolean }) {
         <div className="site-footer-bottom">
           <span>Copyright © 2026-present</span>
           <a href="https://github.com/fanlusky" target="_blank" rel="noreferrer">fanlusky</a>
-          <span>@<span className="lxl">乱序楼</span></span>
+          <span>@<span className="lxl">{t("乱序楼")}</span></span>
           <span className="site-footer-license">GPL-3.0</span>
           <a className="site-footer-site" href="https://msime.app" target="_blank" rel="noreferrer">msime.app</a>
         </div>
@@ -333,6 +338,7 @@ function SiteFooter({ inert }: { inert: boolean }) {
 }
 
 export function SiteShell() {
+  const { t } = useLocale();
   const languagePath = useLocation({ select: value => value.pathname });
   const [menuIsOpen, setMenuIsOpen] = useState(false);
   const closeMenu = useCallback(() => {
@@ -352,14 +358,13 @@ export function SiteShell() {
     <>
       {/* 键盘和读屏用户的第一站：不加这个，每换一页都要按十几次 Tab 才走完顶栏 */}
       <a className="skip-link" href="#site-content">
-        跳到正文
-      </a>
+        {t("跳到正文")}</a>
 
       <div className="header-wrap" inert={menuIsOpen}>
         <header className="container header">
           <Link className="logo" to="/">
             <img src="/msime-logo.png" width="34" height="34" decoding="async" alt="logo" />
-            <span className="logo-text">水杉输入法</span>
+            <span className="logo-text">{t("水杉输入法")}</span>
           </Link>
 
           <div className="header-actions">
@@ -368,14 +373,14 @@ export function SiteShell() {
               <span>GitHub</span>
             </a>
 
-            <a className="header-language" lang="zh-Hant-TW" hrefLang="zh-Hant-TW" href={traditionalPath(baseLocalePath(languagePath) in traditionalPages ? baseLocalePath(languagePath) : '/')} aria-label="切换到繁体中文">繁體</a>
+            <a className="header-language" lang={isTraditional(languagePath) ? "zh-Hans" : "zh-Hant-TW"} hrefLang={isTraditional(languagePath) ? "zh-Hans" : "zh-Hant-TW"} href={isTraditional(languagePath) ? (baseLocalePath(languagePath) === "/docs/" ? "/docs/windows/" : baseLocalePath(languagePath)) : traditionalPath(baseLocalePath(languagePath) in traditionalPages ? baseLocalePath(languagePath) : '/')} aria-label={isTraditional(languagePath) ? "切換到簡體中文" : "切换到繁体中文"}>{isTraditional(languagePath) ? "简体" : "繁體"}</a>
             <ThemeSwitcher />
 
             <button
               className="btn-toggle"
               id="btn-toggle"
               type="button"
-              aria-label="打开导航菜单"
+              aria-label={t("打开导航菜单")}
               aria-expanded={menuIsOpen}
               aria-controls="nav-menu"
               onClick={() => {

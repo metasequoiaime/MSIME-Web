@@ -7,7 +7,7 @@ export type TocEntry = { id: string; text: string; isSubItem: boolean };
  *
  * 文档源自独立仓库，互相引用时写的是 `macos-voice.md` —— 在 GitHub 上能跳，放到站上就是死链：这一页的地址是 `/docs/?platform=xxx`，没有 `.md` 这个文件。认得出来的改写成对应的平台参数，认不出来的原样留着，不去猜。
  */
-export const linkGuideCrossReferences = (html: string, knownGuides: readonly string[]) => {
+export const linkGuideCrossReferences = (html: string, knownGuides: readonly string[], prefix = "") => {
   const holder = document.createElement("div");
   holder.innerHTML = html;
 
@@ -18,7 +18,7 @@ export const linkGuideCrossReferences = (html: string, knownGuides: readonly str
     const match = /^([\w-]+)\.md(#.*)?$/.exec(href);
     if (!match || !knownGuides.includes(match[1])) return;
 
-    link.setAttribute("href", `/docs/${match[1]}/${match[2] ?? ""}`);
+    link.setAttribute("href", `${prefix}/docs/${match[1]}/${match[2] ?? ""}`);
   });
 
   return holder.innerHTML;
@@ -36,7 +36,7 @@ export const withHeadingIds = (bodyHtml: string, selector = "h2, h3") => {
   const usedIds = new Map<string, number>();
   const toc: TocEntry[] = [];
 
-  holder.querySelectorAll<HTMLElement>(selector).forEach((heading) => {
+  holder.querySelectorAll<HTMLElement>("h2, h3, h4, h5, h6").forEach((heading) => {
     const text = heading.textContent?.trim() ?? "";
     const baseId =
       text
@@ -49,7 +49,7 @@ export const withHeadingIds = (bodyHtml: string, selector = "h2, h3") => {
 
     usedIds.set(baseId, occurrence);
     heading.id = headingId;
-    toc.push({ id: headingId, text, isSubItem: heading.tagName === "H3" });
+    if (heading.matches(selector)) toc.push({ id: headingId, text, isSubItem: heading.tagName === "H3" });
   });
 
   return { html: holder.innerHTML, toc };

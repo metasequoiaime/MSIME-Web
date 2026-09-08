@@ -1,5 +1,6 @@
+import { LocaleLink as Link } from "./locale-link";
+import { useLocale } from "./use-locale";
 import { usePageMeta } from "./page-meta";
-import { Link } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { CommunitySection } from "./community-section";
 import { useReveal } from "./use-reveal";
@@ -116,6 +117,7 @@ const PLATFORMS = [
 ] as const;
 
 export function HomePage() {
+  const { t } = useLocale();
   usePageMeta();
   const videoRef = useRef<HTMLVideoElement>(null);
   const { isLight } = useTheme();
@@ -139,31 +141,29 @@ export function HomePage() {
             </div>
 
             <h1 className="hero-title">
-              水杉输入法，<span>让中文输入更顺手</span>
+              {t("水杉输入法，")}<span>{t("让中文输入更顺手")}</span>
             </h1>
 
-            <p className="hero-desc">支持全拼、双拼和五笔，可按习惯调整候选窗、词库与辅助码。Windows、macOS 和 Linux 提供下载，iOS 版仍在开发中，各平台功能以对应版本说明为准。</p>
+            <p className="hero-desc">{t("支持全拼、双拼和五笔，可按习惯调整候选窗、词库与辅助码。Windows、macOS 和 Linux 提供下载，iOS 版仍在开发中，各平台功能以对应版本说明为准。")}</p>
 
-            <p className="hero-quote">墨池飞出北溟鱼，笔锋杀尽中山兔。</p>
+            <p className="hero-quote">{t("墨池飞出北溟鱼，笔锋杀尽中山兔。")}</p>
 
             <div className="hero-buttons btn-row">
               <Link className="btn btn-lg btn-primary" to="/download/">
-                下载
-                <img src="/img/icons/Download.svg" alt="" className="btn-icon" />
+                {t("下载")}<img src="/img/icons/Download.svg" alt="" className="btn-icon" />
               </Link>
               <Link className="btn btn-lg btn-ghost" to="/docs/$guide/" params={{ guide: "windows" }}>
-                阅读文档
-              </Link>
+                {t("阅读文档")}</Link>
             </div>
           </div>
 
           <div className="hero-stats card-lift">
-            {HERO_STATS.map((stat) => (
+            {t(HERO_STATS.map((stat) => (
               <div key={stat.label}>
-                <div className={`hero-stat-value${stat.isText ? " is-text" : ""}`}>{stat.value}</div>
-                <div className="hero-stat-label">{stat.label}</div>
+                <div className={`hero-stat-value${stat.isText ? " is-text" : ""}`}>{t(stat.value)}</div>
+                <div className="hero-stat-label">{t(stat.label)}</div>
               </div>
-            ))}
+            )))}
           </div>
 
           <div className="hero-demo">
@@ -172,14 +172,14 @@ export function HomePage() {
                 <span className="hero-screenshot-dot" />
                 <span className="hero-screenshot-dot" />
                 <span className="hero-screenshot-dot" />
-                <span className="hero-screenshot-title">水杉输入法 · 输入演示</span>
+                <span className="hero-screenshot-title">{t("水杉输入法 · 输入演示")}</span>
               </div>
               {/*
                 只渲染当前主题用得上的那一份。样式表本来就把另一份藏起来了，但 display: none 不阻止请求 ——
                 两份一起下会白白多取一整段视频，而它一个像素都不会显示。
               */}
               <div className="hero-media-frame">
-                {isLight ? (
+                {t(isLight ? (
                   <video
                     className="hero-media hero-media-light"
                     ref={videoRef}
@@ -188,7 +188,7 @@ export function HomePage() {
                     playsInline
                     preload="metadata"
                     poster="/img/typing_words_light_poster.jpg"
-                    aria-label="输入演示"
+                    aria-label={t("输入演示")}
                   >
                     <source src={LIGHT_DEMO} type="video/mp4" />
                   </video>
@@ -206,12 +206,12 @@ export function HomePage() {
                     playsInline
                     preload="metadata"
                     poster="/img/typing_words_poster.jpg"
-                    aria-label="输入演示"
+                    aria-label={t("输入演示")}
                   >
                     <source src={DARK_DEMO} type="video/mp4" />
                     <source src="/img/typing_words.webm" type="video/webm" />
                   </video>
-                )}
+                ))}
               </div>
             </div>
           </div>
@@ -220,40 +220,37 @@ export function HomePage() {
 
       <section className="container section">
         <div className="section-eyebrow" data-reveal>
-          <span>输入功能</span>
+          <span>{t("输入功能")}</span>
           <span className="section-rule" />
         </div>
 
         <div className="feature-grid" data-reveal-stagger>
-          {FEATURES.map((feature) => (
+          {t(FEATURES.map((feature) => (
             <div className="card card-lift feature-card" data-reveal key={feature.kicker}>
-              <div className="feature-kicker">{feature.kicker}</div>
-              <div className="feature-title">{feature.title}</div>
-              <div className="feature-desc">{feature.desc}</div>
+              <div className="feature-kicker">{t(feature.kicker)}</div>
+              <div className="feature-title">{t(feature.title)}</div>
+              <div className="feature-desc">{t(feature.desc)}</div>
             </div>
-          ))}
+          )))}
         </div>
       </section>
 
       <section className="container section">
         <div className="section-eyebrow" data-reveal>
-          <span>开源</span>
+          <span>{t("开源")}</span>
           <span className="section-rule" />
         </div>
 
         <div className="card open-card" data-reveal>
-          <h2>代码公开，欢迎参与</h2>
-          <p>输入法会处理输入内容。公开源码和隐私说明，方便你了解本地处理与联网功能的边界，也欢迎你参与检查和改进。使用、修改与分发代码时，请遵循对应仓库的开源许可。</p>
+          <h2>{t("代码公开，欢迎参与")}</h2>
+          <p>{t("输入法会处理输入内容。公开源码和隐私说明，方便你了解本地处理与联网功能的边界，也欢迎你参与检查和改进。使用、修改与分发代码时，请遵循对应仓库的开源许可。")}</p>
           <p>
-            欢迎参与代码、词库、文档、翻译和兼容性测试。可以先查看各仓库的 Issue（问题与任务），其中标有 <code>no-code</code> 的任务以非代码工作为主，请以任务说明为准。
-          </p>
+            {t("欢迎参与代码、词库、文档、翻译和兼容性测试。可以先查看各仓库的 Issue（问题与任务），其中标有")}<code>no-code</code> {t("的任务以非代码工作为主，请以任务说明为准。")}</p>
           <div className="btn-row">
             <a className="btn btn-primary" href="https://github.com/metasequoiaime" target="_blank" rel="noreferrer">
-              在 GitHub 上参与
-            </a>
+              {t("在 GitHub 上参与")}</a>
             <Link className="btn btn-soft" to="/code/">
-              看全部仓库
-            </Link>
+              {t("看全部仓库")}</Link>
           </div>
         </div>
       </section>
@@ -262,35 +259,31 @@ export function HomePage() {
 
       <section className="container section">
         <div className="section-eyebrow" data-reveal>
-          <span>平台与下载</span>
+          <span>{t("平台与下载")}</span>
           <span className="section-rule" />
         </div>
 
         <h2 className="section-title" data-reveal>
-          选择你的平台
-        </h2>
+          {t("选择你的平台")}</h2>
         <p className="section-lead" data-reveal>
-          各平台共用输入引擎，但界面、功能和发布进度有所不同。请在下载页查看对应版本与安装说明。
-        </p>
+          {t("各平台共用输入引擎，但界面、功能和发布进度有所不同。请在下载页查看对应版本与安装说明。")}</p>
 
         <div className="platform-list" data-reveal>
-          {PLATFORMS.map((platform) => (
+          {t(PLATFORMS.map((platform) => (
             <div className="platform-row" key={platform.name}>
-              <span className="platform-name">{platform.name}</span>
-              <span className="platform-desc">{platform.desc}</span>
-              <span className={`platform-status${platform.isLive ? " is-live" : ""}`}>{platform.status}</span>
+              <span className="platform-name">{t(platform.name)}</span>
+              <span className="platform-desc">{t(platform.desc)}</span>
+              <span className={`platform-status${platform.isLive ? " is-live" : ""}`}>{t(platform.status)}</span>
             </div>
-          ))}
+          )))}
         </div>
 
         <div className="btn-row platform-cta" data-reveal>
           <Link className="btn btn-primary" to="/download/">
-            前往下载页
-            <img src="/img/icons/Download.svg" alt="" className="btn-icon" />
+            {t("前往下载页")}<img src="/img/icons/Download.svg" alt="" className="btn-icon" />
           </Link>
           <Link className="btn btn-ghost" to="/code/">
-            查看仓库
-          </Link>
+            {t("查看仓库")}</Link>
         </div>
       </section>
     </main>

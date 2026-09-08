@@ -229,3 +229,31 @@ test('feedback responses reject HTML and malformed JSON without exposing parser 
   const response = new Response(JSON.stringify({ error: '稍后重试' }), { status: 503, headers: { 'content-type': 'application/json; charset=utf-8' } });
   assert.deepEqual(await readFeedbackResponse(response, message), { error: '稍后重试' });
 });
+
+
+test('Traditional form keeps raw options and user input while localizing issue headings', async () => {
+  const { loadTraditional } = await import('../shared/translate.ts');
+  await loadTraditional();
+  const template = templateFor();
+  const data = feedbackSchema.parse({ ...validForm(), locale: 'zh-TW' });
+  const field = template.fields.find(field => field.type === 'textarea');
+  data.answers[field.id] = '用户原文：简体不应被改写，https://example.com/简体';
+  assert.equal(validateAnswers(template, data.answers), undefined);
+  const issue = formatIssue(data, template);
+  assert.ok(issue.body.includes(data.answers[field.id]));
+  assert.ok(issue.body.includes('https://msime.app/zh-TW/feedback/'));
+  assert.equal(issue.title, data.title);
+  assert.deepEqual(issue.labels, template.labels);
+  assert.match(issue.body, /維護者評估/);
+  assert.equal(feedbackSchema.safeParse({ ...data, locale: 'xx' }).success, false);
+});
+
+
+test('Traditional POST produces the same localized body as the preview', async t => {
+  const calls = mockFetch(t);
+  const data = { ...validForm(), locale: 'zh-TW' };
+  const response = await onRequest({ request: request(data), env });
+  assert.equal(response.status, 201);
+  assert.deepEqual(JSON.parse(writes(calls)[0].options.body), formatIssue(feedbackSchema.parse(data), templateFor()));
+  assert.match(JSON.parse(writes(calls)[0].options.body).body, /維護者評估/);
+});

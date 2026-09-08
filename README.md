@@ -145,10 +145,10 @@ Issue 作者为 App 的机器人账号（例如 `msime-feedback[bot]`）。后�
 
 安装截图保持 Docs 原文不变，在网站渲染时使用本地 WebP、尺寸声明和响应式候选。派生文件可用 `cwebp -q 85 -resize 480 0 public/screenshots/install-finish.png -o public/screenshots/install-finish-480.webp` 和 `cwebp -q 85 public/screenshots/install-finish.png -o public/screenshots/install-finish.webp` 重建。
 
-### 繁体中文第一阶段
+### 简繁中文
 
-- `/zh-TW/`、`/zh-TW/features/`、`/zh-TW/download/`、`/zh-TW/faq/`、`/zh-TW/feedback/` 提供台湾繁体中文核心页面，语言标记为 `zh-Hant-TW`；原简体网址保持不变。手动切换语言，不依据 IP 或浏览器语言强制跳转。
-- 文案在 `src/locales/zh-TW/` 维护，按台湾用语人工整理；网页语言不改变输入法输出模式。下载仍读 `public/platforms.json`，版本、资源链接与校验值不另存一份。
-- FAQ 为固定 MSIME-Docs FAQ 的繁体摘要，保留原始证据链接。`faqSourceSha256` 与产物检查要求上游 FAQ 变更后重新核对翻译，不自动转换或静默沿用旧内容。
-- 第一阶段的反馈页面是繁体入口，链接至可填写繁体中文的现有简体表单；指南、价格、隐私与外部 Issue 範本未宣称已有繁体版本，链接明确标记简体。完整指南翻译留到第二阶段，并在 MSIME-Docs 维护。
-- `shared/locales.ts` 统一控制已翻译网址；HTML、站点地图与客户端使用互相对应的 `hreflang`（简体、繁体、x-default），每个语言版本采用自身 canonical，并生成静态正文和 Markdown。
+所有产品页面的简繁版本复用相同 React 组件、CSS 和交互，不维护独立的繁体布局。`/zh-TW/` 对应台湾繁体中文，原简体网址不变；手动切换语言，不按 IP 强制跳转。
+
+界面显示文案通过 `useLocale` 和术语表转换，用户输入、配置值及动态模板的原始选项值不转换。完整指南和 FAQ 从固定 MSIME-Docs 的 `guides/zh-TW/` 读取；其来源摘要由构建测试核对。反馈模板仍实时读取各仓库，繁体表单的字段说明和预览标题本地化，服务端按原始选项验证。
+
+`shared/locales.ts` 统一网址和语言元数据；静态 HTML、站点地图和客户端提供 reciprocal hreflang、canonical 和 Markdown。个人简历及外部 GitHub 页面不属于本站产品翻译范围。

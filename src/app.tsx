@@ -1,3 +1,5 @@
+import { isTraditional } from "../shared/locales";
+import { loadTraditional } from "../shared/translate";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { hydrate } from "@tanstack/react-router/ssr/client";
 import { RouterProvider } from "@tanstack/react-router";
@@ -8,6 +10,7 @@ import { ThemeProvider } from "./theme";
 import "./style.scss";
 import "./docs.scss";
 
+if (isTraditional(window.location.pathname)) await loadTraditional();
 const router = makeRouter();
 
 const queryClient = new QueryClient();

@@ -1,3 +1,6 @@
+import { isTraditional } from "../shared/locales";
+import { toTraditional } from "../shared/translate";
+import { localeHref } from "../shared/locales";
 import MarkdownIt from "markdown-it";
 
 export const markdown = new MarkdownIt({
@@ -6,10 +9,23 @@ export const markdown = new MarkdownIt({
   typographer: true,
 });
 
+export function localizedHtml(html: string, path: string) {
+  if (!isTraditional(path)) return html;
+  const holder = document.createElement("div");
+  holder.innerHTML = html;
+  const visit = (node: Node) => {
+    if (node.nodeType === 3) node.textContent = toTraditional(node.textContent ?? "");
+    else if (!(node instanceof HTMLElement) || !["CODE", "PRE"].includes(node.tagName)) node.childNodes.forEach(visit);
+  };
+  visit(holder);
+  localizeSiteLinks(holder, path);
+  return holder.innerHTML;
+}
+
 const SITE_ORIGIN = "https://msime.app";
 
 /** Docs 是独立仓库，正文里写的是绝对地址，便于在别处引用。渲染到本站时换回站内路径，否则自己的图片和链接要绕一圈生产域名，本地预览和非生产部署都会走外网。 */
-const localizeSiteLinks = (root: ParentNode) => {
+const localizeSiteLinks = (root: ParentNode, localePath: string) => {
   const strip = (element: Element, attribute: string) => {
     const value = element.getAttribute(attribute);
     if (value?.startsWith(`${SITE_ORIGIN}/`)) element.setAttribute(attribute, value.slice(SITE_ORIGIN.length));
@@ -19,6 +35,7 @@ const localizeSiteLinks = (root: ParentNode) => {
     strip(element, "href");
     if (element.getAttribute("href") === "/docs/") element.setAttribute("href", "/docs/windows/");
   });
+  root.querySelectorAll("a[href]").forEach(element => { element.setAttribute("href", localeHref(element.getAttribute("href") ?? "", localePath)); });
   root.querySelectorAll("img[src]").forEach((element) => {
     strip(element, "src");
     if (element.getAttribute("src") === "/screenshots/install-finish.png") {
@@ -228,6 +245,7 @@ export type ContentDocument = {
 
 type RenderOptions = {
   /** 把每个二级标题及其后续内容包进独立卡片 */
+  localePath?: string;
   sectioned?: boolean;
   /** 开源代码页把列表项拆成仓库名和说明两行 */
   repoRows?: boolean;
@@ -238,11 +256,11 @@ type RenderOptions = {
  *
  * 后处理仍然靠 DOM API，和之前直接操作页面时是同一套逻辑；区别是这里在一个游离节点里做完再交出 HTML 字符串，页面上不会出现处理到一半的中间状态。`html: false` 让 markdown 不会透传原始标签，游离节点里的 innerHTML 也不会执行脚本。
  */
-export const renderContent = (source: string, { sectioned = false, repoRows = false }: RenderOptions = {}): ContentDocument => {
+export const renderContent = (source: string, { sectioned = false, repoRows = false, localePath = "/" }: RenderOptions = {}): ContentDocument => {
   const holder = document.createElement("div");
   holder.innerHTML = markdown.render(source);
 
-  localizeSiteLinks(holder);
+  localizeSiteLinks(holder, localePath);
   markUpKeystrokes(holder);
   markUpGlyphSamples(holder);
   wrapScrollableTables(holder);

@@ -17,6 +17,9 @@ importers:
       markdown-it:
         specifier: ^15.0.1
         version: 15.0.1
+      opencc-js:
+        specifier: ^1.4.2
+        version: 1.4.2
       react:
         specifier: ^19.2.8
         version: 19.2.8
@@ -692,6 +695,9 @@ packages:
     resolution: {integrity: sha512-GX0gsdbGVCgnRgbeGaubfjpBXyYRWOOCVeYh08bSQvDZqxz5ndXs1OTfAt/h36G1xvI94YIspsI0sVFqAV9+RQ==}
     engines: {node: '>=20.19.0'}
 
+  opencc-js@1.4.2:
+    resolution: {integrity: sha512-EdcspgdROiCCZDM+jZR6Pa670xW+EW2QhctPBQ8gRjg6lrx4IHEl+2s+kt5izk/TkxVRgdWuFgaGkaEdIUfdaw==}
+
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
 
@@ -1266,6 +1272,8 @@ snapshots:
   nth-check@3.0.1:
     dependencies:
       boolbase: 2.0.0
+
+  opencc-js@1.4.2: {}
 
   picocolors@1.1.1: {}
 
