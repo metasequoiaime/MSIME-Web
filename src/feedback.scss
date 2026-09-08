@@ -131,3 +131,16 @@
 .feedback-page .feedback-choice-field input { margin-top: 0; }
 .feedback-page .feedback-choice-field .feedback-consent > span { margin-top: 0; }
 .feedback-page .feedback-clear-choice { margin-top: .5rem; font-size: .85rem; }
+
+.feedback-page {
+  .feedback-template-picker .feedback-consent { padding: 12px; border: 1px solid var(--hair-3); border-radius: 10px; margin-top: .75rem; gap: 12px; }
+  .feedback-template-picker .feedback-consent:has(input:checked) { border-color: var(--primary-color); background: var(--accent-soft); }
+  .feedback-template-picker strong { display: block; color: var(--text-body); font-size: .95rem; }
+  .feedback-template-picker small { display: block; margin-top: .35rem; font-size: .8rem; line-height: 1.6; }
+  .feedback-section-heading { font-size: 1.3rem; color: var(--lg-heading); margin: 2rem 0 .5rem; }
+  .feedback-contacts > summary { font-weight: 600; color: var(--text-body); }
+  .feedback-image-position > summary { font-size: .8rem; color: var(--text-muted); }
+  .feedback-preview-action { margin-right: .75rem; }
+  @media (max-width: 640px) { .feedback-preview-action { margin: 0 0 .75rem; } }
+}
+.feedback-page .feedback-form > .feedback-error { position: sticky; top: 76px; z-index: 2; background: var(--card-2); box-shadow: 0 4px 16px rgb(0 0 0 / 8%); }
