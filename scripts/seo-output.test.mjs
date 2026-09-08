@@ -48,6 +48,9 @@ test('sitemap and AI index cover exactly the canonical public pages', () => {
 });
 
 test('all four guides and FAQ answers are present without JavaScript', () => {
+  const landing = document('/docs/');
+  assert.ok(landing.querySelector('.docs-article')?.textContent.length > 400, 'the docs entry opens a readable guide');
+  assert.equal(landing.querySelector('.docs-platform[aria-current="page"]')?.textContent, 'Windows');
   for (const guide of ['windows', 'macos', 'macos-voice', 'linux']) {
     const doc = document(`/docs/${guide}/`);
     assert.ok(doc.querySelector('.docs-article').textContent.length > 400, guide);

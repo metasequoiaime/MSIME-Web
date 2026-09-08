@@ -144,3 +144,19 @@
   @media (max-width: 640px) { .feedback-preview-action { margin: 0 0 .75rem; } }
 }
 .feedback-page .feedback-form > .feedback-error { position: sticky; top: 76px; z-index: 2; background: var(--card-2); box-shadow: 0 4px 16px rgb(0 0 0 / 8%); }
+
+.feedback-page {
+  .feedback-target-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; margin: 1rem 0; }
+  .feedback-option { padding: .75rem; border: 1px solid var(--hair-3); border-radius: 10px; cursor: pointer; min-height: 48px; align-items: center; }
+  .feedback-target-grid .feedback-option { margin: 0; }
+  .feedback-option > span { color: var(--text-body); margin: 0; overflow-wrap: anywhere; }
+  .feedback-option input { margin-top: 0; }
+  .feedback-option:has(input:checked) { border-color: var(--primary-color); background: var(--accent-soft); }
+  .feedback-option:has(input:focus-visible) { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+  .feedback-option:has(input:disabled) { cursor: default; opacity: .6; }
+  .feedback-optional { color: var(--text-muted); font-size: .8rem; font-weight: 400; }
+  .feedback-help-link { font-size: .85rem; padding: .75rem 1rem; border-radius: 10px; background: var(--accent-soft); }
+  .feedback-progress { margin: 1rem 0; font-size: .85rem; color: var(--text-muted); }
+  .feedback-progress progress { display: block; width: 100%; height: 6px; margin-top: .5rem; accent-color: var(--primary-color); }
+  @media (max-width: 400px) { .feedback-target-grid { grid-template-columns: minmax(0, 1fr); } }
+}

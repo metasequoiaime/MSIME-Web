@@ -47,7 +47,7 @@ export function FeedbackPage() {
   const [screenshots, setScreenshots] = useState<LocalScreenshot[]>([]);
   const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
   const previewBody = useRef<HTMLDivElement>(null);
-  const [screenshotsEnabled, setScreenshotsEnabled] = useState(false);
+  const [screenshotsEnabled, setScreenshotsEnabled] = useState<boolean | null>(null);
   const [readingImages, setReadingImages] = useState(false);
   const [imageError, setImageError] = useState("");
   const [catalog, setCatalog] = useState<{ target: string; templates: IssueTemplate[] }>({ target: "", templates: [] });
@@ -137,6 +137,7 @@ export function FeedbackPage() {
         });
         setStatus("请完成下方验证。");
       } catch (reason) {
+        if (active) setScreenshotsEnabled(previous => previous ?? false);
         if (active) setStatus(reason instanceof Error && reason.message !== "Unexpected end of JSON input" && !reason.message.startsWith("Unexpected token") ? reason.message : "提交服务暂不可用，请稍后刷新重试。");
       }
     }
@@ -244,6 +245,9 @@ export function FeedbackPage() {
     }
   }
 
+  const requiredFields = template?.fields.filter(field => field.required || field.options.some(option => option.required)) ?? [];
+  const completedFields = requiredFields.filter(field => template && !validateAnswers({ ...template, fields: [field] }, form.answers[field.id] === undefined ? {} : { [field.id]: form.answers[field.id] }, screenshots.filter(image => image.field === field.id).map(image => image.field))).length;
+  const titleComplete = form.title.trim().length >= 5 && form.title.trim() !== template?.title.trim();
   const previewIssue = template ? formatIssue(form, template, screenshots.map(item => ({ field: item.field, url: item.url }))) : undefined;
   const renderUpload = (field = "") => <div className="feedback-upload">
     <input id={`screenshots-${field || "general"}`} aria-label="选择截图" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden disabled={!screenshotsEnabled || busy || readingImages || screenshots.length >= 3} onChange={event => { const files = Array.from(event.target.files ?? []); event.target.value = ""; void addScreenshots(files, field); }} />
@@ -295,33 +299,40 @@ export function FeedbackPage() {
 
             <fieldset disabled={busy || readingImages}>
               <legend>1. 选择反馈对象</legend>
-              <label>你在哪遇到问题，或想改进什么？
-                <select name="target" required value={form.target} onChange={event => { saveDraft(); setForm({ ...form, target: feedbackSchema.shape.target.parse(event.target.value), templateId: "", templateRevision: "", answers: {} }); setError(""); }}>
-                  {Object.entries(targets).map(([key, target]) => <option key={key} value={key}>{target.label}</option>)}
-                </select>
-              </label>
-              <p className="feedback-hint">不确定时，选择你正在使用的输入法平台。</p>
+              <p id="feedback-target-hint" className="feedback-hint">先选你正在使用的平台。想反馈网站或文档，也可以在这里选择。</p>
+              <div className="feedback-target-grid" role="radiogroup" aria-label="反馈对象" aria-describedby="feedback-target-hint">
+                {Object.entries(targets).map(([key, target]) => <label className="feedback-consent feedback-option" key={key}>
+                  <input type="radio" name="target" value={key} checked={form.target === key} onChange={() => { saveDraft(); setForm({ ...form, target: feedbackSchema.shape.target.parse(key), templateId: "", templateRevision: "", answers: {} }); setScreenshots([]); setImageError(""); setError(""); }} />
+                  <span>{target.label}</span>
+                </label>)}
+              </div>
+              <p className="feedback-hint">不知道“公共引擎”或“公共 API”是什么？选你的输入法平台即可，我们会协助分类。</p>
+              <p className="feedback-help-link">遇到使用问题？先看看 <a href="/faq/" target="_blank" rel="noreferrer">常见问题 ↗</a>，或 <a href={`https://github.com/metasequoiaime/${targets[form.target].repo}/issues`} target="_blank" rel="noreferrer">搜索已有反馈 ↗</a>。</p>
               {templateLoading && <p className="feedback-hint" role="status">正在读取仓库模板…</p>}
               {templateError && <div className="feedback-error" role="alert"><p>{templateError}</p><button type="button" className="btn btn-ghost" onClick={() => { saveDraft(); setReload(value => value + 1); }}>重新加载模板</button><a href={`https://github.com/metasequoiaime/${targets[form.target].repo}/issues/new/choose`} target="_blank" rel="noreferrer">前往 GitHub 提交 ↗</a></div>}
               {template && !templateLoading && !templateError && <>
                 <fieldset className="feedback-choice-field feedback-template-picker">
-                  <legend>2. 选择反馈类型（Issue 模板）</legend>
+                  <legend>2. 你想反馈什么？</legend>
                   {catalog.templates.map(item => <label className="feedback-consent" key={item.id}>
                     <input type="radio" name="issue-template" value={item.id} checked={template.id === item.id} onChange={() => { saveDraft(); chooseTemplate(item); }} />
                     <span><strong>{item.name}</strong><small>{item.description}</small></span>
                   </label>)}
                 </fieldset>
+                <p className="feedback-hint">遇到出错、无法使用，选择问题反馈；想增加功能或改善体验，选择功能建议。</p>
                 <p className="feedback-hint">切换类型会保留当前页面中的草稿，刷新或关闭页面后不会保留。</p>
                 <h2 className="feedback-section-heading">3. 描述你的反馈</h2>
-                <p className="feedback-hint">带 * 的项目必须填写，其余可以跳过。按自己的话描述即可。</p>
-                <label>需求标题 <span className="feedback-required" aria-hidden="true">*</span><input name="title" value={form.title} minLength={5} maxLength={100} required placeholder="例如：希望能调整候选字的字号" onChange={event => setForm({ ...form, title: event.target.value })} /></label>
+                <p className="feedback-hint">标注“必填”或 * 的项目必须填写，其余可以跳过。按自己的话描述即可。</p>
+                <div className="feedback-progress"><span>必填内容已完成 {completedFields + Number(titleComplete)} / {requiredFields.length + 1} 项</span><progress aria-label="必填内容完成进度" value={completedFields + Number(titleComplete)} max={requiredFields.length + 1} /></div>
+                <label>用一句话概括 <span className="feedback-required" aria-hidden="true">*</span><input name="title" value={form.title} minLength={5} maxLength={100} required aria-describedby="feedback-title-hint" placeholder="例如：候选字显示为方框，或希望能调整字号" onChange={event => setForm({ ...form, title: event.target.value })} /></label>
+                <p id="feedback-title-hint" className="feedback-hint">写清楚哪里出了问题，或希望增加什么。5–100 个字，不用考虑技术术语。</p>
                 <FeedbackFields template={template} answers={form.answers} onChange={(id, value) => setForm(previous => ({ ...previous, answers: { ...previous.answers, [id]: value } }))} upload={renderUpload} />
               </>}
               <section className="feedback-screenshots">
                 <label htmlFor="screenshots-general">补充截图（可选）</label>
                 <p id="screenshot-hint" className="feedback-hint">支持 PNG、JPEG、WebP，最多 3 张，每张不超过 5 MiB。截图将随 Issue 公开，请先遮挡个人信息。</p>
                 {renderUpload()}
-                {!screenshotsEnabled && <p className="feedback-hint">截图上传暂不可用，仍可提交文字需求。</p>}
+                {screenshotsEnabled === null && <p className="feedback-hint" role="status">正在检查截图上传服务…</p>}
+                {screenshotsEnabled === false && <p className="feedback-hint">截图上传暂不可用，仍可提交文字需求。</p>}
                 {readingImages && <p role="status">正在读取截图…</p>}
                 {imageError && <p className="feedback-error" role="alert">{imageError}</p>}
                 <div className="feedback-image-grid">{screenshots.map((item, index) => <figure key={item.id}>
@@ -350,6 +361,8 @@ export function FeedbackPage() {
                 <div ref={previewBody} className="feedback-issue-body" dangerouslySetInnerHTML={{ __html: markdown.render(previewIssue.body) }} />
               </article> : <p className="feedback-hint">请先在“填写”中加载仓库模板。</p>}
             </div>
+            <h2 className="feedback-section-heading">4. 确认并提交</h2>
+            <p className="feedback-hint">可以在顶部“预览”检查内容。提交成功后会获得反馈链接，方便查看处理进展。</p>
             <fieldset disabled={busy || readingImages}>
               <label className="feedback-consent"><input name="consent" type="checkbox" required checked={consent} onChange={event => setConsent(event.target.checked)} /><span>我同意将以上文字、截图及自愿填写的联系方式公开发布到 GitHub，确认不包含密码、令牌或其他不愿公开的信息。</span></label>
             </fieldset>
