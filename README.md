@@ -66,3 +66,26 @@ Biome 只开了 linter，formatter 处于关闭状态——仓库既有代码尚
   <img src="https://api.star-history.com/svg?repos=metasequoiaime/MSIME-Web&type=Date" alt="Star History Chart" width="600">
 </a>
 <!-- star-history:end -->
+
+## 官网需求上报
+
+`/feedback/` 无需 GitHub 登录，按 Windows / Apple / Linux / 公共引擎 / 文档 / 官网分流到组织内对应仓库。前后端共用 `shared/feedback.ts` 的校验与 Issue 模板。提交内容公开；可选填 QQ 号码及昵称、微信、GitHub 用户名和 Email，填写的联系方式也会公开；防机器人验证使用 Turnstile。
+
+继续使用现有 Cloudflare Pages Git 集成，构建命令和 `dist` 输出目录不变。根目录 `functions/api/feedback.ts` 提供 `/api/feedback`，`public/_routes.json` 只让此接口进入 Functions。不要将 GitHub 凭据放入任何 `VITE_*` 环境变量或前端代码。
+
+在现有 Pages 项目的生产环境设置以下运行时变量，再通过正常 PR 发布：
+
+| 变量 | 用途 |
+| --- | --- |
+| `FEEDBACK_ORIGIN` | 允许提交的完整站点 origin，生产为 `https://msime.app`（无末尾斜杠） |
+| `TURNSTILE_SITE_KEY` | Managed Turnstile widget 的公开 site key，域名包含 `msime.app` |
+| `TURNSTILE_SECRET` | 对应 widget 的 secret，作为 Pages secret 保存 |
+| `GITHUB_ISSUES_TOKEN` | 专用 fine-grained token，作为 Pages secret 保存；仅授权 MSIME-Windows、MSIME-Apple、MSIME-Linux、MSIME-Engine、MSIME-Docs、MSIME-Web 的 Issues: write 权限 |
+
+凭据所属账号需要有对应仓库权限，组织需批准 token（如适用），六个仓库需开启 Issues。Issue 作者是该凭据对应账号。缺少配置时接口返回 503，表单禁用提交；预览域名与 origin 不符时返回 403。生产凭据不要配置到预览环境。
+
+`pnpm dev` / `pnpm preview` 只提供静态站，不执行 Pages Functions。联调需在安装 Wrangler 后运行 `pnpm build` 和 `wrangler pages dev dist`，在被忽略的 `.dev.vars` 中设置本地专用配置（origin 与本地地址完全一致）。使用测试凭据与测试目标环境；不要通过关闭服务端验证来调试。`pnpm test` 包含模拟 GitHub / Turnstile 的路由、模板、校验和失败场景测试，不会发布真实 Issue。
+
+上线验收：确认生产域名的验证组件可用；经维护者同意提交一条明确标注的测试需求，核对目标仓库和格式；重放同一个验证 token 应被拒绝。网络中断或 GitHub 5xx 不会自动重试写操作，页面提示先查看已有 Issue，防止重复创建。
+
+实现依据：[Pages Functions 路由](https://developers.cloudflare.com/pages/functions/routing/)、[Turnstile 服务端校验](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/)、[GitHub 创建 Issue API](https://docs.github.com/en/rest/issues/issues#create-an-issue)。
