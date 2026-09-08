@@ -1,7 +1,7 @@
-/** Legacy macOS beta links open the existing download page in one step. */
-export function onRequest({ request, next }: { request: Request; next: () => Promise<Response> }) {
+/** Retired beta pages redirect to the matching download option. */
+export function onRequest({ request }: { request: Request }) {
   const url = new URL(request.url);
-  if (url.searchParams.get("platform") !== "macos") return next();
+  url.searchParams.set("platform", url.searchParams.get("platform") === "macos" ? "macos" : "ios");
   url.pathname = `${url.pathname.startsWith("/zh-TW/") ? "/zh-TW" : ""}/download/`;
   return Response.redirect(url.toString(), 301);
 }

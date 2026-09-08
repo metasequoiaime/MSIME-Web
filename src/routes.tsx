@@ -2,7 +2,7 @@ import { isTraditional } from "../shared/locales";
 import { loadTraditional } from "../shared/translate";
 import { LocaleLink as Link } from "./locale-link";
 import { useLocale } from "./use-locale";
-import { createMemoryHistory, createRootRoute, createRoute, createRouter, lazyRouteComponent, Outlet } from "@tanstack/react-router";
+import { redirect, createMemoryHistory, createRootRoute, createRoute, createRouter, lazyRouteComponent, Outlet } from "@tanstack/react-router";
 import { usePageMeta } from "./page-meta";
 import { docsSearchSchema } from "./docs-search";
 import { SiteShell } from "./site-shell";
@@ -83,10 +83,18 @@ const downloadRoute = createRoute({
   component: lazyRouteComponent(() => import("./page-download"), "DownloadPage"),
 });
 
+function redirectBeta({ location }: { location: { pathname: string; search: Record<string, unknown> } }) {
+  throw redirect({
+    to: isTraditional(location.pathname) ? "/zh-TW/download/" : "/download/",
+    search: { ...location.search, platform: location.search.platform === "macos" ? "macos" : "ios" },
+    replace: true,
+  });
+}
+
 const betaRoute = createRoute({
   getParentRoute: () => shellRoute,
   path: "/beta",
-  component: lazyRouteComponent(() => import("./page-beta"), "BetaPage"),
+  beforeLoad: redirectBeta,
 });
 
 const aboutRoute = createRoute({
@@ -126,7 +134,7 @@ const resumeRoute = createRoute({
 });
 
 const traditionalRoutes = [
-  createRoute({ getParentRoute: () => shellRoute, path: "/zh-TW/beta", component: lazyRouteComponent(() => import("./page-beta"), "BetaPage") }),
+  createRoute({ getParentRoute: () => shellRoute, path: "/zh-TW/beta", beforeLoad: redirectBeta }),
   createRoute({ getParentRoute: () => shellRoute, path: "/zh-TW/", component: lazyRouteComponent(() => import("./page-home"), "HomePage") }),
   createRoute({ getParentRoute: () => shellRoute, path: "/zh-TW/features", component: lazyRouteComponent(() => import("./page-features"), "FeaturesPage") }),
   createRoute({ getParentRoute: () => shellRoute, path: "/zh-TW/download", component: lazyRouteComponent(() => import("./page-download"), "DownloadPage") }),

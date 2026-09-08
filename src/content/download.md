@@ -53,7 +53,17 @@ macOS 版内置 Sparkle 自动更新，安装后可从输入法菜单中的「�
 
 需要 iOS 15 或更高版本。iOS 版已开放公测，目前通过 TestFlight 提供安装。
 
-- [加入 TestFlight 公测](/beta/?platform=ios) — 用 iPhone 打开链接即可安装，不需要邮箱，也不需要开发者账号
+- [加入 TestFlight 公测](https://testflight.apple.com/join/bUzPvyqt) — 用 iPhone 打开链接即可安装，不需要邮箱，也不需要开发者账号
+
+### 安装与启用
+
+1. 在 iPhone 上安装 [TestFlight](https://apps.apple.com/app/testflight/id899247664)。
+2. 打开上方公测链接，在 TestFlight 中点“接受”，再点“安装”。
+3. 安装完成后，到“设置 → 通用 → 键盘 → 键盘 → 添加新键盘”中启用“水杉输入法”。
+
+TestFlight 的每个构建有效期为 90 天，到期前在 TestFlight 中更新即可，无需重新加入。
+
+若链接提示“不接受新测试员”，请稍后再试，或到 [Telegram 群](https://t.me/msimegroup)确认当前开放状态。
 
 是否上架 App Store 尚未决定：iOS 词库中包含 GPL-3.0 的第三方数据，与 App Store 条款存在冲突，需要先解决授权问题。原委见 [ios-distribution.md](https://github.com/metasequoiaime/MSIME-Apple/blob/main/docs/ios-distribution.md)。
 

@@ -221,18 +221,19 @@ test('FAQ platform controls and original screenshots are available in both langu
   }
 });
 
-test('iOS public beta links explicitly select iOS without an intermediate platform selector', () => {
-  for (const path of ['/download/', '/zh-TW/download/', '/beta/', '/zh-TW/beta/']) {
+test('iOS installs directly from the unified download page', () => {
+  for (const path of ['/download/', '/zh-TW/download/']) {
     const doc = document(path);
-    const links = [...doc.querySelectorAll('a')].filter(link => /iOS|TestFlight/.test(link.textContent) && /\/beta\//.test(link.getAttribute('href') ?? ''));
-    assert.ok(links.length > 0, path);
-    for (const link of links) assert.equal(new URL(link.getAttribute('href'), SITE_ORIGIN).searchParams.get('platform'), 'ios', path);
-    if (path.includes('/beta/')) assert.equal(doc.querySelector('.beta-platforms'), null);
+    assert.ok(doc.querySelector('main a[href="https://testflight.apple.com/join/bUzPvyqt"]'));
+    assert.ok(doc.querySelector('main').textContent.includes('TestFlight'));
+    assert.ok(doc.querySelector('main').textContent.includes('90'));
   }
+  for (const [path] of publicPages) assert.equal(document(path).querySelector('a[href*="/beta/"]'), null, path);
+  assert.doesNotMatch(read('sitemap.xml'), /\/beta\//);
+  assert.doesNotMatch(read('llms.txt'), /\/beta\.md/);
 });
 
-
-test('old macOS beta links go directly to the localized download page', async () => {
+test('all old beta links redirect to the localized download option', async () => {
   const { onRequest: beta } = await import('../functions/beta.ts');
   const { onRequest: traditionalBeta } = await import('../functions/zh-TW/beta.ts');
   const routes = JSON.parse(read('_routes.json')).include;
@@ -240,14 +241,15 @@ test('old macOS beta links go directly to the localized download page', async ()
     for (const slash of ['', '/']) {
       const path = `${prefix}/beta${slash}`;
       assert.ok(routes.includes(path));
-      const response = await (prefix ? traditionalBeta : beta)({ request: new Request(`${SITE_ORIGIN}${path}?platform=macos&utm_source=shared`), next: async () => new Response('unexpected') });
-      assert.equal(response.status, 301);
-      assert.equal(response.headers.get('Location'), `${SITE_ORIGIN}${prefix}/download/?platform=macos&utm_source=shared`);
+      for (const platform of ['macos', 'ios', '', 'unknown']) {
+        const request = new Request(`${SITE_ORIGIN}${path}?utm_source=shared${platform ? `&platform=${platform}` : ''}`);
+        const response = await (prefix ? traditionalBeta : beta)({ request });
+        assert.equal(response.status, 301);
+        const destination = new URL(response.headers.get('Location'));
+        assert.equal(destination.pathname, `${prefix}/download/`);
+        assert.equal(destination.searchParams.get('platform'), platform === 'macos' ? 'macos' : 'ios');
+        assert.equal(destination.searchParams.get('utm_source'), 'shared');
+      }
     }
-  }
-  for (const query of ['', '?platform=ios', '?platform=unknown']) {
-    const response = await beta({ request: new Request(`${SITE_ORIGIN}/beta/${query}`), next: async () => new Response('iOS instructions') });
-    assert.equal(response.status, 200);
-    assert.equal(await response.text(), 'iOS instructions');
   }
 });
