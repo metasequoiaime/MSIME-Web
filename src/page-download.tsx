@@ -243,10 +243,10 @@ function DownloadPanel({ platforms }: { platforms: Partial<Record<Platform, Plat
       </nav>
 
       <div className="download-panel-action">
-        {/* iOS 这一栏没有可下的文件，按钮通向站内的内测页；用路由的 Link，点了不整页重载 */}
+        {/* iOS 这一栏没有可下的文件，按钮通向站内的公测页；用路由的 Link，点了不整页重载 */}
         {platform === "ios" ? (
           <Link className="btn btn-lg btn-primary" to={BETA_PAGE}>
-            {t("查看 iOS 内测")}
+            {t("查看 iOS 公测")}
           </Link>
         ) : (
           <a className="btn btn-lg btn-primary" href={primary?.url ?? RELEASE_PAGES[platform]} rel="noreferrer">

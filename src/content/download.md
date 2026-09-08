@@ -1,6 +1,6 @@
 # 下载水杉输入法
 
-水杉输入法目前提供 Windows、macOS 和 Linux 三个平台的构建，iOS 版还在 TestFlight 内测。各平台独立发布，版本号不通用；安装前请查看对应版本的发布说明。
+水杉输入法目前提供 Windows、macOS 和 Linux 三个平台的构建，macOS 和 iOS 版已开放公测，iOS 通过 TestFlight 安装。各平台独立发布，版本号不通用；安装前请查看对应版本的发布说明。
 
 ## Windows
 
@@ -39,7 +39,7 @@ gh attestation verify .\{{installerName}} --repo metasequoiaime/MSIME-Windows
 
 ## macOS
 
-适用于 macOS 12 及以上。当前最新版本：**v{{macosVersion}}**，{{macosPackages}}。
+macOS 版已开放公测，适用于 macOS 12 及以上。当前最新版本：**v{{macosVersion}}**，{{macosPackages}}。
 
 - [GitHub Release 下载]({{macosReleaseUrl}}) — 官方发布位置，随包附带校验值
 
@@ -51,9 +51,9 @@ macOS 版内置 Sparkle 自动更新，安装后可从输入法菜单中的「�
 
 ## iOS
 
-需要 iOS 15 或更高版本。iOS 的自定义键盘只能通过 App Store 或 TestFlight 安装，没有其他分发渠道，因此目前只提供 TestFlight 内测。
+需要 iOS 15 或更高版本。iOS 版已开放公测，目前通过 TestFlight 提供安装。
 
-- [加入 TestFlight 内测](/beta/) — 用 iPhone 打开链接即可安装，不需要邮箱，也不需要开发者账号
+- [加入 TestFlight 公测](/beta/) — 用 iPhone 打开链接即可安装，不需要邮箱，也不需要开发者账号
 
 是否上架 App Store 尚未决定：iOS 词库中包含 GPL-3.0 的第三方数据，与 App Store 条款存在冲突，需要先解决授权问题。原委见 [ios-distribution.md](https://github.com/metasequoiaime/MSIME-Apple/blob/main/docs/ios-distribution.md)。
 
