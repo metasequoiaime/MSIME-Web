@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { test } from 'node:test';
-import { seoPages } from '../shared/site-seo.ts';
+import { docsSearchSchema } from '../src/docs-search.ts';
+import { communitySchema } from '../src/community-data.ts';
+import { seoPages, pageSeo } from '../shared/site-seo.ts';
 
 const root = new URL('../', import.meta.url);
 const read = path => readFileSync(new URL(path, root), 'utf8');
@@ -37,11 +39,11 @@ test('robots exposes the sitemap and permits reading noindex directives', () => 
   assert.match(robots, /^Disallow: \/api\/$/m);
 });
 
-test('every page carries a canonical and sharing metadata that match its own address', () => {
+test('every entry carries its registered canonical and matching sharing metadata', () => {
   for (const path of ['/', ...pageDirectories()]) {
     const html = read(path === '/' ? 'index.html' : `${path.slice(1)}index.html`);
     const canonical = html.match(/<link rel="canonical" href="([^"]+)"/)?.[1];
-    assert.equal(canonical, `${SITE}${path}`, `${path} canonical`);
+    assert.equal(canonical, pageSeo(path).canonical, `${path} canonical`);
     assert.match(html, /<meta property="og:image" content="[^"]+og-cover\.png"/, `${path} 缺 og:image`);
     assert.match(html, /<meta name="twitter:card" content="summary_large_image"/, `${path} 缺 twitter card`);
 
@@ -76,4 +78,23 @@ test('the response headers lock the page down and keep hashed assets cacheable',
   const externals = [...csp.matchAll(/https:\/\/[^\s;]+/g)].map(m => m[0]);
   assert.deepEqual(externals, ['https://challenges.cloudflare.com', 'https://avatars.githubusercontent.com', 'https://challenges.cloudflare.com']);
   assert.match(headers, /\/assets\/\*\n\s+Cache-Control: public, max-age=31536000, immutable/);
+});
+
+
+test('lightweight guide query validation accepts only known scalar values', () => {
+  for (const platform of ['windows', 'macos', 'macos-voice', 'linux']) assert.deepEqual(docsSearchSchema({ platform }), { platform });
+  for (const platform of ['__proto__', 'constructor', 'unknown', ['windows'], {}, null, 1]) assert.deepEqual(docsSearchSchema({ platform }), {});
+  assert.deepEqual(docsSearchSchema({ unrelated: 'ignored' }), {});
+});
+
+test('deferred community validation still rejects unsafe URLs and invalid metrics', () => {
+  const data = JSON.parse(read('public/community.json'));
+  assert.ok(communitySchema.safeParse(data).success);
+  for (const url of ['javascript:alert(1)', 'https://github.com.evil.example/user', 'https://evil.example/']) {
+    const invalid = structuredClone(data); invalid.contributors[0].url = url;
+    assert.equal(communitySchema.safeParse(invalid).success, false);
+  }
+  const invalid = structuredClone(data); invalid.contributors[0].avatarUrl = 'https://evil.example/avatar.png';
+  assert.equal(communitySchema.safeParse(invalid).success, false);
+  assert.equal(communitySchema.safeParse({ ...data, totalStars: -1 }).success, false);
 });

@@ -69,16 +69,17 @@ for (const path of pages) {
       const value = element.getAttribute(attribute);
       if (value && !value.startsWith('data:')) element.setAttribute(attribute, new URL(value, metadata.canonical).href);
     });
-    const text = `# ${metadata.title}\n\n> ${metadata.description}\n\n来源：${metadata.canonical}\n${guide || path === '/faq/' ? `文档版本：MSIME-Docs ${docsCommit}\n` : ''}\n${markdown.turndown(article.innerHTML).replace(/^# [^\n]+\n/, '')}\n`;
+    const text = `# ${metadata.title}\n\n> ${metadata.description}\n\n来源：${metadata.canonical}\n${path.startsWith('/docs/') || path === '/faq/' ? `文档版本：MSIME-Docs ${docsCommit}\n` : ''}\n${markdown.turndown(article.innerHTML).replace(/^# [^\n]+\n/, '')}\n`;
     write(`${dist}${markdownPath(path)}`, text);
     contents.push({ path, ...metadata, text });
   }
   write(`${dist}/${file}`, document.toString());
   console.log(`Static HTML + metadata: ${path}`);
 }
-write(`${dist}/sitemap.xml`, `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${contents.map(page => `  <url><loc>${escapeXml(page.canonical)}</loc></url>`).join('\n')}\n</urlset>\n`);
-write(`${dist}/llms.txt`, `# 水杉输入法 MSIME\n\n> 开源中文输入法。本站提供各平台下载、功能介绍、官方使用指南与常见问题。\n\n文档内容由固定版本的 MSIME-Docs 生成。版本、下载和签名状态请以下载页及对应发布页为准。\n\n## 页面与文档\n\n${contents.map(page => `- [${page.title}](${SITE_ORIGIN}${markdownPath(page.path)}): ${page.description}`).join('\n')}\n\n## 完整内容\n\n- [完整 Markdown](${SITE_ORIGIN}/llms-full.txt): 上述页面的合并正文\n- [站点地图](${SITE_ORIGIN}/sitemap.xml): 规范 HTML 地址\n- [GitHub 组织](https://github.com/metasequoiaime): 源码、发布与 Issue\n`);
-write(`${dist}/llms-full.txt`, `# 水杉输入法 MSIME — 网站正文\n\n文档版本：MSIME-Docs ${docsCommit}\n\n${contents.map(page => page.text).join('\n\n---\n\n')}`);
+const canonicalContents = contents.filter(page => page.path === page.canonicalPath);
+write(`${dist}/sitemap.xml`, `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${canonicalContents.map(page => `  <url><loc>${escapeXml(page.canonical)}</loc></url>`).join('\n')}\n</urlset>\n`);
+write(`${dist}/llms.txt`, `# 水杉输入法 MSIME\n\n> 开源中文输入法。本站提供各平台下载、功能介绍、官方使用指南与常见问题。\n\n文档内容由固定版本的 MSIME-Docs 生成。版本、下载和签名状态请以下载页及对应发布页为准。\n\n## 页面与文档\n\n${canonicalContents.map(page => `- [${page.title}](${SITE_ORIGIN}${markdownPath(page.path)}): ${page.description}`).join('\n')}\n\n## 完整内容\n\n- [完整 Markdown](${SITE_ORIGIN}/llms-full.txt): 上述页面的合并正文\n- [站点地图](${SITE_ORIGIN}/sitemap.xml): 规范 HTML 地址\n- [GitHub 组织](https://github.com/metasequoiaime): 源码、发布与 Issue\n`);
+write(`${dist}/llms-full.txt`, `# 水杉输入法 MSIME — 网站正文\n\n文档版本：MSIME-Docs ${docsCommit}\n\n${canonicalContents.map(page => page.text).join('\n\n---\n\n')}`);
 let headers = readFileSync(`${dist}/_headers`, 'utf8');
 for (const page of contents) headers += `\n${markdownPath(page.path)}\n  Content-Type: text/markdown; charset=utf-8\n  Link: <${page.canonical}>; rel="canonical"\n  X-Robots-Tag: noindex\n`;
 headers += '\n/llms.txt\n  Content-Type: text/plain; charset=utf-8\n\n/llms-full.txt\n  Content-Type: text/plain; charset=utf-8\n';
