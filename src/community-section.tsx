@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { z } from "zod";
 import { StarHistoryChart } from "./star-history-chart";
 import { useReveal } from "./use-reveal";
 
@@ -15,33 +14,10 @@ import { useReveal } from "./use-reveal";
  *
  * 这份快照由自动化任务生成，出现预期之外的主机意味着链路出了问题，整块作废、这一节不显示，比照单渲染安全。
  */
-const githubUrl = (prefix: string) =>
-  z
-    .string()
-    .url()
-    .refine((value) => value.startsWith(prefix), { message: `地址必须以 ${prefix} 开头` });
-
-const communitySchema = z.object({
-  generatedAt: z.string(),
-  totalStars: z.number().int().nonnegative(),
-  repoCount: z.number().int().nonnegative(),
-  starHistory: z.array(z.object({ month: z.string(), stars: z.number().int().nonnegative() })).min(1),
-  contributors: z
-    .array(
-      z.object({
-        login: z.string(),
-        avatarUrl: githubUrl("https://avatars.githubusercontent.com/"),
-        url: githubUrl("https://github.com/"),
-        contributions: z.number().int().nonnegative(),
-        repos: z.number().int().nonnegative(),
-      })
-    )
-    .min(1),
-});
-
 const fetchCommunity = async () => {
   const response = await fetch("/community.json");
   if (!response.ok) throw new Error(`Community snapshot returned ${response.status}`);
+  const { communitySchema } = await import("./community-data");
   return communitySchema.parse(await response.json());
 };
 

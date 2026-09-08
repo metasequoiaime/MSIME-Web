@@ -2,17 +2,18 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { test } from 'node:test';
 import { parseHTML } from 'linkedom';
-import { seoPages, markdownPath, SITE_ORIGIN } from '../shared/site-seo.ts';
+import { seoPages, pageSeo, markdownPath, SITE_ORIGIN } from '../shared/site-seo.ts';
 import { onRequest } from '../functions/docs.ts';
 
 const read = path => readFileSync(`dist/${path}`, 'utf8');
-const indexed = Object.entries(seoPages).filter(([, page]) => !page.noindex);
+const publicPages = Object.entries(seoPages).filter(([, page]) => !page.noindex);
+const indexed = publicPages.filter(([path]) => pageSeo(path).canonicalPath === path);
 const file = path => path === '/' ? 'index.html' : `${path.slice(1)}index.html`;
 const document = path => parseHTML(read(file(path))).document;
 
 test('every indexable route has visible static content, matching metadata and discoverable Markdown', () => {
   const titles = new Set();
-  for (const [path, page] of indexed) {
+  for (const [path, page] of publicPages) {
     const doc = document(path);
     assert.equal(doc.querySelectorAll('h1').length, 1, `${path}: one primary heading`);
     assert.ok(doc.querySelector('#root').textContent.trim().length > 150, `${path}: real static content`);
@@ -22,8 +23,8 @@ test('every indexable route has visible static content, matching metadata and di
     assert.equal(doc.querySelector('meta[name=description]').content, page.description);
     assert.equal(doc.querySelector('meta[property="og:title"]').content, page.title);
     assert.equal(doc.querySelector('meta[name="twitter:description"]').content, page.description);
-    assert.equal(doc.querySelector('link[rel=canonical]').href, `${SITE_ORIGIN}${path}`);
-    assert.equal(doc.querySelector('meta[property="og:url"]').content, `${SITE_ORIGIN}${path}`);
+    assert.equal(doc.querySelector('link[rel=canonical]').href, pageSeo(path).canonical);
+    assert.equal(doc.querySelector('meta[property="og:url"]').content, pageSeo(path).canonical);
     assert.doesNotMatch(doc.querySelector('meta[name=robots]').content, /noindex/);
     assert.equal(doc.querySelector('link[type="text/markdown"]').href, `${SITE_ORIGIN}${markdownPath(path)}`);
     assert.ok(read(markdownPath(path).slice(1)).includes(`${SITE_ORIGIN}${path}`));
@@ -49,6 +50,8 @@ test('sitemap and AI index cover exactly the canonical public pages', () => {
 
 test('all four guides and FAQ answers are present without JavaScript', () => {
   const landing = document('/docs/');
+  assert.ok(read('docs.md').includes('文档版本：MSIME-Docs'));
+  assert.equal(landing.querySelector('link[rel=canonical]').href, `${SITE_ORIGIN}/docs/windows/`);
   assert.ok(landing.querySelector('.docs-article')?.textContent.length > 400, 'the docs entry opens a readable guide');
   assert.equal(landing.querySelector('.docs-platform[aria-current="page"]')?.textContent, 'Windows');
   for (const guide of ['windows', 'macos', 'macos-voice', 'linux']) {
@@ -73,7 +76,7 @@ test('noindex pages and Markdown duplicates do not pollute canonical indexing', 
   assert.equal(notFound.querySelector('link[rel=canonical]'), null);
   assert.match(document('/resume/').querySelector('meta[name=robots]').content, /noindex/);
   assert.doesNotMatch(read('robots.txt'), /Disallow: \/resume/);
-  for (const [path] of indexed) assert.ok(read('_headers').includes(`${markdownPath(path)}\n  Content-Type: text/markdown; charset=utf-8\n  Link: <${SITE_ORIGIN}${path}>; rel="canonical"\n  X-Robots-Tag: noindex`));
+  for (const [path] of publicPages) assert.ok(read('_headers').includes(`${markdownPath(path)}\n  Content-Type: text/markdown; charset=utf-8\n  Link: <${pageSeo(path).canonical}>; rel="canonical"\n  X-Robots-Tag: noindex`));
   assert.ok(Math.max(...read('_headers').split('\n').map(line => line.length)) < 2000, 'Pages header line limit');
 });
 
@@ -90,4 +93,29 @@ test('legacy guide redirects preserve queries without accepting unknown or exter
   const mirror = await onRequest({ request: new Request('https://metasequoiaime.pages.dev/docs/?platform=linux'), next });
   assert.equal(mirror.status, 301);
   assert.equal(mirror.headers.get('Location'), 'https://msime.app/docs/?platform=linux');
+});
+
+
+test('duplicate guide bodies share a canonical and AI indexes include them only once', () => {
+  const bodies = new Map();
+  for (const [path] of publicPages) {
+    const doc = document(path);
+    const article = doc.querySelector('.docs-article');
+    if (!article) continue;
+    const body = article.textContent.trim();
+    const canonical = doc.querySelector('link[rel=canonical]').href;
+    if (bodies.has(body)) assert.equal(canonical, bodies.get(body), `${path}: duplicate content has a different canonical`);
+    bodies.set(body, canonical);
+  }
+  assert.doesNotMatch(read('sitemap.xml'), /<loc>https:\/\/msime\.app\/docs\/<\/loc>/);
+  assert.ok(!read('llms.txt').includes('(https://msime.app/docs.md)'));
+  const windows = document('/docs/windows/').querySelector('.docs-article h2').textContent;
+  assert.equal(read('llms-full.txt').split(`## ${windows}\n`).length - 1, 1);
+  const schemas = [...document('/').querySelectorAll('script[type="application/ld+json"]')].flatMap(el => JSON.parse(el.textContent)['@graph'] ?? []);
+  const app = schemas.find(item => item['@type'] === 'SoftwareApplication');
+  assert.equal(app.offers.price, 0);
+  assert.equal(app.offers.url, `${SITE_ORIGIN}/price/`);
+  assert.ok(document('/price/').querySelector('#root').textContent.includes('可免费使用'));
+  assert.equal(app.aggregateRating, undefined);
+  assert.equal(app.review, undefined);
 });

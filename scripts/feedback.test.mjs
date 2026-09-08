@@ -212,3 +212,20 @@ test('generic templates support defaults, optional fields, code fences and requi
   assert.throws(()=>templateFor('windows','name: bad\nbody: []'));
   assert.throws(()=>templateFor('windows',sources.windows.replace('type: textarea','type: unknown')));
 });
+
+
+test('feedback responses reject HTML and malformed JSON without exposing parser errors', async () => {
+  const { readFeedbackResponse, FeedbackResponseError } = await import('../src/feedback-response.ts');
+  const message = '模板服务暂不可用，请重新加载。';
+  for (const [body, type, status] of [
+    ['<!DOCTYPE html><html>Preview</html>', 'text/html', 200],
+    ['<html>Unavailable</html>', 'text/html', 503],
+    ['{', 'application/json', 200],
+    ['null', 'application/json', 200],
+    ['[]', 'application/json', 200],
+  ]) {
+    await assert.rejects(readFeedbackResponse(new Response(body, { status, headers: { 'content-type': type } }), message), error => error instanceof FeedbackResponseError && error.message === message);
+  }
+  const response = new Response(JSON.stringify({ error: '稍后重试' }), { status: 503, headers: { 'content-type': 'application/json; charset=utf-8' } });
+  assert.deepEqual(await readFeedbackResponse(response, message), { error: '稍后重试' });
+});

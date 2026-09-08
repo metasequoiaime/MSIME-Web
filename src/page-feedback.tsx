@@ -9,6 +9,7 @@ import { contactFields, feedbackSchema, formatIssue, targets } from "../shared/f
 import type { Feedback } from "../shared/feedback";
 import { usePageMeta } from "./page-meta";
 import { markdown } from "./markdown";
+import { FeedbackResponseError, readFeedbackResponse } from "./feedback-response";
 import "./feedback.scss";
 
 type Turnstile = {
@@ -94,7 +95,7 @@ export function FeedbackPage() {
     async function load() {
       try {
         const response = await fetch(`/api/feedback-templates?target=${form.target}`, { signal: AbortSignal.any([controller.signal, AbortSignal.timeout(25_000)]) });
-        const data = await response.json();
+        const data = await readFeedbackResponse(response, "模板服务暂不可用，请重新加载，或前往 GitHub 提交。");
         if (!response.ok) throw new Error(data.error || "无法读取仓库模板。");
         const templates = issueTemplateSchema.array().min(1).parse(data.templates);
         if (!active) return;
@@ -122,7 +123,7 @@ export function FeedbackPage() {
     async function setup() {
       try {
         const response = await fetch("/api/feedback", { signal: AbortSignal.any([controller.signal, AbortSignal.timeout(10_000)]) });
-        const config = await response.json();
+        const config = await readFeedbackResponse(response, "提交服务暂不可用，请稍后刷新重试。");
         if (!response.ok || typeof config.siteKey !== "string") throw new Error(config.error || "需求上报暂未开放，请稍后再试。");
         if (active) setScreenshotsEnabled(config.screenshotsEnabled === true);
         const api = await loadTurnstile();
@@ -212,7 +213,7 @@ export function FeedbackPage() {
       const response = await fetch("/api/feedback", {
         method: "POST", body, signal: AbortSignal.timeout(60_000),
       });
-      const data = await response.json();
+      const data = await readFeedbackResponse(response, "无法确认提交结果，请先查看最新 Issue。");
       if (!response.ok) {
         if (data.templateChanged) {
           saveDraft();
@@ -228,13 +229,13 @@ export function FeedbackPage() {
         throw new Error(data.error || "提交失败，请稍后再试。");
       }
       const expectedPrefix = `https://github.com/metasequoiaime/${targets[form.target].repo}/issues/`;
-      if (typeof data.url !== "string" || !data.url.startsWith(expectedPrefix) || !/^\d+$/.test(data.url.slice(expectedPrefix.length))) throw new Error("无法确认 Issue 地址，请查看目标仓库。");
+      if (typeof data.url !== "string" || !data.url.startsWith(expectedPrefix) || !/^\d+$/.test(data.url.slice(expectedPrefix.length))) throw new FeedbackResponseError("无法确认 Issue 地址，请查看目标仓库。");
       setIssueUrl(data.url);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "提交失败，请稍后再试。");
       // 网络中断时无法判断 GitHub 是否已创建；保留表单并提供查重入口。
-      if (reason instanceof TypeError || (reason instanceof DOMException && ["TimeoutError", "AbortError"].includes(reason.name))) {
-        setError("网络中断，无法确认提交结果。请先查看最新 Issue，确认未创建后再提交。");
+      if (reason instanceof FeedbackResponseError || reason instanceof TypeError || (reason instanceof DOMException && ["TimeoutError", "AbortError"].includes(reason.name))) {
+        setError("未收到有效的提交结果。请先查看最新 Issue，确认未创建后再提交。");
         setUncertainUrl(`https://github.com/metasequoiaime/${targets[form.target].repo}/issues`);
       }
     } finally {
