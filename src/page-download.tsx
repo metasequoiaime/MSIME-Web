@@ -50,10 +50,10 @@ const securityNote = (manifest: Partial<UpdateManifest>): string => {
     lines.push("Windows 安装包带有数字签名。安装前请在文件属性的「数字签名」标签页确认签名；签名缺失，请勿安装。");
   } else if (manifest.signed === false) {
     lines.push(
-      "**当前 Windows 构建未经代码签名**（文件名带 `unsigned`）。SmartScreen 会拦截，需要手动放行，且输入法的 uiAccess 会失效——候选窗无法浮在以管理员身份运行的程序之上。"
+      "**当前 Windows 构建未经代码签名**（文件名带 `unsigned`）。Windows 可能显示安全警告；请先核对发布来源和校验值。此类构建无法使用 uiAccess，可能影响管理员权限程序中的候选窗显示。"
     );
     lines.push("");
-    lines.push("在签名恢复之前，请改用 SHA256 校验下载的完整性：");
+    lines.push("可用以下 SHA256 校验下载文件是否与发布文件一致；校验值不能替代代码签名：");
   } else {
     // The manifest could not be read, or predates the field. Saying "unsigned" here would be a claim about a release the page failed to look up -- and the sentence about checking SHA256 instead has nothing to follow it, because the digest comes from the same manifest.
     lines.push("无法读取发布信息，请到 Releases 页面确认该版本是否带有数字签名，并核对页面上给出的 SHA256。");
@@ -68,7 +68,7 @@ const securityNote = (manifest: Partial<UpdateManifest>): string => {
     lines.push("");
     lines.push(`应得到：\`${manifest.installerSha256}\``);
     lines.push("");
-    lines.push("这个值由 GitHub 对已存储的文件计算，不是发布说明里手写的，所以走网盘等镜像下载时同样可以用它核对。");
+    lines.push("请将计算结果与这里的官方校验值逐字核对。从备用镜像下载时也应核对。");
   }
 
   return lines.join("\n");
@@ -84,9 +84,9 @@ const PLATFORM_SIGNING: Record<"macos" | "linux", Record<"signed" | "unsigned" |
     // 文件名去掉 `unsigned` 只说明它没被标成未签名，不代表过了 Apple 公证 —— 公证与否决定首次打开会不会被 Gatekeeper 拦，
     // 这是文件名承载不了的信息。写「不会被拦截」是拿一个约定去担保另一件事，用户真被拦了就是页面在撒谎。
     signed:
-      "当前构建已签名，文件名中不再带 `unsigned`。是否已通过 Apple 公证请以发布说明为准：若首次打开被系统拦截，可在「系统设置 → 隐私与安全性」中放行。每个版本仍附带 `.sha256` 校验文件，可用 `shasum -a 256` 核对下载完整性。",
+      "发布清单将当前构建标记为已签名；Apple 公证状态请以发布说明为准。首次打开如遇系统提示，请先核对来源、校验值和该版本的安装说明。每个版本仍附带 `.sha256` 校验文件，可用 `shasum -a 256` 核对下载完整性。",
     unsigned:
-      "当前构建**未经 Apple 公证**，文件名中带 `unsigned`。首次打开时系统会拦截，需要在「系统设置 → 隐私与安全性」中手动放行。每个版本都附带 `.sha256` 校验文件，可用 `shasum -a 256` 核对下载完整性。",
+      "当前构建标记为**未签名**。签名与 Apple 公证是不同的验证步骤，公证状态请以发布说明为准。首次打开可能出现系统警告，请先核对来源与安装说明。每个版本都附带 `.sha256` 校验文件，可用 `shasum -a 256` 核对下载完整性。",
     unknown:
       "公证状态请以发布页说明为准。每个版本都附带 `.sha256` 校验文件，可用 `shasum -a 256` 核对下载完整性。",
   },
@@ -163,7 +163,7 @@ const joinCn = (items: string[]) =>
 const COUNT_CN = ["", "一", "两", "三", "四", "五", "六", "七", "八"];
 
 export const describePackages = (downloads: PlatformRelease["downloads"] | undefined) => {
-  if (!downloads?.length) return "包体清单暂时无法获取";
+  if (!downloads?.length) return "安装包清单暂时无法获取";
 
   const formats = [...new Set(downloads.map((entry) => FORMAT_OF(entry.name)).filter((f): f is string => f !== null))];
   const arches = [...new Set(downloads.map((entry) => entry.arch))];

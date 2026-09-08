@@ -14,21 +14,21 @@ const SHOTS = [
   {
     src: "/img/edge-screenshot-840w.webp",
     srcSet: "/img/edge-screenshot-840w.webp 840w, /img/edge-screenshot-1680w.webp 1680w",
-    title: "任何应用里都是同一套候选窗",
+    title: "浏览器中的候选窗",
     body: "浏览器的搜索框里用双拼加辅助码打出「水杉输入法」。候选窗由输入法自己绘制，不依赖应用配合。",
     alt: "Edge 浏览器的搜索框中显示水杉输入法的候选窗，第一项是「水杉输入法」",
   },
   {
     src: "/img/wt-screenshot-840w.webp",
     srcSet: "/img/wt-screenshot-840w.webp 840w",
-    title: "辅助码把同音字缩到一屏",
-    body: "终端里输入 fuvuma，候选按辅助码分开：辅助码 iU、辅助 iQ、附注 eD 各自可辨，不必翻页找字。",
+    title: "用辅助码区分同音候选",
+    body: "终端里输入 fuvuma，候选按辅助码分开：辅助码 iU、辅助 iQ、附注 eD 各自可辨，便于进一步筛选。",
     alt: "Windows Terminal 中的深色候选窗，逐项标注辅助码",
   },
   {
     src: "/screenshots/install-finish-840w.webp",
     srcSet: "/screenshots/install-finish-840w.webp 840w",
-    title: "装完即用",
+    title: "安装后切换使用",
     body: "安装程序结束后按提示切换输入法即可，不需要注册、不需要登录。",
     alt: "水杉输入法安装程序的完成页，勾选着启动 Server 与 Watchdog 两项",
   },
@@ -93,7 +93,7 @@ const CANDIDATE_VIEWS = [
   {
     id: "helpcode",
     tab: "辅助码",
-    caption: "双拼打 uvujuurufa，候选后括号里是辅助码。同音的水杉 / 水山 / 水疝各自可辨，不必翻页。",
+    caption: "双拼打 uvujuurufa，候选后括号里是辅助码。同音的水杉 / 水山 / 水疝各自可辨，便于选择。",
     alt: "浏览器搜索框下的竖排候选窗，每个候选后面标着两位辅助码",
   },
   {
@@ -147,8 +147,8 @@ export function FeaturesPage() {
     <>
       <PageHero
         kicker="功能"
-        title="它用起来是什么样"
-        leadHtml="候选窗由输入法自己绘制，在浏览器、终端、办公软件里是同一套。外观可以整套替换，词库和辅助码方案可以自己扩。"
+        title="Windows 版功能与界面"
+        leadHtml="本页以 Windows 版为例，展示候选窗、设置、皮肤与词库功能。其他平台的可用功能和操作方式，请查看对应使用指南。"
       />
 
       <main className="content-page">
@@ -217,7 +217,7 @@ export function FeaturesPage() {
             <div className="feature-block-head">
               <div>
                 <p className="community-kicker">设置</p>
-                <h2>能改的东西都在一处</h2>
+                <h2>集中调整常用设置</h2>
                 <p className="feature-block-lead">
                   外观、输入、辅助码、快捷键、词库、皮肤、语音输入、屏幕键盘、手写识别板、悬浮工具栏、AI 辅助各占一栏，界面自身也分明暗两套。
                 </p>
@@ -255,7 +255,7 @@ export function FeaturesPage() {
             <div className="feature-block-head">
               <div>
                 <p className="community-kicker">皮肤</p>
-                <h2>候选窗可以整套换掉</h2>
+                <h2>自定义候选窗皮肤</h2>
                 <p className="feature-block-lead">
                   内置 {BUILT_IN_SKINS.join(" / ")} 四套。外部皮肤把含 <code>skin.toml</code> 的文件夹放进{" "}
                   <code>{breakAtSeparators("%LOCALAPPDATA%\\metasequoiaime\\skins")}</code> 再点「刷新皮肤」即可。
@@ -334,7 +334,7 @@ export function FeaturesPage() {
               <>
                 <h3 className="feature-sub">随版本分发的词库 · {dictionary.tag}</h3>
                 <p className="feature-block-lead">
-                  三个平台装的是同一份词库，发布于 {dictionary.publishedAt.slice(0, 10)}，每个文件都附 SHA256。
+                  这里列出公共词库的发布文件；各平台实际随包版本以发布说明为准。词库发布于 {dictionary.publishedAt.slice(0, 10)}，每个文件都附 SHA256。
                 </p>
                 <ul className="feature-dict">
                   {dictionary.files.map((file: Dictionary["files"][number]) => (
@@ -361,7 +361,7 @@ export function FeaturesPage() {
             <p className="community-kicker">辅助码</p>
             <h2>五套方案，把同音候选分开</h2>
             <p className="feature-block-lead">
-              候选项后面括号里的两个字母就是辅助码。打完拼音再补一到两码，同音字一次就能选中，不必翻页。可选方案：
+              候选项后面括号里的两个字母就是辅助码。打完拼音再补一到两码，可以缩小同音候选范围，减少翻页。可选方案：
             </p>
             <ul className="feature-chips">
               {HELP_CODES.map((name) => (

@@ -39,4 +39,4 @@
 
 每个仓库的构建方式、依赖和开源许可可能不同，请以对应仓库中的 README 和 LICENSE 为准。
 
-主仓的 Issue 已经按可接手程度分类：`good first issue` 是改动小且修法已写明的，`no-code` 完全不需要写代码（词库、图标、文档），`help wanted` 适合熟悉代码的人，`needs-design` 则建议先在 Issue 里讨论方案再动手。组织级的贡献约定见 [CONTRIBUTING](https://github.com/metasequoiaime/.github/blob/main/CONTRIBUTING.md)，可参与的方向见[招募开源开发者](https://github.com/metasequoiaime/.github/blob/main/RECRUITING.md)。
+可从各仓库的 Issue 中寻找任务：`good first issue` 通常适合初次参与者，`no-code` 以词库、图标或文档等非代码工作为主，`help wanted` 表示需要协助，`needs-design` 建议先讨论方案。任务范围与要求请以具体 Issue 为准。组织级的贡献约定见 [CONTRIBUTING](https://github.com/metasequoiaime/.github/blob/main/CONTRIBUTING.md)，可参与的方向见[招募开源开发者](https://github.com/metasequoiaime/.github/blob/main/RECRUITING.md)。

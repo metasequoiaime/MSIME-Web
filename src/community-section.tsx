@@ -2,18 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { StarHistoryChart } from "./star-history-chart";
 import { useReveal } from "./use-reveal";
 
-/**
- * 社区快照由 `scripts/generate-community.mjs` 生成，站点只读自己域名下的 community.json。
- *
- * 不在浏览器里直接调 GitHub：光 star 历史每 100 个 stargazer 就是一次分页请求，而匿名限额是每 IP 每小时 60 次，共用出口地址的访客会直接吃到 403。读自己的文件也守住了隐私说明里那句话 —— 浏览这个站不会联系除本站以外的任何人。头像仍然来自 GitHub 的 CDN，所以带上 no-referrer。
- */
-/**
- * 地址钉在它们该在的主机上。
- *
- * `z.string().url()` 只判断 `new URL()` 解不解析得了 —— `javascript:` 和 `data:` 都算合法，任意外部主机也算。头像会进 `<img src>`，主页会进 `<a href>`：前者一旦指向别处，上面那句「浏览这个站不会联系除本站以外的任何人」就不成立了；后者是用户会点的链接。
- *
- * 这份快照由自动化任务生成，出现预期之外的主机意味着链路出了问题，整块作废、这一节不显示，比照单渲染安全。
- */
+/** 社区统计来自本站快照；头像来自 GitHub CDN。校验由 communitySchema 统一处理。 */
 const fetchCommunity = async () => {
   const response = await fetch("/community.json");
   if (!response.ok) throw new Error(`Community snapshot returned ${response.status}`);
@@ -47,10 +36,10 @@ export function CommunitySection() {
       </div>
 
       <h2 className="section-title" data-reveal>
-        开源项目的实时动态
+        开源社区动态
       </h2>
       <p className="section-lead" data-reveal>
-        数据在构建时从 GitHub 取好并随站点一起发布，浏览这一页不会向第三方发出请求。
+        以下数据随站点更新，可能与 GitHub 当前数据有差异。贡献者头像由 GitHub 提供。
       </p>
 
       <div className="community-grid" data-reveal>

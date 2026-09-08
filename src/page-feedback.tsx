@@ -43,7 +43,7 @@ type LocalScreenshot = { id: string; field: string; file: File; url: string };
 type Draft = { title: string; answers: Answers; screenshots: LocalScreenshot[] };
 
 export function FeedbackPage() {
-  usePageMeta("需求上报 | 水杉输入法", "提交功能需求，自动分流到对应的 GitHub 仓库。");
+  usePageMeta("问题与建议 | 水杉输入法", "反馈问题或提出建议，提交内容将公开发布到 GitHub。");
   const [form, setForm] = useState<Feedback>(emptyForm);
   const [screenshots, setScreenshots] = useState<LocalScreenshot[]>([]);
   const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
@@ -124,7 +124,7 @@ export function FeedbackPage() {
       try {
         const response = await fetch("/api/feedback", { signal: AbortSignal.any([controller.signal, AbortSignal.timeout(10_000)]) });
         const config = await readFeedbackResponse(response, "提交服务暂不可用，请稍后刷新重试。");
-        if (!response.ok || typeof config.siteKey !== "string") throw new Error(config.error || "需求上报暂未开放，请稍后再试。");
+        if (!response.ok || typeof config.siteKey !== "string") throw new Error(config.error || "反馈提交暂未开放，请稍后再试。");
         if (active) setScreenshotsEnabled(config.screenshotsEnabled === true);
         const api = await loadTurnstile();
         if (!active || !widget.current) return;
@@ -197,7 +197,7 @@ export function FeedbackPage() {
       return;
     }
     const invalidAnswers = validateAnswers(template, result.data.answers, result.data.screenshotFields);
-    if (form.title.trim() === template.title.trim()) { showValidation("请补充需求标题。", '[name="title"]'); return; }
+    if (form.title.trim() === template.title.trim()) { showValidation("请补充反馈标题。", '[name="title"]'); return; }
     if (invalidAnswers) {
       const invalidField = template.fields.find(field => validateAnswers({ ...template, fields: [field] }, form.answers[field.id] === undefined ? {} : { [field.id]: form.answers[field.id] }, screenshots.filter(image => image.field === field.id).map(image => image.field)));
       showValidation(invalidAnswers, invalidField ? `[data-feedback-field="${invalidField.id}"] input:not([type="file"]), [data-feedback-field="${invalidField.id}"] textarea, [data-feedback-field="${invalidField.id}"] button` : '[name="title"]');
@@ -282,15 +282,15 @@ export function FeedbackPage() {
       <div className="container">
         <div className="feedback-heading">
           <p className="feedback-kicker">一起改进水杉输入法</p>
-          <h1>把你的需求告诉我们</h1>
-          <p>描述使用场景和期望的改进。提交后，我们会按统一格式在对应仓库创建 Issue，无需 GitHub 账号。</p>
+          <h1>反馈问题或提出建议</h1>
+          <p>遇到故障或希望改进功能，都可以在这里反馈。提交后会在 GitHub 对应仓库创建公开的 Issue（反馈记录），无需 GitHub 账号。</p>
         </div>
         {issueUrl ? <section className="card feedback-success" aria-live="polite" tabIndex={-1} ref={successPanel}>
-          <h2>需求已提交</h2><p>感谢你帮助水杉输入法变得更好。你可以通过 Issue 查看后续讨论和处理进展。</p>
+          <h2>反馈已提交</h2><p>感谢你帮助水杉输入法变得更好。你可以通过 Issue 查看后续讨论和处理进展。</p>
           <a className="btn btn-primary" href={issueUrl} target="_blank" rel="noreferrer">查看已创建的 Issue ↗</a>
         </section> : <div className="feedback-layout">
           <form className="card feedback-form" onSubmit={submit} noValidate>
-            <div className="feedback-tabs" role="tablist" aria-label="需求表单">
+            <div className="feedback-tabs" role="tablist" aria-label="反馈表单">
               {(["edit", "preview"] as const).map(value => <button key={value} id={`feedback-tab-${value}`} type="button" role="tab" aria-selected={tab === value} aria-controls={`feedback-panel-${value}`} tabIndex={tab === value ? 0 : -1} onClick={() => selectTab(value)} onKeyDown={event => {
                 if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) { event.preventDefault(); selectTab(event.key === "Home" ? "edit" : event.key === "End" ? "preview" : tab === "edit" ? "preview" : "edit", true); }
               }}>{value === "edit" ? "填写" : "预览"}</button>)}
@@ -325,7 +325,7 @@ export function FeedbackPage() {
                 <p className="feedback-hint">标注“必填”或 * 的项目必须填写，其余可以跳过。按自己的话描述即可。</p>
                 <div className="feedback-progress"><span>必填内容已完成 {completedFields + Number(titleComplete)} / {requiredFields.length + 1} 项</span><progress aria-label="必填内容完成进度" value={completedFields + Number(titleComplete)} max={requiredFields.length + 1} /></div>
                 <label>用一句话概括 <span className="feedback-required" aria-hidden="true">*</span><input name="title" value={form.title} minLength={5} maxLength={100} required aria-describedby="feedback-title-hint" placeholder="例如：候选字显示为方框，或希望能调整字号" onChange={event => setForm({ ...form, title: event.target.value })} /></label>
-                <p id="feedback-title-hint" className="feedback-hint">写清楚哪里出了问题，或希望增加什么。5–100 个字，不用考虑技术术语。</p>
+                <p id="feedback-title-hint" className="feedback-hint">写清楚哪里出了问题，或希望增加什么。5–100 个字符，不用考虑技术术语。</p>
                 <FeedbackFields template={template} answers={form.answers} onChange={(id, value) => setForm(previous => ({ ...previous, answers: { ...previous.answers, [id]: value } }))} upload={renderUpload} />
               </>}
               <section className="feedback-screenshots">
@@ -333,7 +333,7 @@ export function FeedbackPage() {
                 <p id="screenshot-hint" className="feedback-hint">支持 PNG、JPEG、WebP，最多 3 张，每张不超过 5 MiB。截图将随 Issue 公开，请先遮挡个人信息。</p>
                 {renderUpload()}
                 {screenshotsEnabled === null && <p className="feedback-hint" role="status">正在检查截图上传服务…</p>}
-                {screenshotsEnabled === false && <p className="feedback-hint">截图上传暂不可用，仍可提交文字需求。</p>}
+                {screenshotsEnabled === false && <p className="feedback-hint">截图上传暂不可用，仍可提交文字反馈。</p>}
                 {readingImages && <p role="status">正在读取截图…</p>}
                 {imageError && <p className="feedback-error" role="alert">{imageError}</p>}
                 <div className="feedback-image-grid">{screenshots.map((item, index) => <figure key={item.id}>
@@ -345,7 +345,7 @@ export function FeedbackPage() {
               </section>
               <details className="feedback-contacts">
                 <summary>留下联系方式（可选）{contactFields.some(field => form[field.name].trim()) && <span className="feedback-hint"> · 已填写</span>}</summary>
-                <p className="feedback-hint">方便维护者进一步了解需求，可填写任意一项或全部留空。填写的联系方式会随 Issue 公开，请只提供愿意公开的账号。</p>
+                <p className="feedback-hint">方便维护者进一步了解情况，可填写任意一项或全部留空。填写的联系方式会随 Issue 公开，请只提供愿意公开的账号。</p>
                 <div className="feedback-contact-grid">
                   {contactFields.map(field => <label key={field.name}>{field.label}
                     <input name={field.name} type={field.type} value={form[field.name]} maxLength={field.max} placeholder={field.placeholder} autoCapitalize="none" spellCheck={false} onChange={event => setForm({ ...form, [field.name]: event.target.value })} />
@@ -372,14 +372,14 @@ export function FeedbackPage() {
             </div>
             {uncertainUrl && <p><a href={uncertainUrl} target="_blank" rel="noreferrer">先查看最新 Issue ↗</a></p>}
             {tab === "edit" && <button className="btn btn-ghost feedback-preview-action" type="button" onClick={() => { selectTab("preview", true); document.getElementById("feedback-tab-preview")?.scrollIntoView({ block: "start", behavior: "smooth" }); }}>先预览内容</button>}
-            <button className="btn btn-primary" type="submit" disabled={busy || readingImages || templateLoading || !template || Boolean(templateError)}>{busy ? "正在提交…" : "提交需求"}</button>
+            <button className="btn btn-primary" type="submit" disabled={busy || readingImages || templateLoading || !template || Boolean(templateError)}>{busy ? "正在提交…" : "提交反馈"}</button>
           </form>
           <aside className="card feedback-aside">
             <p className="feedback-kicker">提交到</p><h2>{targets[form.target].label}</h2>
             <a href={`https://github.com/metasequoiaime/${targets[form.target].repo}/issues`} target="_blank" rel="noreferrer">{targets[form.target].repo} ↗</a>
             <hr /><h3>先查常见问题</h3><p>字体方框、设置打不开或快捷键冲突？<a href="/faq/">查看常见问题 Q&A</a>，试试已有的排查办法。</p>
-            <h3>一个具体的场景，更容易推进</h3>
-            <p>说清楚遇到的问题、目前的做法，以及你希望的结果。提交前也可以查看已有 Issue，避免重复需求。</p>
+            <h3>描述清楚，方便排查</h3>
+            <p>说清楚遇到的问题、目前的做法，以及你希望的结果。提交前也可以查看已有 Issue，避免重复提交。</p>
             <h3>提交之后</h3><p>页面会显示 Issue 链接。维护者将在对应仓库讨论、评估并跟进；提交并不代表已经排入开发计划。</p>
             <h3>隐私与安全</h3><p>表单内容会公开。安全漏洞请按 <a href="https://github.com/metasequoiaime/.github/blob/main/SECURITY.md" target="_blank" rel="noreferrer">安全策略</a> 私下报告。</p>
           </aside>

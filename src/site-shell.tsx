@@ -10,7 +10,7 @@ const NAV_ITEMS = [
   { to: "/price/", label: "价格", icon: "price" },
   { to: "/code/", label: "开源代码", icon: "code" },
   { to: "/download/", label: "下载", icon: "download" },
-  { to: "/feedback/", label: "需求上报", icon: "docs" },
+  { to: "/feedback/", label: "问题与建议", icon: "docs" },
   { to: "/about/", label: "关于", icon: "about" },
 ] as const;
 
@@ -279,7 +279,7 @@ function SiteFooter({ inert }: { inert: boolean }) {
               <img src="/msime-logo.png" width="30" height="30" decoding="async" alt="" />
               <span>水杉输入法</span>
             </div>
-            <p className="site-footer-desc">开源中文输入法。各平台共用同一套 C++ 引擎，界面与文本注入各自原生实现。GPL-3.0。</p>
+            <p className="site-footer-desc">开源中文输入法，支持全拼、双拼与五笔。各平台的可用功能、下载和安装说明见对应页面。</p>
             <div className="site-footer-chips">
               <a href="https://t.me/msimegroup" target="_blank" rel="noreferrer">Telegram</a>
               <span>QQ 群 829919142</span>
@@ -310,7 +310,7 @@ function SiteFooter({ inert }: { inert: boolean }) {
           <div>
             <div className="site-footer-col-title">参与</div>
             <div className="site-footer-links">
-              <Link to="/feedback/">需求上报</Link>
+              <Link to="/feedback/">问题与建议</Link>
               <a href="https://github.com/metasequoiaime/.github/blob/main/RECRUITING.md" target="_blank" rel="noreferrer">招募开源开发者</a>
               <a href="https://github.com/metasequoiaime/.github/blob/main/CONTRIBUTING.md" target="_blank" rel="noreferrer">贡献指南</a>
               <a href="https://github.com/metasequoiaime/.github/blob/main/CODE_OF_CONDUCT.md" target="_blank" rel="noreferrer">行为准则</a>
