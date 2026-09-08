@@ -1,3 +1,5 @@
+import faqImageSources from "../vendor/MSIME-Docs/guides/assets/faq/sources.json";
+const faqImages = import.meta.glob<string>("../vendor/MSIME-Docs/guides/assets/faq/*.png", { eager: true, query: "?url&no-inline", import: "default" });
 import { isTraditional } from "../shared/locales";
 import { toTraditional } from "../shared/translate";
 import { localeHref } from "../shared/locales";
@@ -38,6 +40,27 @@ const localizeSiteLinks = (root: ParentNode, localePath: string) => {
   root.querySelectorAll("a[href]").forEach(element => { element.setAttribute("href", localeHref(element.getAttribute("href") ?? "", localePath)); });
   root.querySelectorAll("img[src]").forEach((element) => {
     strip(element, "src");
+    const source = element.getAttribute("src") ?? "";
+    const match = source.match(/^(?:\.\.\/)?assets\/faq\/([^/]+\.png)$/);
+    if (match) {
+      const name = match[1] as keyof typeof faqImageSources.images;
+      const asset = faqImages[`../vendor/MSIME-Docs/guides/assets/faq/${name}`];
+      const info = faqImageSources.images[name];
+      if (asset && info) {
+        element.setAttribute("src", asset);
+        element.setAttribute("width", String(info.width));
+        element.setAttribute("height", String(info.height));
+        element.setAttribute("loading", "lazy");
+        element.setAttribute("decoding", "async");
+        const link = document.createElement("a");
+        link.href = asset;
+        link.target = "_blank";
+        link.rel = "noopener";
+        link.setAttribute("aria-label", `${element.getAttribute("alt")} · ${isTraditional(localePath) ? "檢視原圖" : "查看原图"}`);
+        element.replaceWith(link);
+        link.append(element);
+      }
+    }
     if (element.getAttribute("src") === "/screenshots/install-finish.png") {
       element.setAttribute("src", "/screenshots/install-finish.webp");
       element.setAttribute("srcset", "/screenshots/install-finish-480.webp 480w, /screenshots/install-finish.webp 998w");
