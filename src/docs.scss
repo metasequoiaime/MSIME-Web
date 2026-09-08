@@ -823,7 +823,7 @@ fieldset.docs-platforms {
 /* 候选窗预览：按皮肤声明的配色现场画，颜色走内联 style，结构和间距归这里 */
 .skin-stage {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
   align-items: center;
   gap: 24px 32px;
   margin: 22px 0 18px;
@@ -1025,7 +1025,7 @@ fieldset.docs-platforms {
   font-size: 14px;
 }
 
-@media screen and (max-width: 700px) {
+@media screen and (max-width: 900px) {
   .skin-stage {
     grid-template-columns: minmax(0, 1fr);
     padding: 20px;
@@ -1169,3 +1169,9 @@ fieldset.docs-platforms {
 
 .docs-guide-intro { margin-bottom: 2rem; }
 .docs-guide-intro h2 { margin-top: 0; }
+
+/* Both layouts reserve their space, so the preview and following content stay still. */
+.skin-preview { display: grid; min-width: 0; }
+.skin-preview > div { grid-area: 1 / 1; align-self: start; min-width: 0; }
+.skin-preview > div[data-active="false"] { visibility: hidden; pointer-events: none; }
+.skin-preview .skin-window { max-width: 100%; }
