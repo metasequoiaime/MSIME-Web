@@ -292,6 +292,7 @@ function SiteFooter({ inert }: { inert: boolean }) {
             <div className="site-footer-col-title">产品</div>
             <div className="site-footer-links">
               <Link to="/download/">下载</Link>
+              <Link to="/beta/">iOS 内测</Link>
               <Link to="/price/">价格</Link>
               <Link to="/docs/$guide/" params={{ guide: "windows" }}>文档</Link>
               <Link to="/faq/">常见问题 Q&A</Link>

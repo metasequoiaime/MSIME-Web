@@ -78,6 +78,12 @@ const downloadRoute = createRoute({
   component: lazyRouteComponent(() => import("./page-download"), "DownloadPage"),
 });
 
+const betaRoute = createRoute({
+  getParentRoute: () => shellRoute,
+  path: "/beta",
+  component: lazyRouteComponent(() => import("./page-beta"), "BetaPage"),
+});
+
 const aboutRoute = createRoute({
   getParentRoute: () => shellRoute,
   path: "/about",
@@ -128,7 +134,7 @@ const traditionalRoutes = (['/zh-TW', '/zh-TW/features', '/zh-TW/download', '/zh
 
 const routeTree = rootRoute.addChildren([
   traditionalShell.addChildren(traditionalRoutes),
-  shellRoute.addChildren([indexRoute, featuresRoute, docsRoute, guideRoute, faqRoute, downloadRoute, aboutRoute, codeRoute, priceRoute, privacyRoute, feedbackRoute]),
+  shellRoute.addChildren([indexRoute, featuresRoute, docsRoute, guideRoute, faqRoute, downloadRoute, betaRoute, aboutRoute, codeRoute, priceRoute, privacyRoute, feedbackRoute]),
   resumeRoute,
 ]);
 

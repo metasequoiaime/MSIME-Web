@@ -3,6 +3,7 @@ import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { test } from 'node:test';
 import { docsSearchSchema } from '../src/docs-search.ts';
 import { communitySchema } from '../src/community-data.ts';
+import { fetchPlatforms } from '../src/platforms-data.ts';
 import { seoPages, pageSeo } from '../shared/site-seo.ts';
 
 const root = new URL('../', import.meta.url);
@@ -97,4 +98,13 @@ test('deferred community validation still rejects unsafe URLs and invalid metric
   const invalid = structuredClone(data); invalid.contributors[0].avatarUrl = 'https://evil.example/avatar.png';
   assert.equal(communitySchema.safeParse(invalid).success, false);
   assert.equal(communitySchema.safeParse({ ...data, totalStars: -1 }).success, false);
+});
+
+
+test('desktop release data stays valid without an iOS artifact', async (t) => {
+  const manifest = JSON.parse(read('public/platforms.json'));
+  assert.equal(manifest.platforms.ios, undefined);
+  t.mock.method(globalThis, 'fetch', async () => Response.json(manifest));
+  const result = await fetchPlatforms();
+  assert.deepEqual(Object.keys(result.platforms).sort(), ['linux', 'macos', 'windows']);
 });
