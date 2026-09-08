@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { feedbackSchema, formatIssue, targets } from "../../shared/feedback.ts";
+import { githubAppConfig, installationToken } from "../../shared/github-app.ts";
 
-const configSchema = z.object({
-  GITHUB_ISSUES_TOKEN: z.string().trim().min(1),
+const configSchema = githubAppConfig.extend({
   TURNSTILE_SITE_KEY: z.string().trim().min(1),
   TURNSTILE_SECRET: z.string().trim().min(1),
   FEEDBACK_ORIGIN: z.url().refine(value => new URL(value).origin === value),
@@ -46,7 +46,7 @@ export async function onRequest({ request, env }: { request: Request; env: Recor
   }
   const config = configSchema.safeParse(env);
   if (!config.success) return json({ error: "需求上报暂未开放，请稍后再试。" }, 503);
-  const { GITHUB_ISSUES_TOKEN, TURNSTILE_SITE_KEY, TURNSTILE_SECRET, FEEDBACK_ORIGIN } = config.data;
+  const { TURNSTILE_SITE_KEY, TURNSTILE_SECRET, FEEDBACK_ORIGIN } = config.data;
   // 预览部署默认关闭，除非为其配置独立 origin 和凭据。
   if (new URL(request.url).origin !== FEEDBACK_ORIGIN) return json({ error: "此站点未开放需求上报。" }, 403);
   if (request.method === "GET") return json({ siteKey: TURNSTILE_SITE_KEY });
@@ -70,12 +70,15 @@ export async function onRequest({ request, env }: { request: Request; env: Recor
   } catch { return json({ error: "验证服务暂时不可用，请重新验证后再试。" }, 503); }
 
   const repo = targets[data.target].repo;
+  let token: string;
+  try { token = await installationToken(config.data, repo); }
+  catch { return json({ error: "需求机器人暂时不可用，请稍后再试。" }, 503); }
   // 不自动重试 GitHub 写请求：响应丢失时，Issue 可能已经创建。
   try {
     const response = await fetch(`https://api.github.com/repos/metasequoiaime/${repo}/issues`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${GITHUB_ISSUES_TOKEN}`,
+        Authorization: `Bearer ${token}`,
         Accept: "application/vnd.github+json",
         "Content-Type": "application/json",
         "X-GitHub-Api-Version": "2022-11-28",

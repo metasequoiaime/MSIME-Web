@@ -80,9 +80,15 @@ Biome 只开了 linter，formatter 处于关闭状态——仓库既有代码尚
 | `FEEDBACK_ORIGIN` | 允许提交的完整站点 origin，生产为 `https://msime.app`（无末尾斜杠） |
 | `TURNSTILE_SITE_KEY` | Managed Turnstile widget 的公开 site key，域名包含 `msime.app` |
 | `TURNSTILE_SECRET` | 对应 widget 的 secret，作为 Pages secret 保存 |
-| `GITHUB_ISSUES_TOKEN` | 专用 fine-grained token，作为 Pages secret 保存；仅授权 MSIME-Windows、MSIME-Apple、MSIME-Linux、MSIME-Engine、MSIME-Backend、MSIME-Docs、MSIME-Web 的 Issues: write 权限 |
+| `GITHUB_APP_ID` | GitHub App 设置页的 App ID |
+| `GITHUB_APP_INSTALLATION_ID` | App 安装到组织后的安装 ID（安装配置页 URL 末尾数字） |
+| `GITHUB_APP_PRIVATE_KEY` | App 生成的完整 PEM 私钥，保留换行，作为 Pages secret 保存；支持 GitHub 下载的 PKCS#1 和 PKCS#8 |
 
-凭据所属账号需要有对应仓库权限，组织需批准 token（如适用），七个仓库需开启 Issues。Issue 作者是该凭据对应账号。缺少配置时接口返回 503，表单禁用提交；预览域名与 origin 不符时返回 403。生产凭据不要配置到预览环境。
+在组织内创建专用 GitHub App（例如 `msime-feedback`），主页填 `https://msime.app/feedback/`，关闭 Webhook，无需 OAuth 回调或 Client secret。仓库权限只选 Issues: Read and write（Metadata: Read-only 自动附带），仅允许本组织安装。生成私钥，再安装到 MSIME-Windows、MSIME-Apple、MSIME-Linux、MSIME-Engine、MSIME-Backend、MSIME-Docs、MSIME-Web 这七个仓库，仓库需开启 Issues。
+
+Issue 作者为 App 的机器人账号（例如 `msime-feedback[bot]`）。后端在验证 Turnstile 后签发 JWT，兑换仅限本次目标仓库、Issues 写权限的一小时安装令牌，再创建 Issue；不使用用户授权令牌。旧的 `GITHUB_ISSUES_TOKEN` 已不再读取，切换后从 Pages 配置中移除；旧 PAT 若无其他用途，可在 GitHub 撤销。更新生产变量后需重新部署才能生效。
+
+缺少配置时接口返回 503，表单禁用提交；预览域名与 origin 不符时返回 403。生产凭据不要配置到预览环境。
 
 `pnpm dev` / `pnpm preview` 只提供静态站，不执行 Pages Functions。联调需在安装 Wrangler 后运行 `pnpm build` 和 `wrangler pages dev dist`，在被忽略的 `.dev.vars` 中设置本地专用配置（origin 与本地地址完全一致）。使用测试凭据与测试目标环境；不要通过关闭服务端验证来调试。`pnpm test` 包含模拟 GitHub / Turnstile 的路由、模板、校验和失败场景测试，不会发布真实 Issue。
 

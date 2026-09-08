@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { generateKeyPairSync, verify } from 'node:crypto';
 import { onRequest } from '../functions/api/feedback.ts';
 import { formatIssue, targets } from '../shared/feedback.ts';
 
-const env = { GITHUB_ISSUES_TOKEN: 'test-only-token', TURNSTILE_SITE_KEY: 'test-only-sitekey', TURNSTILE_SECRET: 'test-only-secret', FEEDBACK_ORIGIN: 'https://msime.app' };
+const { privateKey, publicKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
+const env = { GITHUB_APP_ID: '123', GITHUB_APP_INSTALLATION_ID: '456', GITHUB_APP_PRIVATE_KEY: privateKey.export({ type: 'pkcs1', format: 'pem' }), TURNSTILE_SITE_KEY: 'test-only-sitekey', TURNSTILE_SECRET: 'test-only-secret', FEEDBACK_ORIGIN: 'https://msime.app' };
 const form = { target: 'windows', title: '增加候选窗口字号设置', background: '在高分辨率屏幕上候选字太小，看起来比较吃力。', expected: '希望可以单独设置候选窗口字号，不影响其他界面。', environment: '测试环境', extra: '', consent: true, token: 'test-token' };
 const request = (data = form, headers = {}) => new Request('https://msime.app/api/feedback', { method: 'POST', headers: { Origin: 'https://msime.app', 'Content-Type': 'application/json', ...headers }, body: JSON.stringify(data) });
 function mockFetch(t, verification = { success: true, action: 'feedback', hostname: 'msime.app' }, github = () => Response.json({ number: 42 }, { status: 201 })) {
@@ -11,6 +13,7 @@ function mockFetch(t, verification = { success: true, action: 'feedback', hostna
   t.mock.method(globalThis, 'fetch', async (url, options) => {
     calls.push({ url, options });
     if (url.includes('siteverify')) return Response.json(verification);
+    if (url.includes('/access_tokens')) return Response.json({ token: 'test-only-token' });
     return github();
   });
   return calls;
@@ -23,6 +26,16 @@ test('all seven targets create an issue in the fixed repository with the shared 
     const response = await onRequest({ request: request(data), env });
     assert.equal(response.status, 201);
     assert.equal((await response.json()).url, `https://github.com/metasequoiaime/${repo}/issues/42`);
+    const auth = calls.at(-2);
+    assert.equal(auth.url, 'https://api.github.com/app/installations/456/access_tokens');
+    assert.deepEqual(JSON.parse(auth.options.body), { repositories: [repo], permissions: { issues: 'write' } });
+    const [header, claims, signature] = auth.options.headers.Authorization.slice(7).split('.');
+    assert.deepEqual(JSON.parse(Buffer.from(header, 'base64url')), { alg: 'RS256', typ: 'JWT' });
+    const jwt = JSON.parse(Buffer.from(claims, 'base64url'));
+    assert.equal(jwt.iss, env.GITHUB_APP_ID);
+    assert.ok(jwt.iat <= Date.now() / 1000 && jwt.exp > Date.now() / 1000);
+    assert.equal(jwt.exp - jwt.iat, 600);
+    assert.ok(verify('RSA-SHA256', Buffer.from(`${header}.${claims}`), publicKey, Buffer.from(signature, 'base64url')));
     const call = calls.at(-1);
     assert.equal(call.url, `https://api.github.com/repos/metasequoiaime/${repo}/issues`);
     assert.deepEqual(JSON.parse(call.options.body), formatIssue(data));
@@ -63,10 +76,10 @@ test('verification outage fails closed', async t => {
   assert.equal((await onRequest({ request: request(), env })).status, 503);
 });
 test('GitHub failures never disclose credentials or upstream response details', async t => {
-  mockFetch(t, undefined, () => Response.json({ message: env.GITHUB_ISSUES_TOKEN }, { status: 403 }));
+  mockFetch(t, undefined, () => Response.json({ message: 'test-only-token' }, { status: 403 }));
   const response = await onRequest({ request: request(), env });
   assert.equal(response.status, 503);
-  assert.ok(!(await response.text()).includes(env.GITHUB_ISSUES_TOKEN));
+  assert.ok(!(await response.text()).includes('test-only-token'));
 });
 test('ambiguous GitHub write is not retried and provides a link to check for duplicates', async t => {
   const calls = mockFetch(t, undefined, () => { throw new Error('timeout'); });
@@ -75,7 +88,7 @@ test('ambiguous GitHub write is not retried and provides a link to check for dup
   const body = await response.json();
   assert.equal(body.uncertain, true);
   assert.equal(body.issuesUrl, 'https://github.com/metasequoiaime/MSIME-Windows/issues');
-  assert.equal(calls.length, 2);
+  assert.equal(calls.length, 3);
 });
 test('user text cannot inject template headings or active mentions', () => {
   const issue = formatIssue({ ...form, extra: '## invented\n@team' });
@@ -100,4 +113,29 @@ test('invalid contact details are rejected before external requests', async t =>
     assert.equal((await onRequest({ request: request({ ...form, ...contacts }), env })).status, 400);
   }
   assert.equal(calls.length, 0);
+});
+
+
+test('PKCS8 keys work and personal token alone cannot enable submissions', async t => {
+  mockFetch(t);
+  assert.equal((await onRequest({ request: request(), env: { ...env, GITHUB_APP_PRIVATE_KEY: privateKey.export({ type: 'pkcs8', format: 'pem' }) } })).status, 201);
+  assert.equal((await onRequest({ request: request(), env: { ...env, GITHUB_APP_PRIVATE_KEY: undefined, GITHUB_ISSUES_TOKEN: 'old-personal-token' } })).status, 503);
+});
+
+test('App authentication failures never attempt issue creation or leak private keys', async t => {
+  const calls = [];
+  t.mock.method(globalThis, 'fetch', async (url) => {
+    calls.push(url);
+    if (url.includes('siteverify')) return Response.json({ success: true, action: 'feedback', hostname: 'msime.app' });
+    return Response.json({ message: env.GITHUB_APP_PRIVATE_KEY }, { status: 401 });
+  });
+  const response = await onRequest({ request: request(), env });
+  assert.equal(response.status, 503);
+  const body = await response.json();
+  assert.equal(body.uncertain, undefined);
+  assert.ok(!JSON.stringify(body).includes('PRIVATE KEY'));
+  assert.equal(calls.length, 2);
+  assert.ok(calls.at(-1).endsWith('/access_tokens'));
+  assert.equal((await onRequest({ request: request(), env: { ...env, GITHUB_APP_PRIVATE_KEY: 'invalid' } })).status, 503);
+  assert.equal(calls.length, 3);
 });
