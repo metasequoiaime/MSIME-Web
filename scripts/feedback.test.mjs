@@ -16,7 +16,7 @@ function mockFetch(t, verification = { success: true, action: 'feedback', hostna
   return calls;
 }
 
-test('all six targets create an issue in the fixed repository with the shared template', async t => {
+test('all seven targets create an issue in the fixed repository with the shared template', async t => {
   const calls = mockFetch(t);
   for (const [target, { repo }] of Object.entries(targets)) {
     const data = { ...form, target, repo: 'attacker/elsewhere' };

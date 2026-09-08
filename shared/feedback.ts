@@ -5,10 +5,11 @@ export const targets = {
   apple: { label: "macOS / iOS 输入法", repo: "MSIME-Apple" },
   linux: { label: "Linux 输入法", repo: "MSIME-Linux" },
   engine: { label: "公共引擎、输入方案与词库", repo: "MSIME-Engine" },
+  backend: { label: "公共 API", repo: "MSIME-Backend" },
   docs: { label: "使用文档", repo: "MSIME-Docs" },
   web: { label: "官网", repo: "MSIME-Web" },
 } as const;
-export const targetSchema = z.enum(["windows", "apple", "linux", "engine", "docs", "web"]);
+export const targetSchema = z.enum(["windows", "apple", "linux", "engine", "backend", "docs", "web"]);
 export const contactFields = [
   { name: "qq", label: "QQ 号码", placeholder: "QQ 号码", type: "text", max: 100 },
   { name: "qqNickname", label: "QQ 昵称", placeholder: "QQ 显示昵称", type: "text", max: 100 },
