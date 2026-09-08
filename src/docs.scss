@@ -1076,7 +1076,6 @@ fieldset.docs-platforms {
   .docs-sidebar { margin-bottom: 24px; padding: 8px; border-radius: 14px; }
   .docs-toc-toggle { min-height: 44px; justify-content: space-between; }
   .docs-platforms { gap: 6px; margin-bottom: 4px; padding-bottom: 8px; }
-  .docs-sidebar .docs-platforms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .docs-platform { min-height: 44px; padding: 8px 12px; font-size: 14px; }
   .docs-toc a { min-height: 44px; padding-block: 10px; }
   .docs-toc { max-height: 55dvh; }
@@ -1119,3 +1118,45 @@ fieldset.docs-platforms {
 .content-flow .download-panel-more summary { cursor: pointer; min-height: 44px; display: list-item; align-content: center; }
 .content-flow .download-panel-more-label { margin-bottom: 0; }
 .content-flow .download-panel-arches { margin-top: 12px; }
+
+/* Platform navigation spans the page; the sticky sidebar is reserved for sections. */
+.docs-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  margin-bottom: 24px;
+}
+.docs-toolbar .docs-platforms {
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.docs-toolbar .docs-platform {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 18px;
+  font-size: 15px;
+  white-space: nowrap;
+}
+.docs-faq-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .docs-toolbar { gap: 8px; margin-bottom: 16px; }
+  .docs-toolbar .docs-platforms {
+    width: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding-block: 2px;
+  }
+  .docs-toolbar .docs-platform { justify-content: center; padding-inline: 14px; }
+}
