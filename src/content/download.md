@@ -1,6 +1,6 @@
 # 下载水杉输入法
 
-水杉输入法目前提供 Windows、macOS 和 Linux 三个平台的构建，macOS 和 iOS 版已开放公测，iOS 通过 TestFlight 安装。各平台独立发布，版本号不通用；安装前请查看对应版本的发布说明。
+水杉输入法 Windows、macOS 和 iOS 版处于公开测试阶段，Linux 版正在开发中。Windows 和 macOS 提供安装包，iOS 通过 TestFlight 安装。各平台独立发布，版本号不通用；安装前请查看对应版本的发布说明。
 
 ## Windows
 
@@ -47,7 +47,7 @@ macOS 版内置 Sparkle 自动更新，安装后可从输入法菜单中的「�
 ### 安装与启用
 
 1. 在 iPhone 上安装 [TestFlight](https://apps.apple.com/app/testflight/id899247664)。
-2. 打开 [TestFlight 公测链接](https://testflight.apple.com/join/bUzPvyqt)，在 TestFlight 中点“接受”，再点“安装”。
+2. 打开 [TestFlight 公开测试链接](https://testflight.apple.com/join/bUzPvyqt)，在 TestFlight 中点“接受”，再点“安装”。
 3. 安装完成后，到“设置 → 通用 → 键盘 → 键盘 → 添加新键盘”中启用“水杉输入法”。
 
 TestFlight 的每个构建有效期为 90 天，到期前在 TestFlight 中更新即可，无需重新加入。
@@ -58,7 +58,7 @@ TestFlight 的每个构建有效期为 90 天，到期前在 TestFlight 中更�
 
 ## Linux
 
-水杉输入法通过 IBus 接入 Linux 桌面。
+Linux 版正在开发中，通过 IBus 接入桌面环境。此处提供开发构建，功能与稳定性仍在完善中。
 
 按发行版选择对应的包。安装后重启 IBus，再在桌面环境的输入源设置中添加「Metasequoia IME」。
 
