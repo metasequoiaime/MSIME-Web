@@ -287,7 +287,7 @@ function DownloadPanel({ platforms }: { platforms: Partial<Record<Platform, Plat
       <p className="download-panel-note">
         {current ? (
           <>
-            {current.prerelease ? "公开内测版本，" : ""}发布于 {current.publishedAt.slice(0, 10)}。校验值与安装步骤见下方{" "}
+            {current.prerelease ? "公开测试版本，" : ""}发布于 {current.publishedAt.slice(0, 10)}。校验值与安装步骤见下方{" "}
             {PLATFORM_LABELS[platform]} 小节。
           </>
         ) : (
