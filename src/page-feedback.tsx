@@ -107,7 +107,7 @@ export function FeedbackPage() {
     try {
       const response = await fetch("/api/feedback", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...result.data, token }), signal: AbortSignal.timeout(30_000),
+        body: JSON.stringify({ ...result.data, token }), signal: AbortSignal.timeout(45_000),
       });
       const data = await response.json();
       if (!response.ok) {
