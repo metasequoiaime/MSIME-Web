@@ -111,7 +111,7 @@ test('duplicate guide bodies share a canonical and AI indexes include them only 
   }
   assert.doesNotMatch(read('sitemap.xml'), /<loc>https:\/\/msime\.app\/docs\/<\/loc>/);
   assert.ok(!read('llms.txt').includes('(https://msime.app/docs.md)'));
-  const windows = document('/docs/windows/').querySelector('.docs-article h2').textContent;
+  const windows = document('/docs/windows/').querySelector('.docs-article h2[id]').textContent;
   assert.equal(read('llms-full.txt').split(`## ${windows}\n`).length - 1, 1);
   const schemas = [...document('/').querySelectorAll('script[type="application/ld+json"]')].flatMap(el => JSON.parse(el.textContent)['@graph'] ?? []);
   const app = schemas.find(item => item['@type'] === 'SoftwareApplication');
@@ -144,11 +144,14 @@ test('document screenshots reserve layout and use responsive local images', () =
 });
 
 
-test('static guide hero includes its introductory paragraph before hydration', () => {
+test('guide tabs share a stable hero and retain each introduction in the article', () => {
+  const hero = document('/docs/windows/').querySelector('.page-hero').textContent;
   for (const guide of ['windows', 'macos', 'macos-voice', 'linux']) {
     const doc = document(`/docs/${guide}/`);
     const lead = doc.querySelector('#page-lead').textContent.trim();
     assert.ok(lead.length > 10, guide);
+    assert.equal(doc.querySelector('.page-hero').textContent, hero, guide);
+    assert.ok(doc.querySelector('.docs-guide-intro > div').textContent.trim().length > 10, guide);
     assert.ok(!doc.querySelector('.docs-article').textContent.trim().startsWith(lead), guide);
     assert.ok(doc.querySelector('script[src^="/assets/router-state-"]'));
     assert.equal(doc.querySelector('link[href^="/assets/router-state-"]').getAttribute('as'), 'script');
