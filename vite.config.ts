@@ -16,6 +16,7 @@ export default defineConfig({
         notFound: resolve(projectRoot, "404.html"),
         features: resolve(projectRoot, "features/index.html"),
         docs: resolve(projectRoot, "docs/index.html"),
+        faq: resolve(projectRoot, "faq/index.html"),
         code: resolve(projectRoot, "code/index.html"),
         feedback: resolve(projectRoot, "feedback/index.html"),
         about: resolve(projectRoot, "about/index.html"),

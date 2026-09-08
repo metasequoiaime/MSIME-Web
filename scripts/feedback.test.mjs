@@ -1,153 +1,214 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { generateKeyPairSync, verify } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { generateKeyPairSync, verify, createHash } from 'node:crypto';
 import { onRequest } from '../functions/api/feedback.ts';
-import { formatIssue, targets } from '../shared/feedback.ts';
+import { onRequest as templateEndpoint } from '../functions/api/feedback-templates.ts';
+import { onRequest as getImage } from '../functions/api/feedback-images/[key].ts';
+import { feedbackSchema, formatIssue, targets } from '../shared/feedback.ts';
+import { initialAnswers, validateAnswers } from '../shared/feedback-templates.ts';
+import { loadFeedbackTemplates, parseTemplate } from '../shared/load-feedback-templates.ts';
 
 const { privateKey, publicKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
 const env = { GITHUB_APP_ID: '123', GITHUB_APP_INSTALLATION_ID: '456', GITHUB_APP_PRIVATE_KEY: privateKey.export({ type: 'pkcs1', format: 'pem' }), TURNSTILE_SITE_KEY: 'test-only-sitekey', TURNSTILE_SECRET: 'test-only-secret', FEEDBACK_ORIGIN: 'https://msime.app' };
-const form = { target: 'windows', title: '增加候选窗口字号设置', background: '在高分辨率屏幕上候选字太小，看起来比较吃力。', expected: '希望可以单独设置候选窗口字号，不影响其他界面。', environment: '测试环境', extra: '', consent: true, token: 'test-token' };
-const request = (data = form, headers = {}) => new Request('https://msime.app/api/feedback', { method: 'POST', headers: { Origin: 'https://msime.app', 'Content-Type': 'application/json', ...headers }, body: JSON.stringify(data) });
-function mockFetch(t, verification = { success: true, action: 'feedback', hostname: 'msime.app' }, github = () => Response.json({ number: 42 }, { status: 201 })) {
+const sources = Object.fromEntries(['windows','linux','common'].map(name => [name, readFileSync(new URL(`fixtures/feedback/${name}.yml`, import.meta.url),'utf8')]));
+const sha = source => createHash('sha1').update(`blob ${Buffer.byteLength(source)}\0${source}`).digest('hex');
+function templateFor(target = 'windows', source = sources[target] ?? sources.common) {
+  const repo = ['windows','linux'].includes(target) ? targets[target].repo : '.github';
+  return parseTemplate(source, { id: `${repo}/feature_request.yml`, revision: sha(source), sourceUrl: `https://github.com/metasequoiaime/${repo}/blob/HEAD/.github/ISSUE_TEMPLATE/feature_request.yml` });
+}
+function validForm(target = 'windows', template = templateFor(target)) {
+  const answers = initialAnswers(template);
+  for (const field of template.fields) {
+    if (field.type === 'input' || field.type === 'textarea') answers[field.id] = '用于验证动态表单的虚构测试内容。';
+    if (field.type === 'dropdown') answers[field.id] = [field.options[0].label];
+    if (field.type === 'checkboxes') answers[field.id] = field.options.map(option => option.label);
+  }
+  return { target, title: `${template.title}增加候选窗口字号设置`, templateId: template.id, templateRevision: template.revision, answers, screenshotFields: [], consent: true, token: 'test-token' };
+}
+const form = validForm();
+const request = (data = form, headers = {}) => new Request('https://msime.app/api/feedback', { method: 'POST', headers: { Origin: env.FEEDBACK_ORIGIN, 'Content-Type': 'application/json', ...headers }, body: JSON.stringify(data) });
+function mockFetch(t, { verification = { success: true, action: 'feedback', hostname: 'msime.app' }, issue = () => Response.json({ number: 42 }, { status: 201 }), sourceOverride, templateStatus } = {}) {
   const calls = [];
   t.mock.method(globalThis, 'fetch', async (url, options) => {
     calls.push({ url, options });
     if (url.includes('siteverify')) return Response.json(verification);
     if (url.includes('/access_tokens')) return Response.json({ token: 'test-only-token' });
-    return github();
+    if (url.includes('/contents/')) {
+      if (templateStatus) return new Response(null,{status:templateStatus});
+      const repo = url.split('/')[5];
+      if (!['MSIME-Windows','MSIME-Linux','.github'].includes(repo)) return new Response(null,{status:404});
+      const source = sourceOverride ?? (repo === 'MSIME-Windows' ? sources.windows : repo === 'MSIME-Linux' ? sources.linux : sources.common);
+      return Response.json([{name:'feature_request.yml',path:'.github/ISSUE_TEMPLATE/feature_request.yml',sha:sha(source),type:'file'}]);
+    }
+    if (url.includes('/git/blobs/')) {
+      const source = sourceOverride ?? Object.values(sources).find(source => sha(source) === url.split('/').at(-1));
+      return Response.json({encoding:'base64',content:Buffer.from(source).toString('base64'),size:Buffer.byteLength(source)});
+    }
+    return issue();
   });
   return calls;
 }
+const writes = calls => calls.filter(call => call.url.endsWith('/issues'));
 
-test('all seven targets create an issue in the fixed repository with the shared template', async t => {
+test('all targets read their templates, validate answers and create issues using restricted App credentials', async t => {
   const calls = mockFetch(t);
-  for (const [target, { repo }] of Object.entries(targets)) {
-    const data = { ...form, target, repo: 'attacker/elsewhere' };
-    const response = await onRequest({ request: request(data), env });
-    assert.equal(response.status, 201);
-    assert.equal((await response.json()).url, `https://github.com/metasequoiaime/${repo}/issues/42`);
-    const auth = calls.at(-2);
-    assert.equal(auth.url, 'https://api.github.com/app/installations/456/access_tokens');
-    assert.deepEqual(JSON.parse(auth.options.body), { repositories: [repo], permissions: { issues: 'write' } });
-    const [header, claims, signature] = auth.options.headers.Authorization.slice(7).split('.');
-    assert.deepEqual(JSON.parse(Buffer.from(header, 'base64url')), { alg: 'RS256', typ: 'JWT' });
-    const jwt = JSON.parse(Buffer.from(claims, 'base64url'));
-    assert.equal(jwt.iss, env.GITHUB_APP_ID);
-    assert.ok(jwt.iat <= Date.now() / 1000 && jwt.exp > Date.now() / 1000);
-    assert.equal(jwt.exp - jwt.iat, 600);
-    assert.ok(verify('RSA-SHA256', Buffer.from(`${header}.${claims}`), publicKey, Buffer.from(signature, 'base64url')));
-    const call = calls.at(-1);
-    assert.equal(call.url, `https://api.github.com/repos/metasequoiaime/${repo}/issues`);
-    assert.deepEqual(JSON.parse(call.options.body), formatIssue(data));
-    assert.equal(call.options.headers.Authorization, 'Bearer test-only-token');
+  for (const [target,{repo}] of Object.entries(targets)) {
+    const data = validForm(target);
+    const response = await onRequest({request:request({...data,repo:'attacker/repo',labels:['injected']}),env});
+    assert.equal(response.status,201);
+    assert.equal((await response.json()).url,`https://github.com/metasequoiaime/${repo}/issues/42`);
+    const call = writes(calls).at(-1);
+    assert.deepEqual(JSON.parse(call.options.body),formatIssue(feedbackSchema.parse(data),templateFor(target)));
+    const auth = calls.findLast(call=>call.url.includes('/access_tokens'));
+    assert.deepEqual(JSON.parse(auth.options.body),{repositories:[repo],permissions:{issues:'write'}});
+    const [header,claims,signature] = auth.options.headers.Authorization.slice(7).split('.');
+    assert.deepEqual(JSON.parse(Buffer.from(header,'base64url')),{alg:'RS256',typ:'JWT'});
+    assert.ok(verify('RSA-SHA256',Buffer.from(`${header}.${claims}`),publicKey,Buffer.from(signature,'base64url')));
+    assert.equal(JSON.parse(Buffer.from(claims,'base64url')).iss,env.GITHUB_APP_ID);
   }
 });
-test('rejects invalid target, missing consent, whitespace, overlong text and malformed requests before external calls', async t => {
+
+test('schema, origin, content type and body limits reject invalid requests before external calls', async t => {
   const calls = mockFetch(t);
-  for (const change of [{ target: '__proto__' }, { consent: false }, { title: '' }, { title: '     ' }, { background: '' }, { expected: '          ' }, { background: 'x'.repeat(3001) }, { token: '' }, { expected: 42 }, { title: 'hello\nworld' }]) {
-    assert.equal((await onRequest({ request: request({ ...form, ...change }), env })).status, 400);
-  }
-  assert.equal((await onRequest({ request: request({ ...form, extra: '字'.repeat(40_000) }), env })).status, 400);
-  assert.equal((await onRequest({ request: request(form, { 'Content-Type': 'text/plain' }), env })).status, 415);
-  assert.equal((await onRequest({ request: request(form, { Origin: 'https://evil.example' }), env })).status, 403);
-  assert.equal((await onRequest({ request: new Request('https://msime.app/api/feedback', { method: 'POST', headers: { Origin: 'https://msime.app', 'Content-Type': 'application/json' }, body: '{' }), env })).status, 400);
-  assert.equal(calls.length, 0);
+  for (const change of [{target:'__proto__'},{consent:false},{title:'     '},{title:'hello\nworld'},{templateRevision:'bad'},{answers:{problem:'x'.repeat(6001)}},{token:''},{email:'bad'},{github:'@user'},{wechat:'line\nbreak'}]) assert.equal((await onRequest({request:request({...form,...change}),env})).status,400);
+  assert.equal((await onRequest({request:request(form,{'Content-Type':'text/plain'}),env})).status,415);
+  assert.equal((await onRequest({request:request(form,{Origin:'https://evil.example'}),env})).status,403);
+  assert.equal((await onRequest({request:request({...form,oversized:'字'.repeat(64_000)}),env})).status,400);
+  assert.equal(calls.length,0);
 });
-test('optional fields may all be blank while required content is preserved', async t => {
+
+test('template-required fields, options and checkboxes are authoritative on the server', async t => {
   const calls = mockFetch(t);
-  const response = await onRequest({ request: request({ ...form, environment: '', extra: '', qq: '', qqNickname: '', wechat: '', github: '', email: '' }), env });
-  assert.equal(response.status, 201);
-  const issue = JSON.parse(calls.at(-1).options.body);
-  assert.ok(issue.body.includes(form.background));
-  assert.ok(issue.body.includes(form.expected));
-  assert.ok(!issue.body.includes('## 联系方式'));
-  assert.ok(!issue.body.includes('## 使用环境与版本'));
+  for (const answers of [{...form.answers,problem:'  '},{...form.answers,component:['injected']},{...form.answers,checklist:[]},{...form.answers,unknown:'injected'},{...form.answers,component:'wrong shape'}]) assert.equal((await onRequest({request:request({...form,answers}),env})).status,400);
+  assert.equal(writes(calls).length,0);
 });
-test('config endpoint exposes only the site key and disables unconfigured and preview deployments', async () => {
+
+test('template changes return 409 and the new definition before any upload or Issue write', async t => {
+  const updated = sources.windows.replace('问题与动机 / Problem & Motivation','新的问题描述');
+  const calls = mockFetch(t,{sourceOverride:updated});
+  const response = await onRequest({request:request(),env});
+  assert.equal(response.status,409);
+  const data = await response.json();
+  assert.equal(data.templateChanged,true);
+  assert.equal(data.templates[0].revision,sha(updated));
+  assert.ok(data.templates[0].fields.some(field=>field.label==='新的问题描述'));
+  assert.equal(writes(calls).length,0);
+});
+
+test('config only exposes public settings and disables preview deployments', async () => {
   const get = new Request('https://msime.app/api/feedback');
-  assert.deepEqual(await (await onRequest({ request: get, env })).json(), { siteKey: env.TURNSTILE_SITE_KEY });
-  assert.equal((await onRequest({ request: get, env: {} })).status, 503);
-  assert.equal((await onRequest({ request: new Request('https://preview.pages.dev/api/feedback'), env })).status, 403);
-  const method = await onRequest({ request: new Request(get, { method: 'DELETE' }), env });
-  assert.equal(method.status, 405);
-  assert.equal(method.headers.get('Allow'), 'GET, POST');
-});
-test('rejects failed, replayed, wrong-action and wrong-host challenges without creating issues', async t => {
-  for (const verification of [{ success: false, 'error-codes': ['timeout-or-duplicate'] }, { success: true, action: 'login', hostname: 'msime.app' }, { success: true, action: 'feedback', hostname: 'localhost' }]) {
-    await t.test(JSON.stringify(verification), async t => {
-      const calls = mockFetch(t, verification);
-      assert.equal((await onRequest({ request: request(), env })).status, 403);
-      assert.equal(calls.length, 1);
-    });
-  }
-});
-test('verification outage fails closed', async t => {
-  t.mock.method(globalThis, 'fetch', async () => { throw new Error('offline'); });
-  assert.equal((await onRequest({ request: request(), env })).status, 503);
-});
-test('GitHub failures never disclose credentials or upstream response details', async t => {
-  mockFetch(t, undefined, () => Response.json({ message: 'test-only-token' }, { status: 403 }));
-  const response = await onRequest({ request: request(), env });
-  assert.equal(response.status, 503);
-  assert.ok(!(await response.text()).includes('test-only-token'));
-});
-test('ambiguous GitHub write is not retried and provides a link to check for duplicates', async t => {
-  const calls = mockFetch(t, undefined, () => { throw new Error('timeout'); });
-  const response = await onRequest({ request: request(), env });
-  assert.equal(response.status, 502);
-  const body = await response.json();
-  assert.equal(body.uncertain, true);
-  assert.equal(body.issuesUrl, 'https://github.com/metasequoiaime/MSIME-Windows/issues');
-  assert.equal(calls.length, 3);
-});
-test('user Markdown preserves lists and paragraphs without active mentions', () => {
-  const issue = formatIssue({ ...form, extra: '**补充**\n\n- 第一项\n- @team' });
-  assert.ok(issue.body.includes('**补充**\n\n- 第一项\n- @\u200bteam'));
-  assert.ok(!issue.body.includes('## 补充说明\n\n>'));
-  assert.ok(!formatIssue({ ...form, environment: '', extra: '' }).body.includes('未填写'));
+  assert.deepEqual(await (await onRequest({request:get,env})).json(),{siteKey:env.TURNSTILE_SITE_KEY,screenshotsEnabled:false});
+  assert.equal((await onRequest({request:get,env:{}})).status,503);
+  assert.equal((await onRequest({request:new Request('https://preview.pages.dev/api/feedback'),env})).status,403);
+  assert.equal((await onRequest({request:new Request(get,{method:'DELETE'}),env})).status,405);
 });
 
-test('optional contacts are published verbatim as code without mention notifications', async t => {
-  const calls = mockFetch(t);
-  const contacts = { qq: '123456789', qqNickname: '测试昵称', wechat: 'example_wechat', github: 'example-user', email: 'example@example.com' };
-  const response = await onRequest({ request: request({ ...form, ...contacts }), env });
-  assert.equal(response.status, 201);
-  const issue = JSON.parse(calls.at(-1).options.body);
-  for (const value of Object.values(contacts)) assert.ok(issue.body.includes(`\` ${value} \``));
-  assert.ok(issue.body.includes('| QQ | ` 123456789 ` · ` 测试昵称 ` |'));
-  assert.ok(issue.body.includes('联系方式由提交者自愿公开，未经验证。'));
-  assert.ok(!formatIssue(form).body.includes('## 联系方式'));
-});
-
-test('invalid contact details are rejected before external requests', async t => {
-  const calls = mockFetch(t);
-  for (const contacts of [{ email: 'not-an-email' }, { qq: 'x'.repeat(101) }, { qqNickname: 'x'.repeat(101) }, { wechat: 'line\nbreak' }, { github: 123 }, { github: 'https://github.com/example-user' }, { github: '@example-user' }]) {
-    assert.equal((await onRequest({ request: request({ ...form, ...contacts }), env })).status, 400);
-  }
-  assert.equal(calls.length, 0);
-});
-
-
-test('PKCS8 keys work and personal token alone cannot enable submissions', async t => {
-  mockFetch(t);
-  assert.equal((await onRequest({ request: request(), env: { ...env, GITHUB_APP_PRIVATE_KEY: privateKey.export({ type: 'pkcs8', format: 'pem' }) } })).status, 201);
-  assert.equal((await onRequest({ request: request(), env: { ...env, GITHUB_APP_PRIVATE_KEY: undefined, GITHUB_ISSUES_TOKEN: 'old-personal-token' } })).status, 503);
-});
-
-test('App authentication failures never attempt issue creation or leak private keys', async t => {
-  const calls = [];
-  t.mock.method(globalThis, 'fetch', async (url) => {
-    calls.push(url);
-    if (url.includes('siteverify')) return Response.json({ success: true, action: 'feedback', hostname: 'msime.app' });
-    return Response.json({ message: env.GITHUB_APP_PRIVATE_KEY }, { status: 401 });
+test('failed or mismatched Turnstile challenges stop before template fetch, storage and Issue writes', async t => {
+  for (const verification of [{success:false},{success:true,action:'login',hostname:'msime.app'},{success:true,action:'feedback',hostname:'localhost'}]) await t.test(JSON.stringify(verification),async t=>{
+    const calls=mockFetch(t,{verification});
+    assert.equal((await onRequest({request:request(),env})).status,403);
+    assert.equal(calls.length,1);
   });
-  const response = await onRequest({ request: request(), env });
-  assert.equal(response.status, 503);
-  const body = await response.json();
-  assert.equal(body.uncertain, undefined);
-  assert.ok(!JSON.stringify(body).includes('PRIVATE KEY'));
-  assert.equal(calls.length, 2);
-  assert.ok(calls.at(-1).endsWith('/access_tokens'));
-  assert.equal((await onRequest({ request: request(), env: { ...env, GITHUB_APP_PRIVATE_KEY: 'invalid' } })).status, 503);
-  assert.equal(calls.length, 3);
+});
+
+test('template service failures and App auth failures do not create issues or leak credentials', async t => {
+  const calls=mockFetch(t,{templateStatus:503});
+  assert.equal((await onRequest({request:request(),env})).status,503);
+  assert.equal(writes(calls).length,0);
+  t.mock.restoreAll();
+  mockFetch(t);
+  const result=await onRequest({request:request(),env:{...env,GITHUB_APP_PRIVATE_KEY:'invalid'}});
+  assert.equal(result.status,503);
+  assert.ok(!(await result.text()).includes('PRIVATE KEY'));
+});
+
+test('Markdown, contacts and labels follow the template without active user mentions', () => {
+  const data=feedbackSchema.parse({...form,answers:{...form.answers,proposal:'**说明**\n\n- @team'},qq:'123456789',qqNickname:'测试昵称',email:'example@example.com'});
+  const issue=formatIssue(data,templateFor());
+  assert.ok(issue.body.includes('**说明**\n\n- @\u200bteam'));
+  assert.ok(issue.body.includes('| QQ | ` 123456789 ` · ` 测试昵称 ` |'));
+  assert.ok(issue.body.includes('` example@example.com `'));
+  assert.deepEqual(issue.labels,['enhancement']);
+  assert.equal(issue.type,'Feature');
+  assert.ok(!issue.body.includes('感谢建议！'));
+});
+
+const png = new Uint8Array([137,80,78,71,13,10,26,10]);
+const multipart = (files=[new File([png],'private.png',{type:'image/png'})],data=form) => {
+  const body=new FormData();
+  body.set('payload',JSON.stringify({...data,screenshotFields:data.screenshotFields.length ? data.screenshotFields : files.map(()=>'')}));
+  for (const file of files) body.append('screenshots',file);
+  return new Request('https://msime.app/api/feedback',{method:'POST',headers:{Origin:env.FEEDBACK_ORIGIN},body});
+};
+function bucketMock() {
+  const objects=new Map();
+  return {objects,async put(key,bytes,options){objects.set(key,{bytes,...options});},async get(key){const object=objects.get(key);return object?{body:new Blob([object.bytes]).stream()}:null;},async delete(keys){for(const key of keys) objects.delete(key);}};
+}
+test('screenshots attach to the selected template field and are served as images', async t => {
+  const calls=mockFetch(t),bucket=bucketMock(),imageEnv={...env,FEEDBACK_SCREENSHOTS:bucket};
+  assert.equal((await onRequest({request:multipart(undefined,{...form,screenshotFields:['additional']}),env:imageEnv})).status,201);
+  const key=[...bucket.objects.keys()][0];
+  const issue=JSON.parse(writes(calls)[0].options.body);
+  assert.match(issue.body,/### 其他信息 \/ Additional Context\n\n[\s\S]*!\[截图 1\]/);
+  assert.ok(issue.body.includes(`https://msime.app/api/feedback-images/${key.slice(9)}`));
+  assert.ok(!issue.body.includes('private.png'));
+  const response=await getImage({request:new Request(`https://msime.app/api/feedback-images/${key.slice(9)}`),env:imageEnv,params:{key:key.slice(9)}});
+  assert.equal(response.headers.get('Content-Type'),'image/png');
+  assert.deepEqual(new Uint8Array(await response.arrayBuffer()),png);
+  assert.equal((await getImage({request:new Request('https://msime.app/api/feedback-images/x'),env:imageEnv,params:{key:'../secret'}})).status,404);
+});
+
+test('invalid file type, signature, size and count are rejected before verification', async t => {
+  const calls=mockFetch(t),bucket=bucketMock();
+  for(const files of [Array.from({length:4},()=>new File([png],'a.png',{type:'image/png'})),[new File(['<svg/>'],'a.svg',{type:'image/svg+xml'})],[new File(['html'],'a.png',{type:'image/png'})],[new File([], 'a.png',{type:'image/png'})],[new File([new Uint8Array(5*1024*1024+1)],'a.png',{type:'image/png'})]]) assert.equal((await onRequest({request:multipart(files),env:{...env,FEEDBACK_SCREENSHOTS:bucket}})).status,400);
+  assert.equal(calls.length,0);
+  assert.equal((await onRequest({request:multipart(),env})).status,503);
+});
+
+test('failed storage or explicit rejection cleans up; ambiguous Issue writes retain images and are not retried', async t => {
+  for(const status of [422,500]) await t.test(String(status),async t=>{
+    const calls=mockFetch(t,{issue:()=>new Response(null,{status})}),bucket=bucketMock();
+    const response=await onRequest({request:multipart(),env:{...env,FEEDBACK_SCREENSHOTS:bucket}});
+    assert.equal(response.status,502);
+    assert.equal(bucket.objects.size,status===500?1:0);
+    assert.equal(writes(calls).length,1);
+    assert.equal((await response.json()).uncertain,status===500?true:undefined);
+  });
+  await t.test('storage failure',async t=>{
+    const calls=mockFetch(t),bucket=bucketMock();
+    bucket.put=async key=>{bucket.objects.set(key,{});throw new Error('failed');};
+    assert.equal((await onRequest({request:multipart(),env:{...env,FEEDBACK_SCREENSHOTS:bucket}})).status,503);
+    assert.equal(bucket.objects.size,0);
+    assert.equal(writes(calls).length,0);
+  });
+});
+
+test('template endpoint inherits only on directory 404, rejects arbitrary targets and returns no credentials', async t => {
+  const calls=mockFetch(t);
+  const response=await templateEndpoint({request:new Request('https://msime.app/api/feedback-templates?target=web')});
+  assert.equal(response.status,200);
+  assert.equal((await response.json()).templates[0].id,'.github/feature_request.yml');
+  assert.ok(calls.some(call=>call.url.includes('/MSIME-Web/contents/')));
+  assert.ok(calls.some(call=>call.url.includes('/.github/contents/')));
+  assert.equal((await templateEndpoint({request:new Request('https://msime.app/api/feedback-templates?target=evil')})).status,400);
+  t.mock.restoreAll();
+  const failed=mockFetch(t,{templateStatus:403});
+  await assert.rejects(loadFeedbackTemplates('web'));
+  assert.equal(failed.length,1);
+});
+
+test('generic templates support defaults, optional fields, code fences and required screenshot uploads', () => {
+  const source=`name: Custom\ntitle: '[Custom] '\nlabels: custom, enhancement\nbody:\n  - type: dropdown\n    id: platform\n    attributes:\n      label: Platform\n      options: [one, two]\n      default: 1\n  - type: textarea\n    id: logs\n    attributes:\n      label: Logs\n      render: shell\n  - type: upload\n    id: image\n    attributes:\n      label: Screenshot\n    validations:\n      required: true\n      accept: .png\n`;
+  const template=templateFor('windows',source),answers=initialAnswers(template);
+  assert.deepEqual(answers.platform,['two']);
+  assert.match(validateAnswers(template,answers),/Screenshot/);
+  assert.equal(validateAnswers(template,answers,['image']),undefined);
+  answers.logs='```\n@team';
+  const issue=formatIssue({...form,answers},template,[{field:'image',url:'https://msime.app/image.png'}]);
+  assert.ok(issue.body.includes('````shell\n```\n@\u200bteam\n````'));
+  assert.ok(issue.body.includes('### Screenshot\n\n![截图 1](https://msime.app/image.png)'));
+  assert.deepEqual(issue.labels,['custom','enhancement']);
+  assert.throws(()=>templateFor('windows','name: bad\nbody: []'));
+  assert.throws(()=>templateFor('windows',sources.windows.replace('type: textarea','type: unknown')));
 });

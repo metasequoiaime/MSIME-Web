@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { IssueTemplate, Screenshot } from "./feedback-templates.ts";
 
 export const targets = {
   windows: { label: "Windows 输入法", repo: "MSIME-Windows" },
@@ -21,10 +22,10 @@ const contactText = (max: number) => z.string().trim().max(max, `联系方式最
 export const feedbackSchema = z.object({
   target: targetSchema,
   title: z.string().trim().min(5, "请用至少 5 个字概括需求").max(100, "标题最多 100 个字").refine(value => !/[\r\n]/.test(value), "标题不能换行"),
-  background: z.string().trim().min(10, "请用至少 10 个字描述使用场景").max(3000, "使用场景最多 3000 个字"),
-  expected: z.string().trim().min(10, "请用至少 10 个字描述期望行为").max(3000, "期望行为最多 3000 个字"),
-  environment: z.string().trim().max(500, "使用环境最多 500 个字"),
-  extra: z.string().trim().max(3000, "补充说明最多 3000 个字"),
+  templateId: z.string().min(1).max(300),
+  templateRevision: z.string().regex(/^[a-f0-9]{40}$/),
+  answers: z.record(z.string().max(100), z.union([z.string().max(6000), z.array(z.string().max(2000)).max(100)])).refine(value => Object.keys(value).length <= 50, "表单字段过多"),
+  screenshotFields: z.array(z.string().max(100)).max(3).default([]),
   qq: contactText(100),
   qqNickname: contactText(100),
   wechat: contactText(100),
@@ -41,7 +42,18 @@ const contactLiteral = (value: string) => {
   const delimiter = "`".repeat(Math.max(0, ...(value.match(/`+/g) ?? []).map(part => part.length)) + 1);
   return `${delimiter} ${value.replaceAll("|", "\\|")} ${delimiter}`;
 };
-export function formatIssue(data: Feedback) {
+export function formatIssue(data: Feedback, template: IssueTemplate, screenshots: Screenshot[] = []) {
+  const sections = template.fields.filter(field => field.type !== "markdown").flatMap(field => {
+    const value = data.answers[field.id];
+    let answer = typeof value === "string" ? content(value) : Array.isArray(value) ? value.map(content).join(", ") : "";
+    if (field.type === "checkboxes") answer = field.options.map(option => `- [${Array.isArray(value) && value.includes(option.label) ? "x" : " "}] ${content(option.label)}`).join("\n");
+    if (field.render && answer) {
+      const fence = "`".repeat(Math.max(3, ...[...(answer.matchAll(/`+/g))].map(match => match[0].length + 1)));
+      answer = `${fence}${field.render}\n${answer}\n${fence}`;
+    }
+    const attached = screenshots.filter(image => image.field === field.id).map((image, i) => `![截图 ${i + 1}](${image.url})`);
+    return [`### ${content(field.label)}`, [answer, ...attached].filter(Boolean).join("\n\n") || "_No response_"];
+  });
   const contacts = contactFields.filter(field => field.name !== "qq" && field.name !== "qqNickname").flatMap(field => {
     const value = data[field.name]?.trim();
     return value ? [`| ${field.label} | ${contactLiteral(value)} |`] : [];
@@ -49,15 +61,14 @@ export function formatIssue(data: Feedback) {
   const qq = [data.qq?.trim(), data.qqNickname?.trim()].filter((value): value is string => Boolean(value)).map(contactLiteral);
   if (qq.length) contacts.unshift(`| QQ | ${qq.join(" · ")} |`);
   return {
-    title: `[需求] ${data.title.replaceAll("@", "@\u200b")}`,
+    title: data.title.replaceAll("@", "@\u200b"),
+    labels: template.labels,
+    ...(template.issueType ? { type: template.issueType } : {}),
     body: [
-      `**需求归属：** ${targets[data.target].label} · [官网提交](https://msime.app/feedback/)`,
-      "## 使用场景与问题", content(data.background),
-      "## 期望行为", content(data.expected),
-      ...(data.environment.trim() ? ["## 使用环境与版本", content(data.environment)] : []),
-      ...(data.extra.trim() ? ["## 补充说明", content(data.extra)] : []),
-      ...(contacts.length ? ["## 联系方式", ["| 渠道 | 联系方式 |", "| --- | --- |", ...contacts].join("\n"), "*联系方式由提交者自愿公开，未经验证。*"] : []),
-      "---", "由官网需求表单自动创建。提交者已同意公开以上内容，需求待维护者评估。",
+      ...sections,
+      ...(screenshots.some(image => !image.field) ? ["### 截图", screenshots.filter(image => !image.field).map((image, i) => `![截图 ${i + 1}](${image.url})`).join("\n\n")] : []),
+      ...(contacts.length ? ["### 联系方式", ["| 渠道 | 联系方式 |", "| --- | --- |", ...contacts].join("\n"), "*联系方式由提交者自愿公开，未经验证。*"] : []),
+      "---", `由[官网需求表单](https://msime.app/feedback/)自动创建 · ${targets[data.target].label}。提交者已同意公开以上内容，需求待维护者评估。`,
     ].join("\n\n"),
   };
 }

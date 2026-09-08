@@ -69,9 +69,9 @@ Biome 只开了 linter，formatter 处于关闭状态——仓库既有代码尚
 
 ## 官网需求上报
 
-`/feedback/` 无需 GitHub 登录，按 Windows / Apple / Linux / 公共引擎 / 公共 API / 文档 / 官网分流到组织内对应仓库。前后端共用 `shared/feedback.ts` 的校验与 Issue 模板。提交内容公开；可选填 QQ 号码及昵称、微信、GitHub 用户名和 Email，填写的联系方式也会公开；防机器人验证使用 Turnstile。
+`/feedback/` 无需 GitHub 登录，按 Windows / Apple / Linux / 公共引擎 / 公共 API / 文档 / 官网分流到组织内对应仓库。前后端共用答案校验与 Issue 格式化函数；模板正文从 GitHub 仓库读取。提交内容公开；可选填 QQ 号码及昵称、微信、GitHub 用户名和 Email，填写的联系方式也会公开；防机器人验证使用 Turnstile。
 
-继续使用现有 Cloudflare Pages Git 集成，构建命令和 `dist` 输出目录不变。根目录 `functions/api/feedback.ts` 提供 `/api/feedback`，`public/_routes.json` 只让此接口进入 Functions。不要将 GitHub 凭据放入任何 `VITE_*` 环境变量或前端代码。
+继续使用现有 Cloudflare Pages Git 集成，构建命令和 `dist` 输出目录不变。根目录 `functions/api/feedback.ts` 提供 `/api/feedback`，`public/_routes.json` 仅将此接口、`/api/feedback-templates` 模板读取接口及 `/api/feedback-images/*` 截图读取路由交给 Functions。不要将 GitHub 凭据放入任何 `VITE_*` 环境变量或前端代码。
 
 在现有 Pages 项目的生产环境设置以下运行时变量，再通过正常 PR 发布：
 
@@ -95,3 +95,21 @@ Issue 作者为 App 的机器人账号（例如 `msime-feedback[bot]`）。后�
 上线验收：确认生产域名的验证组件可用；经维护者同意提交一条明确标注的测试需求，核对目标仓库和格式；重放同一个验证 token 应被拒绝。网络中断或 GitHub 5xx 不会自动重试写操作，页面提示先查看已有 Issue，防止重复创建。
 
 实现依据：[Pages Functions 路由](https://developers.cloudflare.com/pages/functions/routing/)、[Turnstile 服务端校验](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/)、[GitHub 创建 Issue API](https://docs.github.com/en/rest/issues/issues#create-an-issue)。
+
+截图上传：在现有 Pages 项目生产环境添加 R2 bucket binding，变量名为 `FEEDBACK_SCREENSHOTS`，绑定一个专用截图桶后重新部署（[Pages R2 配置](https://developers.cloudflare.com/pages/functions/bindings/#r2-buckets)）。无需启用桶公开访问或添加 GitHub Contents 权限。未绑定时表单仍可提交文字，截图入口显示暂不可用；预览环境若需测试，使用独立桶及 origin。
+
+截图与表单通过同一次 multipart 请求提交，最多 3 张 PNG/JPEG/WebP，每张 5 MiB。服务端限制请求大小、校验文件签名，完成 Turnstile 和 App 验证后写入 R2，再将同域图片 URL 嵌入 Issue。上传失败或 GitHub 明确拒绝时清理本次图片；GitHub 响应不确定时保留图片，以免已创建的 Issue 出现断图。运维清理孤立图片前须核对 Issue；已引用图片应长期保留。图片存储键为 `feedback/<随机 UUID>.<扩展名>`，不保留原文件名。
+
+模板由 `shared/load-feedback-templates.ts` 在运行时读取目标仓库默认分支的 `.github/ISSUE_TEMPLATE/` 目录，自动发现 YAML Issue Forms；目录不存在（404）时继承组织 `.github` 仓的默认模板。显示所有可解析表单，优先选择带 `enhancement` 标签的功能建议；标题默认值、说明、字段顺序、必填项、下拉多选、确认项、标签和 Issue type 均来自仓库。`shared/feedback-templates.ts` 只定义通用表单结构和校验，不保存各仓字段副本。公开模板无需新增 GitHub App 权限；读取错误、无 YAML 模板或不支持的表单语法会显示重试及 GitHub 提交入口，不悄悄换成别的模板。
+
+模板列表读取请求设置 5 分钟 Cloudflare 边缘缓存，提交核对跳过该缓存。目录中的 blob SHA 同时作为模板版本和精确正文的读取依据。提交只接受模板 ID、SHA 和答案；服务端重新读取模板，按权威字段校验，客户端不能自定义标签或绕过必填项。模板变化返回 409 及新定义，页面保留兼容答案和截图，要求用户检查新表单后再次提交，不自动创建 Issue。
+
+支持 Markdown 说明、单行输入、多行输入（含 `render` 代码块）、单选/多选下拉、确认项，以及截图类型的 upload 字段。官网仍只收 PNG/JPEG/WebP 截图，遵循模板 upload 的 `accept` 限制；其他附件请在 GitHub 提交。截图可放入模板的非代码文本区或上传字段，也可单列截图小节。顶部“填写 / 预览”Tab 共用草稿，可从预览提交；切换仓库或模板的草稿保留在当前页面内存中，刷新页面会丢失。
+
+`scripts/fixtures/feedback/` 是测试专用模板快照，运行时不读取它们。模板更新不需要修改网站代码或重新构建，只有新增尚不支持的字段类型才需要扩展通用渲染器。
+
+## 常见问题 Q&A
+
+`/faq/` 提供按分类筛选、全文搜索、折叠展开及问题锚点。正文唯一来源为 MSIME-Docs 的 `guides/faq.md`：一级标题和首段用于页头，二级标题作为分类，三级标题作为问答，正文使用现有安全 Markdown 渲染器。导航、页脚、文档页及需求表单提供入口。
+
+维护时先核对 Issue 的最终回复和适用版本，区分已解决、临时处理、未确认结论；字体工具栏问题 #232 仍开放，不能标成已修复。FAQ 内容先在 Docs 合入，再将 Web 的 Docs gitlink 更新到包含 FAQ 的已合并提交，最后通过正常 PR 发布网站。仅更新 Web gitlink 不会包含 Docs 工作区里尚未提交的 FAQ 文件。
