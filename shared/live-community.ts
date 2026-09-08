@@ -16,7 +16,7 @@ export async function loadCommunity(token: string, request: typeof fetch = fetch
         headers: { Authorization: `Bearer ${token}`, Accept: accept, "User-Agent": "MSIME-Web-community", "X-GitHub-Api-Version": "2022-11-28" }, signal,
       });
       if (response.status === 204) return result;
-      if (!response.ok) throw new Error("GitHub statistics unavailable");
+      if (!response.ok) throw new Error(`GitHub statistics unavailable: HTTP ${response.status} (${path})`);
       const batch = z.array(z.unknown()).parse(await response.json());
       result.push(...batch);
       if (!response.headers.get("link")?.includes('rel="next"')) return result;
