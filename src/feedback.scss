@@ -21,7 +21,22 @@
   .feedback-contacts h2 { font-size: 1.1rem; margin-bottom: .5rem; color: var(--lg-heading); }
   .feedback-contact-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1rem; }
   @media (max-width: 550px) { .feedback-contact-grid { grid-template-columns: minmax(0, 1fr); } }
-  .feedback-preview { margin-top: 1.5rem; padding: 1rem; border: 1px solid var(--hair-3); border-radius: 10px; }
+  .feedback-image-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-top: 1rem; }
+  .feedback-image-grid figure { min-width: 0; margin: 0; }
+  .feedback-image-grid img { width: 100%; height: 140px; object-fit: contain; border: 1px solid var(--hair-3); border-radius: 8px; }
+  .feedback-image-grid figcaption { overflow-wrap: anywhere; font-size: .85rem; margin: .5rem 0; }
+  [hidden] { display: none !important; }
+  .feedback-tabs { display: flex; gap: .25rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--hair-3); }
+  .feedback-tabs button { border: 0; border-bottom: 3px solid transparent; padding: .8rem 1.5rem; background: none; color: var(--text-muted); font: inherit; font-weight: 600; cursor: pointer; }
+  .feedback-tabs button[aria-selected=true] { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+  .feedback-tabs button:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
+  .feedback-choice-field { padding: 0; margin: 1.5rem 0; }
+  .feedback-choice-field legend { font-size: 1rem; margin: 0; }
+  .feedback-choice-field .feedback-consent { margin-top: .6rem; }
+  .feedback-template-note { margin: 1rem 0; }
+  .feedback-template-markdown p { margin: .4rem 0; }
+  .feedback-template-field > .feedback-hint { margin-top: .3rem; }
+  .feedback-image-grid select { padding: .5rem; font-size: .85rem; }
   summary { cursor: pointer; }
   .feedback-issue { margin-top: 1.25rem; overflow-wrap: anywhere; }
   .feedback-issue-title { font-size: 1.4rem; line-height: 1.5; color: var(--lg-heading); margin-bottom: 1.5rem; }
@@ -66,7 +81,6 @@
     input:not([type=checkbox]), select, textarea { font-size: 16px; min-height: 48px; padding: 12px; }
     textarea { line-height: 1.65; }
     .feedback-contact-grid { gap: 0; }
-    .feedback-preview { padding: 12px; }
     summary { min-height: 44px; align-content: center; font-size: 15px; }
     .feedback-issue-title { font-size: 20px; }
     .feedback-issue-body { font-size: 15px; }

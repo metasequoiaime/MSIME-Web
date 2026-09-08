@@ -6,6 +6,7 @@ const NAV_ITEMS = [
   { to: "/", label: "首页", icon: "home" },
   { to: "/features/", label: "功能", icon: "home" },
   { to: "/docs/", label: "文档", icon: "docs" },
+  { to: "/faq/", label: "常见问题", icon: "docs" },
   { to: "/price/", label: "价格", icon: "price" },
   { to: "/code/", label: "开源代码", icon: "code" },
   { to: "/download/", label: "下载", icon: "download" },
@@ -292,6 +293,7 @@ function SiteFooter({ inert }: { inert: boolean }) {
               <Link to="/download/">下载</Link>
               <Link to="/price/">价格</Link>
               <Link to="/docs/">文档</Link>
+              <Link to="/faq/">常见问题 Q&A</Link>
             </div>
           </div>
 

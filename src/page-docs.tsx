@@ -1,4 +1,4 @@
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useCallback, useMemo, useRef, useState } from "react";
 import linuxGuide from "../vendor/MSIME-Docs/guides/linux.md?raw";
 import macosGuide from "../vendor/MSIME-Docs/guides/macos.md?raw";
@@ -95,6 +95,8 @@ export function DocsPage() {
                 </button>
               ))}
             </nav>
+
+            <Link className="btn btn-ghost" to="/faq/">常见问题 Q&A ↗</Link>
 
             <TocNav
               entries={content.toc}

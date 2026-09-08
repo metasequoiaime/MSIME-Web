@@ -54,6 +54,12 @@ const docsRoute = createRoute({
   validateSearch: docsSearchSchema,
 });
 
+const faqRoute = createRoute({
+  getParentRoute: () => shellRoute,
+  path: "/faq",
+  component: lazyRouteComponent(() => import("./page-faq"), "FaqPage"),
+});
+
 const downloadRoute = createRoute({
   getParentRoute: () => shellRoute,
   path: "/download",
@@ -97,7 +103,7 @@ const resumeRoute = createRoute({
 });
 
 const routeTree = rootRoute.addChildren([
-  shellRoute.addChildren([indexRoute, featuresRoute, docsRoute, downloadRoute, aboutRoute, codeRoute, priceRoute, privacyRoute, feedbackRoute]),
+  shellRoute.addChildren([indexRoute, featuresRoute, docsRoute, faqRoute, downloadRoute, aboutRoute, codeRoute, priceRoute, privacyRoute, feedbackRoute]),
   resumeRoute,
 ]);
 
