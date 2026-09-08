@@ -59,3 +59,8 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.beta-platforms { border: 0; padding: 0; margin: 0 0 1.5rem; }
+.beta-platforms legend { margin-bottom: .75rem; font-weight: 600; }
+.beta-platforms .btn { min-height: 44px; }
+.beta-action .btn-row { justify-content: center; }

@@ -53,7 +53,7 @@ macOS 版内置 Sparkle 自动更新，安装后可从输入法菜单中的「�
 
 需要 iOS 15 或更高版本。iOS 版已开放公测，目前通过 TestFlight 提供安装。
 
-- [加入 TestFlight 公测](/beta/) — 用 iPhone 打开链接即可安装，不需要邮箱，也不需要开发者账号
+- [加入 TestFlight 公测](/beta/?platform=ios) — 用 iPhone 打开链接即可安装，不需要邮箱，也不需要开发者账号
 
 是否上架 App Store 尚未决定：iOS 词库中包含 GPL-3.0 的第三方数据，与 App Store 条款存在冲突，需要先解决授权问题。原委见 [ios-distribution.md](https://github.com/metasequoiaime/MSIME-Apple/blob/main/docs/ios-distribution.md)。
 

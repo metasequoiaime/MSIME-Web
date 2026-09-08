@@ -1,32 +1,50 @@
+import { useEffect } from "react";
+import { LocaleLink as Link } from "./locale-link";
+import { usePageSearch } from "./use-page-search";
 import { useLocale } from "./use-locale";
 import { PageHero } from "./page-content";
 import { usePageMeta } from "./page-meta";
 import { useReveal } from "./use-reveal";
 import "./beta.scss";
 
-/*
- * iOS 公测页。
- *
- * 这里只有一条 TestFlight 公开链接，没有表单。收邮箱再调 App Store Connect API 建测试员，把人放进的是同一个外部测试组，
- * 结果一样，代价却是本站要部署一份 Apple 私钥，还得在输入框前面加人机验证——否则那个地址栏就是一台替人发邀请信的中继。
- */
 const TESTFLIGHT_LINK = "https://testflight.apple.com/join/bUzPvyqt";
 
 export function BetaPage() {
   const { t } = useLocale();
+  const { choice, get, update, ready } = usePageSearch();
+  const platform = choice("platform", ["macos", "ios"] as const, "ios");
+  const requestedPlatform = get("platform");
+  // biome-ignore lint/correctness/useExhaustiveDependencies: normalize only when the requested platform changes.
+  useEffect(() => {
+    if (ready && requestedPlatform !== platform) update({ platform }, true);
+  }, [ready, requestedPlatform, platform]);
   usePageMeta();
-  useReveal();
+  useReveal([platform]);
 
   return (
     <>
       <PageHero
-        kicker="TestFlight"
-        title="iOS 公测"
-        leadHtml="水杉输入法的 iOS 键盘已开放公测。用 iPhone 打开 TestFlight 链接就能装，不需要邮箱，也不需要开发者账号。"
+        kicker="公开测试"
+        title={t(platform === "macos" ? "macOS 公测" : "iOS 公测")}
+        leadHtml={t(platform === "macos" ? "水杉输入法 macOS 版已开放公测。下载安装包，按使用指南启用输入法。" : "水杉输入法的 iOS 键盘已开放公测。用 iPhone 打开 TestFlight 链接就能装，不需要邮箱，也不需要开发者账号。")}
       />
 
       <main className="content-page">
         <div className="container docs-content beta-content">
+          <fieldset className="beta-platforms">
+            <legend>{t("选择公测平台")}</legend>
+            <div className="btn-row">{(["macos", "ios"] as const).map(value => <button key={value} type="button" className={`btn ${platform === value ? "btn-primary" : "btn-ghost"}`} aria-pressed={platform === value} onClick={() => update({ platform: value })}>{value === "macos" ? "macOS" : "iOS"}</button>)}</div>
+          </fieldset>
+          {platform === "macos" ? <section className="doc-card beta-action" data-reveal>
+            <h2>{t("加入 macOS 公测")}</h2>
+            <p>{t("适用于 macOS 12 及以上。下载页提供当前版本的安装包、发布说明与校验信息。")}</p>
+            <div className="btn-row">
+              <Link className="btn btn-primary" to="/download/" search={{ platform: "macos" }}>{t("下载 macOS 公测版")}</Link>
+              <Link className="btn btn-ghost" to="/docs/$guide/" params={{ guide: "macos" }} search={{}}>{t("查看 macOS 安装与使用指南")}</Link>
+              <Link className="btn btn-ghost" to="/feedback/" search={{ target: "apple" }}>{t("反馈公测问题")}</Link>
+            </div>
+          </section> : <>
+
           <section className="doc-card beta-action" data-reveal>
             <h2>{t("加入公测")}</h2>
             <p>{t("在 iPhone 上点下面的按钮即可安装。本站不收集任何信息。")}</p>
@@ -76,6 +94,7 @@ export function BetaPage() {
               </p>
             </section>
           </div>
+          </>}
         </div>
       </main>
     </>

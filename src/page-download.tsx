@@ -252,7 +252,7 @@ function DownloadPanel({ platforms }: { platforms: Partial<Record<Platform, Plat
       <div className="download-panel-action">
         {/* iOS 这一栏没有可下的文件，按钮通向站内的公测页；用路由的 Link，点了不整页重载 */}
         {platform === "ios" ? (
-          <Link className="btn btn-lg btn-primary" to={BETA_PAGE}>
+          <Link className="btn btn-lg btn-primary" to={BETA_PAGE} search={{ platform: "ios" }}>
             {t("查看 iOS 公测")}
           </Link>
         ) : (
