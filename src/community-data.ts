@@ -8,6 +8,7 @@ const githubUrl = (prefix: string) =>
 
 export const communitySchema = z.object({
   generatedAt: z.string(),
+  stale: z.boolean().optional(),
   totalStars: z.number().int().nonnegative(),
   repoCount: z.number().int().nonnegative(),
   starHistory: z.array(z.object({ month: z.string(), stars: z.number().int().nonnegative() })).min(1),

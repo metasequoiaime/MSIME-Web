@@ -1,6 +1,8 @@
 {
   "version": 1,
   "include": [
+    "/api/community",
+    "/api/community/",
     "/api/feedback",
     "/api/feedback/",
     "/api/feedback-images/*",
