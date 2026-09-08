@@ -114,7 +114,20 @@ const resumeRoute = createRoute({
   component: lazyRouteComponent(() => import("./page-resume"), "ResumePage"),
 });
 
+const traditionalShell = createRoute({
+  getParentRoute: () => rootRoute,
+  id: 'traditional-shell',
+  component: lazyRouteComponent(() => import('./page-traditional'), 'TraditionalShell'),
+  notFoundComponent: NotFoundPage,
+});
+const traditionalRoutes = (['/zh-TW', '/zh-TW/features', '/zh-TW/download', '/zh-TW/faq', '/zh-TW/feedback'] as const).map(path => createRoute({
+  getParentRoute: () => traditionalShell,
+  path,
+  component: lazyRouteComponent(() => import('./page-traditional'), 'TraditionalPage'),
+}));
+
 const routeTree = rootRoute.addChildren([
+  traditionalShell.addChildren(traditionalRoutes),
   shellRoute.addChildren([indexRoute, featuresRoute, docsRoute, guideRoute, faqRoute, downloadRoute, aboutRoute, codeRoute, priceRoute, privacyRoute, feedbackRoute]),
   resumeRoute,
 ]);

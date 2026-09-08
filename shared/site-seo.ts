@@ -1,3 +1,4 @@
+import { traditionalPages, traditionalPath, isTraditional } from "./locales.ts";
 export const SITE_ORIGIN = "https://msime.app";
 export const SITE_NAME = "水杉输入法";
 export const GUIDE_NAMES = { windows: "Windows", macos: "macOS", "macos-voice": "macOS 语音", linux: "Linux" } as const;
@@ -17,24 +18,26 @@ export const seoPages: Record<string, { title: string; description: string; noin
 for (const [id, name] of Object.entries(GUIDE_NAMES)) seoPages[`/docs/${id}/`] = {
   title: `${name} 安装与使用指南｜水杉输入法`, description: `水杉输入法 ${name} 使用指南：安装、配置、输入操作与常见问题排查。内容来自官方 MSIME-Docs 文档。`,
 };
+for (const [path, page] of Object.entries(traditionalPages)) seoPages[traditionalPath(path)] = page;
+
 export const normalizePath = (path: string) => path === "/" ? "/" : `${path.replace(/\/+$/, "")}/`;
 export const markdownPath = (path: string) => path === "/" ? "/index.md" : `${normalizePath(path).slice(0, -1)}.md`;
 export function pageSeo(path: string) {
   const normalized = normalizePath(path);
   const page = seoPages[normalized];
-  return { ...(page ?? { title: "页面不存在｜水杉输入法", description: "这个地址没有内容，请返回首页或查看使用文档。", noindex: true }), path: normalized, canonicalPath: page?.canonicalPath ?? normalized, canonical: page ? `${SITE_ORIGIN}${page.canonicalPath ?? normalized}` : undefined };
+  return { ...(page ?? { title: "页面不存在｜水杉输入法", description: "这个地址没有内容，请返回首页或查看使用文档。", noindex: true }), language: isTraditional(normalized) ? "zh-Hant-TW" : "zh-CN", path: normalized, canonicalPath: page?.canonicalPath ?? normalized, canonical: page ? `${SITE_ORIGIN}${page.canonicalPath ?? normalized}` : undefined };
 }
 export function structuredData(path: string) {
   const requested = pageSeo(path);
   const page = pageSeo(requested.canonicalPath);
   if (page.noindex || !page.canonical) return undefined;
-  const organization = { "@type": "Organization", "@id": `${SITE_ORIGIN}/#organization`, name: SITE_NAME, url: `${SITE_ORIGIN}/`, logo: `${SITE_ORIGIN}/msime-logo.png`, sameAs: ["https://github.com/metasequoiaime"] };
-  const graph: object[] = [organization, { "@type": "WebSite", "@id": `${SITE_ORIGIN}/#website`, url: `${SITE_ORIGIN}/`, name: SITE_NAME, alternateName: "MSIME", inLanguage: "zh-CN", publisher: { "@id": organization["@id"] } }, {
-    "@type": "WebPage", "@id": `${page.canonical}#webpage`, url: page.canonical, name: page.title, description: page.description, inLanguage: "zh-CN", isPartOf: { "@id": `${SITE_ORIGIN}/#website` },
+  const organization = { "@type": "Organization", "@id": `${SITE_ORIGIN}/#organization`, name: isTraditional(path) ? "水杉輸入法" : SITE_NAME, url: `${SITE_ORIGIN}/`, logo: `${SITE_ORIGIN}/msime-logo.png`, sameAs: ["https://github.com/metasequoiaime"] };
+  const graph: object[] = [organization, { "@type": "WebSite", "@id": `${SITE_ORIGIN}/#website`, url: `${SITE_ORIGIN}/`, name: SITE_NAME, alternateName: "MSIME", inLanguage: page.language, publisher: { "@id": organization["@id"] } }, {
+    "@type": "WebPage", "@id": `${page.canonical}#webpage`, url: page.canonical, name: page.title, description: page.description, inLanguage: page.language, isPartOf: { "@id": `${SITE_ORIGIN}/#website` },
   }];
   if (page.path === "/") graph.push({ "@type": "SoftwareApplication", "@id": `${SITE_ORIGIN}/#software`, name: SITE_NAME, alternateName: ["MSIME", "MetasequoiaIME"], applicationCategory: "UtilitiesApplication", operatingSystem: ["Windows", "macOS", "Linux"], url: `${SITE_ORIGIN}/`, downloadUrl: `${SITE_ORIGIN}/download/`, isAccessibleForFree: true, offers: { "@type": "Offer", price: 0, priceCurrency: "CNY", url: `${SITE_ORIGIN}/price/` }, license: "https://github.com/metasequoiaime/MSIME-Web/blob/main/LICENSE", publisher: { "@id": organization["@id"] } });
-  if (page.path !== "/") {
-    const crumbs = [{ "@type": "ListItem", position: 1, name: "首页", item: `${SITE_ORIGIN}/` }];
+  if (page.path !== "/" && page.path !== "/zh-TW/") {
+    const crumbs = [{ "@type": "ListItem", position: 1, name: isTraditional(path) ? "首頁" : "首页", item: `${SITE_ORIGIN}${isTraditional(path) ? "/zh-TW/" : "/"}` }];
     crumbs.push({ "@type": "ListItem", position: crumbs.length + 1, name: page.title.split("｜")[0], item: page.canonical });
     graph.push({ "@type": "BreadcrumbList", itemListElement: crumbs });
   }
