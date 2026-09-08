@@ -44,7 +44,7 @@ test('all seven targets create an issue in the fixed repository with the shared 
 });
 test('rejects invalid target, missing consent, whitespace, overlong text and malformed requests before external calls', async t => {
   const calls = mockFetch(t);
-  for (const change of [{ target: '__proto__' }, { consent: false }, { title: '     ' }, { background: 'x'.repeat(3001) }, { token: '' }, { expected: 42 }, { title: 'hello\nworld' }]) {
+  for (const change of [{ target: '__proto__' }, { consent: false }, { title: '' }, { title: '     ' }, { background: '' }, { expected: '          ' }, { background: 'x'.repeat(3001) }, { token: '' }, { expected: 42 }, { title: 'hello\nworld' }]) {
     assert.equal((await onRequest({ request: request({ ...form, ...change }), env })).status, 400);
   }
   assert.equal((await onRequest({ request: request({ ...form, extra: '字'.repeat(40_000) }), env })).status, 400);
@@ -52,6 +52,16 @@ test('rejects invalid target, missing consent, whitespace, overlong text and mal
   assert.equal((await onRequest({ request: request(form, { Origin: 'https://evil.example' }), env })).status, 403);
   assert.equal((await onRequest({ request: new Request('https://msime.app/api/feedback', { method: 'POST', headers: { Origin: 'https://msime.app', 'Content-Type': 'application/json' }, body: '{' }), env })).status, 400);
   assert.equal(calls.length, 0);
+});
+test('optional fields may all be blank while required content is preserved', async t => {
+  const calls = mockFetch(t);
+  const response = await onRequest({ request: request({ ...form, environment: '', extra: '', qq: '', qqNickname: '', wechat: '', github: '', email: '' }), env });
+  assert.equal(response.status, 201);
+  const issue = JSON.parse(calls.at(-1).options.body);
+  assert.ok(issue.body.includes(form.background));
+  assert.ok(issue.body.includes(form.expected));
+  assert.ok(!issue.body.includes('## 联系方式'));
+  assert.ok(!issue.body.includes('## 使用环境与版本'));
 });
 test('config endpoint exposes only the site key and disables unconfigured and preview deployments', async () => {
   const get = new Request('https://msime.app/api/feedback');

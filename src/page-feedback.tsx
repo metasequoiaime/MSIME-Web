@@ -36,9 +36,19 @@ const emptyForm: Feedback = { target: "windows", title: "", background: "", expe
 const textFields = [
   { name: "background", label: "使用场景与问题", hint: "你在什么情况下遇到不便？目前是如何处理的？", required: true, max: 3000 },
   { name: "expected", label: "期望行为", hint: "希望增加或改进什么？可以举一个具体例子。", required: true, max: 3000 },
-  { name: "environment", label: "使用环境与版本（选填）", hint: "例如 Windows 11、输入法版本、使用的应用。", required: false, max: 500 },
-  { name: "extra", label: "补充说明（选填）", hint: "相关链接、替代方案或其他需要说明的内容。", required: false, max: 3000 },
+  { name: "environment", label: "使用环境与版本", hint: "例如 Windows 11、输入法版本、使用的应用。", required: false, max: 500 },
+  { name: "extra", label: "补充说明", hint: "相关链接、替代方案或其他需要说明的内容。", required: false, max: 3000 },
 ] as const;
+
+// 将共享规则接入浏览器约束校验，空白、长度和联系方式格式与服务端保持一致。
+function validateField(event: FormEvent<HTMLFormElement>) {
+  const field = event.target;
+  if (!(field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement)) return;
+  if (!Object.hasOwn(feedbackSchema.shape, field.name)) return;
+  const value = field instanceof HTMLInputElement && field.type === "checkbox" ? field.checked : field.value;
+  const result = feedbackSchema.shape[field.name as keyof Feedback].safeParse(value);
+  field.setCustomValidity(result.success ? "" : result.error.issues[0].message);
+}
 
 export function FeedbackPage() {
   usePageMeta("需求上报 | 水杉输入法", "提交功能需求，自动分流到对应的 GitHub 仓库。");
@@ -146,27 +156,27 @@ export function FeedbackPage() {
           <h2>需求已提交</h2><p>感谢你帮助水杉输入法变得更好。你可以通过 Issue 查看后续讨论和处理进展。</p>
           <a className="btn btn-primary" href={issueUrl} target="_blank" rel="noreferrer">查看已创建的 Issue ↗</a>
         </section> : <div className="feedback-layout">
-          <form className="card feedback-form" onSubmit={submit}>
+          <form className="card feedback-form" onSubmit={submit} onChange={validateField} onBlur={validateField} onInvalid={validateField}>
             <fieldset disabled={busy}>
               <legend>需求详情</legend>
               <label>需求归属
-                <select value={form.target} onChange={event => setForm({ ...form, target: feedbackSchema.shape.target.parse(event.target.value) })}>
+                <select name="target" required value={form.target} onChange={event => setForm({ ...form, target: feedbackSchema.shape.target.parse(event.target.value) })}>
                   {Object.entries(targets).map(([key, target]) => <option key={key} value={key}>{target.label}</option>)}
                 </select>
               </label>
               <p className="feedback-hint">不确定归属时，选择你使用的平台。</p>
-              <label>需求标题 <span>必填 · 5–100 字</span>
-                <input value={form.title} minLength={5} maxLength={100} required placeholder="一句话概括你希望改进的功能" onChange={event => setForm({ ...form, title: event.target.value })} />
+              <label>需求标题 <span className="feedback-required" aria-hidden="true">*</span>
+                <input name="title" value={form.title} minLength={5} maxLength={100} required placeholder="一句话概括你希望改进的功能" onChange={event => setForm({ ...form, title: event.target.value })} />
               </label>
-              {textFields.map(field => <label key={field.name}>{field.label} <span>{field.required ? "必填 · 至少 10 字" : ""}</span>
-                <textarea value={form[field.name]} required={field.required} minLength={field.required ? 10 : undefined} maxLength={field.max} rows={field.name === "environment" ? 2 : 4} placeholder={field.hint} onChange={event => setForm({ ...form, [field.name]: event.target.value })} />
+              {textFields.map(field => <label key={field.name}>{field.label}{field.required && <span className="feedback-required" aria-hidden="true"> *</span>}
+                <textarea name={field.name} value={form[field.name]} required={field.required} minLength={field.required ? 10 : undefined} maxLength={field.max} rows={field.name === "environment" ? 2 : 4} placeholder={field.hint} onChange={event => setForm({ ...form, [field.name]: event.target.value })} />
               </label>)}
               <section className="feedback-contacts">
-                <h2>联系方式 <span>选填</span></h2>
+                <h2>联系方式</h2>
                 <p className="feedback-hint">方便维护者进一步了解需求，可填写任意一项或全部留空。填写的联系方式会随 Issue 公开，请只提供愿意公开的账号。</p>
                 <div className="feedback-contact-grid">
-                  {contactFields.map(field => <label key={field.name}>{field.label}（选填）
-                    <input type={field.type} value={form[field.name]} maxLength={field.max} placeholder={field.placeholder} autoCapitalize="none" spellCheck={false} onChange={event => setForm({ ...form, [field.name]: event.target.value })} />
+                  {contactFields.map(field => <label key={field.name}>{field.label}
+                    <input name={field.name} type={field.type} value={form[field.name]} maxLength={field.max} placeholder={field.placeholder} autoCapitalize="none" spellCheck={false} onChange={event => setForm({ ...form, [field.name]: event.target.value })} />
                   </label>)}
                 </div>
               </section>
@@ -178,14 +188,14 @@ export function FeedbackPage() {
                   <div className="feedback-issue-body" dangerouslySetInnerHTML={{ __html: markdown.render(previewIssue.body) }} />
                 </article>
               </details>
-              <label className="feedback-consent"><input type="checkbox" required checked={consent} onChange={event => setConsent(event.target.checked)} /><span>我同意将以上内容及自愿填写的联系方式公开发布到 GitHub，确认不包含密码、令牌或其他不愿公开的信息。</span></label>
+              <label className="feedback-consent"><input name="consent" type="checkbox" required checked={consent} onChange={event => setConsent(event.target.checked)} /><span>我同意将以上内容及自愿填写的联系方式公开发布到 GitHub，确认不包含密码、令牌或其他不愿公开的信息。</span></label>
             </fieldset>
             <div className="feedback-verification"><div ref={widget} /><p className="feedback-hint" role="status">{status}</p>
               {!token && widgetId.current !== undefined && <button type="button" className="btn btn-ghost" disabled={busy} onClick={() => { if (widgetId.current !== undefined) window.turnstile?.reset(widgetId.current); }}>重新验证</button>}
             </div>
             {error && <p className="feedback-error" role="alert">{error}</p>}
             {uncertainUrl && <p><a href={uncertainUrl} target="_blank" rel="noreferrer">先查看最新 Issue ↗</a></p>}
-            <button className="btn btn-primary" type="submit" disabled={busy || !token || !consent}>{busy ? "正在提交…" : "提交需求"}</button>
+            <button className="btn btn-primary" type="submit" disabled={busy}>{busy ? "正在提交…" : "提交需求"}</button>
           </form>
           <aside className="card feedback-aside">
             <p className="feedback-kicker">提交到</p><h2>{targets[form.target].label}</h2>
