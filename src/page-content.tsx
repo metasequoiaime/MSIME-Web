@@ -1,5 +1,7 @@
+import { traditionalMarkdown } from "../shared/translate";
+import { useLocale } from "./use-locale";
 import { memo, useMemo, useRef, useState, type ReactNode } from "react";
-import { renderContent } from "./markdown";
+import { renderContent, localizedHtml } from "./markdown";
 import { usePageMeta } from "./page-meta";
 import { useTocScrollSpy, withHeadingIds } from "./toc";
 import { useInternalLinks } from "./use-internal-links";
@@ -14,17 +16,18 @@ type PageHeroProps = {
 
 /** 文档、下载和几个内容页共用的页头。`is-ready` 放开入场动画：正文由打包进来的 markdown 同步渲染，首帧标题就已经在了。 */
 export function PageHero({ kicker, title, leadHtml }: PageHeroProps) {
+  const { t, path } = useLocale();
   return (
     <div className="page-hero is-ready">
       <div className="container page-hero-inner">
         <p className="page-hero-kicker" id="page-kicker">
-          {kicker}
+          {t(kicker)}
         </p>
         <h1 className="page-hero-title" id="page-title">
-          {title}
+          {t(title)}
         </h1>
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: 首段是本仓库自带 markdown 渲染出来的行内标记，markdown-it 关掉了 html 透传 */}
-        <p className="page-hero-lead" id="page-lead" dangerouslySetInnerHTML={{ __html: leadHtml }} />
+        <p className="page-hero-lead" id="page-lead" dangerouslySetInnerHTML={{ __html: localizedHtml(leadHtml, path) }} />
       </div>
     </div>
   );
@@ -44,13 +47,14 @@ function SectionIndex({
   sidebarRef: React.RefObject<HTMLElement | null>;
   onSelect: (id: string) => void;
 }) {
+  const { t } = useLocale();
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <aside
       className={`docs-sidebar${isOpen ? " is-open" : ""}`}
       ref={sidebarRef as React.RefObject<HTMLElement>}
-      aria-label="本页小节"
+      aria-label={t("本页小节")}
     >
       <button
         className="docs-toc-toggle"
@@ -60,7 +64,7 @@ function SectionIndex({
           setIsOpen((open) => !open);
         }}
       >
-        <span>本页小节</span>
+        <span>{t("本页小节")}</span>
         <span className="docs-toc-toggle-icon" aria-hidden="true">
           <svg viewBox="0 0 12 12" focusable="false" aria-hidden="true">
             <path d="M2.25 4.25 6 8l3.75-3.75" />
@@ -146,20 +150,21 @@ export function ContentPage({
   repoRows = false,
   banner,
 }: ContentPageProps) {
+  const { t, tw, path } = useLocale();
   const articleRef = useRef<HTMLElement>(null);
   const tocRef = useRef<HTMLElement>(null);
   const sidebarRef = useRef<HTMLElement>(null);
 
   const content = useMemo(() => {
     if (source === null) return { title: "", leadHtml: "", html: "", toc: [] };
-    const rendered = renderContent(source, { sectioned, repoRows });
+    const rendered = renderContent(tw ? traditionalMarkdown(source) : source, { sectioned, repoRows, localePath: path });
     // 只索引二级标题：内容页里每个二级标题就是一张卡片，把卡内小标题也列上会让索引失去概览的作用
     return { ...rendered, ...withHeadingIds(rendered.bodyHtml, "h2") };
-  }, [source, sectioned, repoRows]);
+  }, [source, sectioned, repoRows, tw, path]);
 
   const hero = useMemo(
-    () => (heroSource === undefined ? content : renderContent(heroSource)),
-    [heroSource, content]
+    () => (heroSource === undefined ? content : renderContent(tw ? traditionalMarkdown(heroSource) : heroSource, { localePath: path })),
+    [heroSource, content, tw, path]
   );
 
   const { activeId, lockUntilScrollEnds } = useTocScrollSpy(content.toc, articleRef, tocRef, sidebarRef);
@@ -173,11 +178,11 @@ export function ContentPage({
 
   return (
     <>
-      <PageHero kicker={kicker} title={hero.title} leadHtml={hero.leadHtml} />
+      <PageHero kicker={kicker} title={t(hero.title)} leadHtml={hero.leadHtml} />
       <main className="content-page">
         <div className={`container${hasIndex ? " docs-shell" : ""}`}>
-          {banner}
-          {hasIndex && (
+          {t(banner)}
+          {t(hasIndex && (
             <SectionIndex
               entries={content.toc}
               activeId={activeId}
@@ -185,7 +190,7 @@ export function ContentPage({
               sidebarRef={sidebarRef}
               onSelect={lockUntilScrollEnds}
             />
-          )}
+          ))}
           <MarkdownArticle
             className={`docs-content ${contentClass}`}
             id={contentId}

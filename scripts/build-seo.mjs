@@ -19,7 +19,7 @@ markdown.keep(['table']);
 const contents = [];
 const docsCommit = execFileSync('git', ['-C', 'vendor/MSIME-Docs', 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 const pages = [...Object.keys(seoPages), '/404/'];
-const translatedTemplates = Object.fromEntries(Object.keys(traditionalPages).map(path => [traditionalPath(path), readFileSync(`${dist}/${path === '/' ? 'index.html' : `${path.slice(1)}index.html`}`, 'utf8')]));
+const translatedTemplates = Object.fromEntries(Object.keys(traditionalPages).map(path => [traditionalPath(path), readFileSync(`${dist}/${path === '/' ? 'index.html' : path.startsWith('/docs/') ? 'docs/index.html' : `${path.slice(1)}index.html`}`, 'utf8')]));
 const docsTemplate = readFileSync(`${dist}/docs/index.html`, 'utf8');
 for (const path of pages) {
   const metadata = pageSeo(path);
@@ -29,7 +29,7 @@ for (const path of pages) {
   const template = guide ? 'docs/index.html' : file;
   const html = parseHTML(translatedTemplates[path] ?? (guide ? docsTemplate : readFileSync(`${dist}/${template}`, 'utf8')));
   const document = html.document;
-  const data = basePath === '/download/' ? { platforms: JSON.parse(readFileSync('public/platforms.json')), 'update-manifest': JSON.parse(readFileSync('public/update.json')) } : path === '/' ? { community: JSON.parse(readFileSync('public/community.json')) } : {};
+  const data = basePath === '/download/' ? { platforms: JSON.parse(readFileSync('public/platforms.json')), 'update-manifest': JSON.parse(readFileSync('public/update.json')) } : basePath === '/' ? { community: JSON.parse(readFileSync('public/community.json')) } : {};
   const { html: body, bootstrap } = await render(path === '/404/' ? '/__not-found__/' : path, data);
   if (!body.includes('<h1') || body.includes('data-msg=') || body.includes('data-stck=')) throw new Error(`Static render failed for ${path}: ${body.slice(body.indexOf('data-msg='), body.indexOf('data-msg=') + 500)}`);
   document.getElementById('root').innerHTML = body;
@@ -40,7 +40,7 @@ for (const path of pages) {
   const statePreload = document.createElement('link'); statePreload.rel = 'preload'; statePreload.setAttribute('as', 'script'); statePreload.href = bootstrapFile; document.head.append(statePreload);
   document.documentElement.classList.remove('preload');
   document.documentElement.setAttribute('data-prerendered', 'true');
-  const pageModule = isTraditional(path) ? 'traditional' : path.startsWith('/docs/') ? 'docs' : path === '/' ? 'home' : path.split('/')[1];
+  const pageModule = basePath.startsWith('/docs/') ? 'docs' : basePath === '/' ? 'home' : basePath.split('/')[1];
   const routeEntry = Object.keys(manifest).find(key => key === `src/page-${pageModule}.tsx`);
   const visited = new Set();
   const preload = key => {
@@ -80,7 +80,7 @@ for (const path of pages) {
   }
   const schema = structuredData(path);
   if (schema) { const script = document.createElement('script'); script.id = 'site-structured-data'; script.type = 'application/ld+json'; script.textContent = serializeJsonLd(schema); document.head.append(script); }
-  const module = isTraditional(path) ? 'src/page-traditional.tsx' : path === '/' ? 'src/page-home.tsx' : `src/page-${guide ? 'docs' : path.split('/')[1]}.tsx`;
+  const module = `src/page-${pageModule}.tsx`;
   const styles = new Set();
   const collect = key => { for (const css of manifest[key]?.css ?? []) styles.add(css); for (const dependency of manifest[key]?.imports ?? []) collect(dependency); };
   collect(module);
@@ -99,7 +99,7 @@ for (const path of pages) {
       const value = element.getAttribute(attribute);
       if (value && !value.startsWith('data:')) element.setAttribute(attribute, new URL(value, metadata.canonical).href);
     });
-    const text = `# ${metadata.title}\n\n> ${metadata.description}\n\n来源：${metadata.canonical}\n${path.startsWith('/docs/') || basePath === '/faq/' ? `文档版本：MSIME-Docs ${docsCommit}\n` : ''}\n${markdown.turndown(article.innerHTML).replace(/^# [^\n]+\n/, '')}\n`;
+    const text = `# ${metadata.title}\n\n> ${metadata.description}\n\n来源：${metadata.canonical}\n${basePath.startsWith('/docs/') || basePath === '/faq/' ? `文档版本：MSIME-Docs ${docsCommit}\n` : ''}\n${markdown.turndown(article.innerHTML).replace(/^# [^\n]+\n/, '')}\n`;
     write(`${dist}${markdownPath(path)}`, text);
     contents.push({ path, ...metadata, text });
   }

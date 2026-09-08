@@ -1,3 +1,4 @@
+import { useLocale } from "./use-locale";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { PageHero } from "./page-content";
@@ -52,6 +53,7 @@ const CANDIDATES = [
 ] as const;
 
 function CandidatePreview({ scheme, layout }: { scheme: "dark" | "light"; layout: "vertical" | "horizontal" }) {
+  const { t } = useLocale();
   const c = SKIN_SAMPLE[scheme];
   return (
     <div
@@ -64,21 +66,21 @@ function CandidatePreview({ scheme, layout }: { scheme: "dark" | "light"; layout
         <span className="skin-caret" style={{ background: c.accent }} />
       </div>
       <div className="skin-rows">
-        {CANDIDATES.map(([index, word, code], position) => (
+        {t(CANDIDATES.map(([index, word, code], position) => (
           <span
             key={word}
             className="skin-cand"
             style={position === 0 ? { background: c.selected } : undefined}
           >
             <span className="skin-num" style={{ color: c.muted }}>
-              {index}
+              {t(index)}
             </span>
-            {word}
+            {t(word)}
             <span className="skin-code" style={{ color: c.muted }}>
-              ({code})
+              ({t(code)})
             </span>
           </span>
-        ))}
+        )))}
       </div>
     </div>
   );
@@ -133,6 +135,7 @@ const breakAtSeparators = (path: string) =>
     .flatMap((part, index, all) => (index === 0 ? [part] : [<wbr key={all.slice(0, index).join("")} />, part]));
 
 export function FeaturesPage() {
+  const { t } = useLocale();
   const [view, setView] = useState<(typeof CANDIDATE_VIEWS)[number]["id"]>("helpcode");
   const [settingsScheme, setSettingsScheme] = useState<"dark" | "light">("dark");
   const [scheme, setScheme] = useState<"dark" | "light">("dark");
@@ -147,43 +150,43 @@ export function FeaturesPage() {
     <>
       <PageHero
         kicker="功能"
-        title="Windows 版功能与界面"
+        title={t("Windows 版功能与界面")}
         leadHtml="本页以 Windows 版为例，展示候选窗、设置、皮肤与词库功能。其他平台的可用功能和操作方式，请查看对应使用指南。"
       />
 
       <main className="content-page">
         <div className="container">
           <section className="feature-shots" data-reveal-stagger>
-            {SHOTS.map((shot) => (
+            {t(SHOTS.map((shot) => (
               <figure className="card feature-shot" data-reveal key={shot.src}>
                 {/* 卡片里最多显示 ~420px 宽，原图有 1735px。sizes 让浏览器按实际显示宽度挑，别下大的那张。 */}
                 <img
                   src={shot.src}
                   srcSet={shot.srcSet}
                   sizes="(max-width: 700px) 92vw, (max-width: 1100px) 46vw, 400px"
-                  alt={shot.alt}
+                  alt={t(shot.alt)}
                   width="840"
                   height="525"
                   loading="lazy"
                   decoding="async"
                 />
                 <figcaption>
-                  <strong>{shot.title}</strong>
-                  <span>{shot.body}</span>
+                  <strong>{t(shot.title)}</strong>
+                  <span>{t(shot.body)}</span>
                 </figcaption>
               </figure>
-            ))}
+            )))}
           </section>
 
           <section className="card feature-block" data-reveal>
             <div className="feature-block-head">
               <div>
-                <p className="community-kicker">候选窗</p>
-                <h2>四种形态，同一个窗口</h2>
+                <p className="community-kicker">{t("候选窗")}</p>
+                <h2>{t("四种形态，同一个窗口")}</h2>
               </div>
               <fieldset className="docs-platforms">
-                <legend className="visually-hidden">选择候选窗形态</legend>
-                {CANDIDATE_VIEWS.map((item) => (
+                <legend className="visually-hidden">{t("选择候选窗形态")}</legend>
+                {t(CANDIDATE_VIEWS.map((item) => (
                   <button
                     key={item.id}
                     type="button"
@@ -191,40 +194,39 @@ export function FeaturesPage() {
                     aria-pressed={view === item.id}
                     onClick={() => setView(item.id)}
                   >
-                    {item.tab}
+                    {t(item.tab)}
                   </button>
-                ))}
+                )))}
               </fieldset>
             </div>
 
-            {CANDIDATE_VIEWS.filter((item) => item.id === view).map((item) => (
+            {t(CANDIDATE_VIEWS.filter((item) => item.id === view).map((item) => (
               <figure className="feature-figure" key={item.id}>
                 <img
                   src={`/screenshots/candidate-${item.id}-840w.webp`}
                   srcSet={`/screenshots/candidate-${item.id}-840w.webp 840w, /screenshots/candidate-${item.id}-1680w.webp 1680w`}
                   sizes="(max-width: 900px) 92vw, min(1170px, 86vw)"
-                  alt={item.alt}
+                  alt={t(item.alt)}
                   width="840"
                   height="348"
                   decoding="async"
                 />
-                <figcaption>{item.caption}</figcaption>
+                <figcaption>{t(item.caption)}</figcaption>
               </figure>
-            ))}
+            )))}
           </section>
 
           <section className="card feature-block" data-reveal>
             <div className="feature-block-head">
               <div>
-                <p className="community-kicker">设置</p>
-                <h2>集中调整常用设置</h2>
+                <p className="community-kicker">{t("设置")}</p>
+                <h2>{t("集中调整常用设置")}</h2>
                 <p className="feature-block-lead">
-                  外观、输入、辅助码、快捷键、词库、皮肤、语音输入、屏幕键盘、手写识别板、悬浮工具栏、AI 辅助各占一栏，界面自身也分明暗两套。
-                </p>
+                  {t("外观、输入、辅助码、快捷键、词库、皮肤、语音输入、屏幕键盘、手写识别板、悬浮工具栏、AI 辅助各占一栏，界面自身也分明暗两套。")}</p>
               </div>
               <fieldset className="docs-platforms">
-                <legend className="visually-hidden">设置界面配色</legend>
-                {(["dark", "light"] as const).map((value) => (
+                <legend className="visually-hidden">{t("设置界面配色")}</legend>
+                {t((["dark", "light"] as const).map((value) => (
                   <button
                     key={value}
                     type="button"
@@ -232,9 +234,9 @@ export function FeaturesPage() {
                     aria-pressed={settingsScheme === value}
                     onClick={() => setSettingsScheme(value)}
                   >
-                    {value === "dark" ? "深色" : "浅色"}
+                    {t(value === "dark" ? "深色" : "浅色")}
                   </button>
-                ))}
+                )))}
               </fieldset>
             </div>
 
@@ -243,7 +245,7 @@ export function FeaturesPage() {
                 src={`/screenshots/settings-${settingsScheme}-840w.webp`}
                 srcSet={`/screenshots/settings-${settingsScheme}-840w.webp 840w, /screenshots/settings-${settingsScheme}-1680w.webp 1680w`}
                 sizes="(max-width: 900px) 92vw, 760px"
-                alt={`水杉输入法设置窗口的${settingsScheme === "dark" ? "深色" : "浅色"}界面，左侧列出各个设置分区`}
+                alt={t(`水杉输入法设置窗口的${settingsScheme === "dark" ? "深色" : "浅色"}界面，左侧列出各个设置分区`)}
                 width="840"
                 height="666"
                 decoding="async"
@@ -254,18 +256,17 @@ export function FeaturesPage() {
           <section className="card feature-block" data-reveal>
             <div className="feature-block-head">
               <div>
-                <p className="community-kicker">皮肤</p>
-                <h2>自定义候选窗皮肤</h2>
+                <p className="community-kicker">{t("皮肤")}</p>
+                <h2>{t("自定义候选窗皮肤")}</h2>
                 <p className="feature-block-lead">
-                  内置 {BUILT_IN_SKINS.join(" / ")} 四套。外部皮肤把含 <code>skin.toml</code> 的文件夹放进{" "}
-                  <code>{breakAtSeparators("%LOCALAPPDATA%\\metasequoiaime\\skins")}</code> 再点「刷新皮肤」即可。
-                </p>
+                  {t("内置")}{t(BUILT_IN_SKINS.join(" / "))} {t("四套。外部皮肤把含")}<code>skin.toml</code> {t("的文件夹放进")}{t(" ")}
+                  <code>{breakAtSeparators("%LOCALAPPDATA%\\metasequoiaime\\skins")}</code> {t("再点「刷新皮肤」即可。")}</p>
               </div>
 
               <div className="feature-toggles">
                 <fieldset className="docs-platforms">
-                  <legend className="visually-hidden">预览配色</legend>
-                  {(["dark", "light"] as const).map((value) => (
+                  <legend className="visually-hidden">{t("预览配色")}</legend>
+                  {t((["dark", "light"] as const).map((value) => (
                     <button
                       key={value}
                       type="button"
@@ -273,13 +274,13 @@ export function FeaturesPage() {
                       aria-pressed={scheme === value}
                       onClick={() => setScheme(value)}
                     >
-                      {value === "dark" ? "深色" : "浅色"}
+                      {t(value === "dark" ? "深色" : "浅色")}
                     </button>
-                  ))}
+                  )))}
                 </fieldset>
                 <fieldset className="docs-platforms">
-                  <legend className="visually-hidden">预览排布</legend>
-                  {(["vertical", "horizontal"] as const).map((value) => (
+                  <legend className="visually-hidden">{t("预览排布")}</legend>
+                  {t((["vertical", "horizontal"] as const).map((value) => (
                     <button
                       key={value}
                       type="button"
@@ -287,9 +288,9 @@ export function FeaturesPage() {
                       aria-pressed={layout === value}
                       onClick={() => setLayout(value)}
                     >
-                      {value === "vertical" ? "竖排" : "横排"}
+                      {t(value === "vertical" ? "竖排" : "横排")}
                     </button>
-                  ))}
+                  )))}
                 </fieldset>
               </div>
             </div>
@@ -297,76 +298,70 @@ export function FeaturesPage() {
             <div className="skin-stage">
               <CandidatePreview scheme={scheme} layout={layout} />
               <p className="skin-note">
-                按皮肤示例仓库 <code>skin.toml</code> 公布的配色现场绘制，用于说明可自定义的范围，不是应用截图。一套皮肤可以声明强调色、选中态、悬停态、边框与背景，并分别给深浅两种配色，还能指定横排 / 竖排支持与候选窗装饰。
-              </p>
+                {t("按皮肤示例仓库")}<code>skin.toml</code> {t("公布的配色现场绘制，用于说明可自定义的范围，不是应用截图。一套皮肤可以声明强调色、选中态、悬停态、边框与背景，并分别给深浅两种配色，还能指定横排 / 竖排支持与候选窗装饰。")}</p>
             </div>
 
             <div className="btn-row">
               <a className="btn btn-soft" href="https://github.com/metasequoiaime/metasequoia-ime-skin-example" target="_blank" rel="noreferrer">
-                皮肤示例与编写说明
-              </a>
+                {t("皮肤示例与编写说明")}</a>
             </div>
           </section>
 
           <section className="card feature-block" data-reveal>
-            <p className="community-kicker">词库</p>
-            <h2>三类词库，都可以自己导入</h2>
+            <p className="community-kicker">{t("词库")}</p>
+            <h2>{t("三类词库，都可以自己导入")}</h2>
             <p className="feature-block-lead">
-              设置里可以切换全拼、五笔和英文词库，查询、新增、改权重都在同一个界面。批量导入用制表符分隔的三列纯文本。
-            </p>
+              {t("设置里可以切换全拼、五笔和英文词库，查询、新增、改权重都在同一个界面。批量导入用制表符分隔的三列纯文本。")}</p>
 
             <div className="feature-formats">
               <div>
-                <span className="feature-format-label">全拼</span>
+                <span className="feature-format-label">{t("全拼")}</span>
                 <pre>
                   <code>你好{"\t"}ni&apos;hao{"\t"}10</code>
                 </pre>
               </div>
               <div>
-                <span className="feature-format-label">五笔</span>
+                <span className="feature-format-label">{t("五笔")}</span>
                 <pre>
                   <code>你好{"\t"}wbgq{"\t"}10</code>
                 </pre>
               </div>
             </div>
 
-            {dictionary && (
+            {t(dictionary && (
               <>
-                <h3 className="feature-sub">随版本分发的词库 · {dictionary.tag}</h3>
+                <h3 className="feature-sub">{t("随版本分发的词库 ·")}{t(dictionary.tag)}</h3>
                 <p className="feature-block-lead">
-                  这里列出公共词库的发布文件；各平台实际随包版本以发布说明为准。词库发布于 {dictionary.publishedAt.slice(0, 10)}，每个文件都附 SHA256。
-                </p>
+                  {t("这里列出公共词库的发布文件；各平台实际随包版本以发布说明为准。词库发布于")}{t(dictionary.publishedAt.slice(0, 10))}{t("，每个文件都附 SHA256。")}</p>
                 <ul className="feature-dict">
-                  {dictionary.files.map((file: Dictionary["files"][number]) => (
+                  {t(dictionary.files.map((file: Dictionary["files"][number]) => (
                     <li key={file.name}>
-                      <span className="feature-dict-label">{file.label}</span>
+                      <span className="feature-dict-label">{t(file.label)}</span>
                       {/* 外面这层负责铺整行底色，里面的 code 才是那个小色块 */}
                       <span className="feature-dict-file">
                         <code>{file.name}</code>
                       </span>
-                      <span className="feature-dict-size">{readableSize(file.size)}</span>
+                      <span className="feature-dict-size">{t(readableSize(file.size))}</span>
                     </li>
-                  ))}
+                  )))}
                 </ul>
                 <div className="btn-row">
                   <a className="btn btn-soft" href={dictionary.releaseUrl} target="_blank" rel="noreferrer">
-                    词库发布页
-                  </a>
+                    {t("词库发布页")}</a>
                 </div>
               </>
-            )}
+            ))}
           </section>
 
           <section className="card feature-block" data-reveal>
-            <p className="community-kicker">辅助码</p>
-            <h2>五套方案，把同音候选分开</h2>
+            <p className="community-kicker">{t("辅助码")}</p>
+            <h2>{t("五套方案，把同音候选分开")}</h2>
             <p className="feature-block-lead">
-              候选项后面括号里的两个字母就是辅助码。打完拼音再补一到两码，可以缩小同音候选范围，减少翻页。可选方案：
-            </p>
+              {t("候选项后面括号里的两个字母就是辅助码。打完拼音再补一到两码，可以缩小同音候选范围，减少翻页。可选方案：")}</p>
             <ul className="feature-chips">
-              {HELP_CODES.map((name) => (
-                <li key={name}>{name}</li>
-              ))}
+              {t(HELP_CODES.map((name) => (
+                <li key={name}>{t(name)}</li>
+              )))}
             </ul>
           </section>
         </div>

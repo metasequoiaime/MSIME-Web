@@ -1,3 +1,4 @@
+import { loadTraditional } from "../../shared/translate.ts";
 import { z } from "zod";
 import { imageExtension, MAX_FEEDBACK_BYTES, screenshotBucket, screenshotError } from "../../shared/feedback-images.ts";
 import { acceptsScreenshot, validateAnswers } from "../../shared/feedback-templates.ts";
@@ -129,6 +130,7 @@ export async function onRequest({ request, env }: { request: Request; env: Recor
   }
   // 不自动重试 GitHub 写请求：响应丢失时，Issue 可能已经创建。
   try {
+    if (data.locale === "zh-TW") await loadTraditional();
     const response = await fetch(`https://api.github.com/repos/metasequoiaime/${repo}/issues`, {
       method: "POST",
       headers: {

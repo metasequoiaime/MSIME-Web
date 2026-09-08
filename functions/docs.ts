@@ -9,7 +9,7 @@ export function onRequest({ request, next }: { request: Request; next: () => Pro
   }
   const guide = url.searchParams.get("platform");
   if (guide && Object.hasOwn(GUIDE_NAMES, guide)) {
-    url.pathname = `/docs/${guide}/`;
+    url.pathname = `${url.pathname.startsWith("/zh-TW/") ? "/zh-TW" : ""}/docs/${guide}/`;
     url.searchParams.delete("platform");
     return Response.redirect(url.toString(), 301);
   }

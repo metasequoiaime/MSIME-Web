@@ -19,7 +19,7 @@ export const seoPages: Record<string, { title: string; description: string; noin
 for (const [id, name] of Object.entries(GUIDE_NAMES)) seoPages[`/docs/${id}/`] = {
   title: `${name} 安装与使用指南｜水杉输入法`, description: `水杉输入法 ${name} 使用指南：安装、配置、输入操作与常见问题排查。内容来自官方 MSIME-Docs 文档。`,
 };
-for (const [path, page] of Object.entries(traditionalPages)) seoPages[traditionalPath(path)] = page;
+for (const [path, page] of Object.entries(traditionalPages)) seoPages[traditionalPath(path)] = path === "/docs/" ? { ...page, canonicalPath: "/zh-TW/docs/windows/" } : page;
 
 export const normalizePath = (path: string) => path === "/" ? "/" : `${path.replace(/\/+$/, "")}/`;
 export const markdownPath = (path: string) => path === "/" ? "/index.md" : `${normalizePath(path).slice(0, -1)}.md`;

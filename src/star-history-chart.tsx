@@ -1,3 +1,4 @@
+import { useLocale } from "./use-locale";
 import { useId, useMemo, useRef, useState } from "react";
 
 export type StarPoint = { month: string; stars: number };
@@ -36,6 +37,7 @@ const readableMonth = (month: string) => {
 };
 
 export function StarHistoryChart({ series }: { series: StarPoint[] }) {
+  const { t } = useLocale();
   const gradientId = useId();
   const frameRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState<number | null>(null);
@@ -89,7 +91,7 @@ export function StarHistoryChart({ series }: { series: StarPoint[] }) {
         <svg
           viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
           role="img"
-          aria-label={`GitHub Star 累计趋势：从 ${readableMonth(series[0].month)} 的 ${series[0].stars} 增长到 ${readableMonth(last.month)} 的 ${last.stars}`}
+          aria-label={t(`GitHub Star 累计趋势：从 ${readableMonth(series[0].month)} 的 ${series[0].stars} 增长到 ${readableMonth(last.month)} 的 ${last.stars}`)}
         >
           <defs>
             <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -162,14 +164,14 @@ export function StarHistoryChart({ series }: { series: StarPoint[] }) {
       </div>
 
       <details className="star-chart-table">
-        <summary>查看数据表</summary>
+        <summary>{t("查看数据表")}</summary>
         <div className="star-chart-table-scroll">
           <table>
-            <caption>各月末的 GitHub Star 累计数</caption>
+            <caption>{t("各月末的 GitHub Star 累计数")}</caption>
             <thead>
               <tr>
                 <th scope="col">月份</th>
-                <th scope="col">累计 Star</th>
+                <th scope="col">{t("累计 Star")}</th>
               </tr>
             </thead>
             <tbody>

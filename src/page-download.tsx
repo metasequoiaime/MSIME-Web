@@ -1,5 +1,6 @@
+import { useLocale } from "./use-locale";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { LocaleLink as Link } from "./locale-link";
 import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import downloadSource from "./content/download.md?raw";
@@ -216,6 +217,7 @@ const groupByArch = (downloads: PlatformRelease["downloads"]) => {
  * 在这之前，这一页最主要的操作是正文项目符号里的一个文字链接，和旁边的镜像链接、说明文字一样重 —— 来下载的人得先读一段才找得到它。这里把它提到页头之下，并且让人自己选平台：按 UA 猜到的那个只是默认选中，三个入口一直都在。
  */
 function DownloadPanel({ platforms }: { platforms: Partial<Record<Platform, PlatformRelease>> | undefined }) {
+  const { t } = useLocale();
   const [platform, setPlatform] = useState<Platform>("windows");
   // Start with the static snapshot, then select the visitor platform before paint.
   useLayoutEffect(() => setPlatform(detectPlatform()), []);
@@ -224,8 +226,8 @@ function DownloadPanel({ platforms }: { platforms: Partial<Record<Platform, Plat
 
   return (
     <div className="download-panel">
-      <nav className="download-panel-tabs" aria-label="选择平台">
-        {PLATFORMS.map((candidate) => (
+      <nav className="download-panel-tabs" aria-label={t("选择平台")}>
+        {t(PLATFORMS.map((candidate) => (
           <button
             key={candidate}
             type="button"
@@ -235,76 +237,75 @@ function DownloadPanel({ platforms }: { platforms: Partial<Record<Platform, Plat
               setPlatform(candidate);
             }}
           >
-            {PLATFORM_LABELS[candidate]}
+            {t(PLATFORM_LABELS[candidate])}
           </button>
-        ))}
+        )))}
       </nav>
 
       <div className="download-panel-action">
         {/* iOS 这一栏没有可下的文件，按钮通向站内的内测页；用路由的 Link，点了不整页重载 */}
         {platform === "ios" ? (
           <Link className="btn btn-lg btn-primary" to={BETA_PAGE}>
-            查看 iOS 内测
+            {t("查看 iOS 内测")}
           </Link>
         ) : (
           <a className="btn btn-lg btn-primary" href={primary?.url ?? RELEASE_PAGES[platform]} rel="noreferrer">
-            {primary
+            {t(primary
               ? `下载 ${PLATFORM_LABELS[platform]} 版 v${current?.version}`
-              : `前往 ${PLATFORM_LABELS[platform]} 发布页`}
+              : `前往 ${PLATFORM_LABELS[platform]} 发布页`)}
             {primary && <img src="/img/icons/Download.svg" alt="" className="btn-icon" />}
           </a>
         )}
 
         <div className="download-panel-meta">
-          <p>{PLATFORM_HINTS[platform]}</p>
-          {primary && (
+          <p>{t(PLATFORM_HINTS[platform])}</p>
+          {t(primary && (
             <p className="download-panel-file">
               <code>{primary.name}</code>
-              <span className="download-panel-arch">{primary.arch}</span>
-              <span>{readableSize(primary.size)}</span>
+              <span className="download-panel-arch">{t(primary.arch)}</span>
+              <span>{t(readableSize(primary.size))}</span>
               {/* signed 是三态：判不出来时（比如 Linux 的文件名不带签名信息）什么都不显示，而不是猜一个 */}
-              {current?.signed === true && <span className="download-panel-signed">已签名</span>}
-              {current?.signed === false && <span className="download-panel-unsigned">未签名</span>}
+              {t(current?.signed === true && <span className="download-panel-signed">{t("已签名")}</span>)}
+              {t(current?.signed === false && <span className="download-panel-unsigned">{t("未签名")}</span>)}
             </p>
-          )}
+          ))}
         </div>
       </div>
 
-      {current && current.downloads.length > 1 && (
+      {t(current && current.downloads.length > 1 && (
         <div className="download-panel-more">
-          <span className="download-panel-more-label">全部下载</span>
+          <span className="download-panel-more-label">{t("全部下载")}</span>
           <div className="download-panel-arches">
-            {groupByArch(current.downloads).map(([arch, entries]) => (
+            {t(groupByArch(current.downloads).map(([arch, entries]) => (
               <section key={arch}>
-                <h3>{arch}</h3>
+                <h3>{t(arch)}</h3>
                 <ul>
-                  {entries.map((entry) => (
+                  {t(entries.map((entry) => (
                     <li key={entry.url}>
                       <a href={entry.url} rel="noreferrer">
-                        {entry.label}
+                        {t(entry.label)}
                       </a>
-                      <span className="download-panel-size">{readableSize(entry.size)}</span>
+                      <span className="download-panel-size">{t(readableSize(entry.size))}</span>
                     </li>
-                  ))}
+                  )))}
                 </ul>
               </section>
-            ))}
+            )))}
           </div>
         </div>
-      )}
+      ))}
 
       <p className="download-panel-note">
-        {platform === "ios" ? (
+        {t(platform === "ios" ? (
           // 没有版本号也没有校验值可说：iOS 装的是 TestFlight 当前放出的那个构建，版本由 Apple 那边决定。
-          <>不需要邮箱，也不需要开发者账号。上架计划与常见问题见下方 iOS 小节。</>
+          <>{t("不需要邮箱，也不需要开发者账号。上架计划与常见问题见下方 iOS 小节。")}</>
         ) : current ? (
           <>
-            {current.prerelease ? "公开测试版本，" : ""}发布于 {current.publishedAt.slice(0, 10)}。校验值与安装步骤见下方{" "}
-            {PLATFORM_LABELS[platform]} 小节。
-          </>
+            {t(current.prerelease ? "公开测试版本，" : "")}{t("发布于")}{t(current.publishedAt.slice(0, 10))}{t("。校验值与安装步骤见下方")}{t(" ")}
+            {t(PLATFORM_LABELS[platform])} {t("小节。")}</>
         ) : (
-          <>安装步骤、校验值与常见问题见下方 {PLATFORM_LABELS[platform]} 小节。</>
-        )}
+          <>{t("安装步骤、校验值与常见问题见下方")}{t(PLATFORM_LABELS[platform])} {t("小节。")}</>
+        ))}
       </p>
     </div>
   );

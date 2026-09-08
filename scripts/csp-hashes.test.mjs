@@ -38,3 +38,9 @@ test('running twice does not stack duplicate hashes', () => {
 test('no inline script means the policy is left exactly as written', () => {
   assert.equal(withScriptHashes(HEADERS, []), HEADERS);
 });
+
+
+test('JSON data blocks need no execution permission; modules and import maps still do', () => {
+  assert.deepEqual(hashInlineScripts('<script type="application/ld+json">{"name":"資料"}</script><script type="application/json">{}</script>'), []);
+  assert.equal(hashInlineScripts('<script type="module">a()</script><script type="importmap">{}</script>').length, 2);
+});

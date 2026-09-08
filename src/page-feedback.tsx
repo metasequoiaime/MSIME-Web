@@ -1,3 +1,4 @@
+import { useLocale } from "./use-locale";
 import { acceptsScreenshot, canAttach, initialAnswers, issueTemplateSchema, validateAnswers } from "../shared/feedback-templates";
 import type { Answers, IssueTemplate } from "../shared/feedback-templates";
 import { ScreenshotViewer } from "./screenshot-viewer";
@@ -13,7 +14,7 @@ import { FeedbackResponseError, readFeedbackResponse } from "./feedback-response
 import "./feedback.scss";
 
 type Turnstile = {
-  render: (element: HTMLElement, options: { sitekey: string; action: string; size: "compact"; callback: (token: string) => void; "expired-callback": () => void; "error-callback": () => void }) => string;
+  render: (element: HTMLElement, options: { sitekey: string; action: string; size: "compact"; language: "zh-TW" | "zh-CN"; callback: (token: string) => void; "expired-callback": () => void; "error-callback": () => void }) => string;
   reset: (id: string) => void;
   remove: (id: string) => void;
 };
@@ -43,6 +44,7 @@ type LocalScreenshot = { id: string; field: string; file: File; url: string };
 type Draft = { title: string; answers: Answers; screenshots: LocalScreenshot[] };
 
 export function FeedbackPage() {
+  const { t, tw, href } = useLocale();
   usePageMeta("问题与建议 | 水杉输入法", "反馈问题或提出建议，提交内容将公开发布到 GitHub。");
   const [form, setForm] = useState<Feedback>(emptyForm);
   const [screenshots, setScreenshots] = useState<LocalScreenshot[]>([]);
@@ -132,6 +134,7 @@ export function FeedbackPage() {
           sitekey: config.siteKey,
           action: "feedback",
           size: "compact",
+          language: tw ? "zh-TW" : "zh-CN",
           callback: value => { if (active) { setToken(value); setStatus("验证通过，可以提交。"); } },
           "expired-callback": () => { if (active) { setToken(""); setStatus("验证已过期，请重新验证。"); } },
           "error-callback": () => { if (active) { setToken(""); setStatus("验证失败，请检查网络后重新验证。"); } },
@@ -149,7 +152,7 @@ export function FeedbackPage() {
       if (widgetId.current !== undefined) window.turnstile?.remove(widgetId.current);
       widgetId.current = undefined;
     };
-  }, []);
+  }, [tw]);
 
   async function addScreenshots(files: File[], field = "") {
     const targetField = template?.fields.find(item => item.id === field);
@@ -188,7 +191,7 @@ export function FeedbackPage() {
     setError("");
     setUncertainUrl("");
     if (!template || templateLoading || templateError) { setError("请先加载仓库模板。"); return; }
-    const result = feedbackSchema.safeParse({ ...form, consent, screenshotFields: screenshots.map(image => image.field) });
+    const result = feedbackSchema.safeParse({ ...form, locale: tw ? "zh-TW" : "zh-CN", consent, screenshotFields: screenshots.map(image => image.field) });
     if (!result.success) {
       const issue = result.error.issues[0];
       const name = String(issue.path[0]);
@@ -249,11 +252,11 @@ export function FeedbackPage() {
   const requiredFields = template?.fields.filter(field => field.required || field.options.some(option => option.required)) ?? [];
   const completedFields = requiredFields.filter(field => template && !validateAnswers({ ...template, fields: [field] }, form.answers[field.id] === undefined ? {} : { [field.id]: form.answers[field.id] }, screenshots.filter(image => image.field === field.id).map(image => image.field))).length;
   const titleComplete = form.title.trim().length >= 5 && form.title.trim() !== template?.title.trim();
-  const previewIssue = template ? formatIssue(form, template, screenshots.map(item => ({ field: item.field, url: item.url }))) : undefined;
+  const previewIssue = template ? formatIssue({ ...form, locale: tw ? "zh-TW" : "zh-CN" }, template, screenshots.map(item => ({ field: item.field, url: item.url }))) : undefined;
   const renderUpload = (field = "") => <div className="feedback-upload">
-    <input id={`screenshots-${field || "general"}`} aria-label="选择截图" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden disabled={!screenshotsEnabled || busy || readingImages || screenshots.length >= 3} onChange={event => { const files = Array.from(event.target.files ?? []); event.target.value = ""; void addScreenshots(files, field); }} />
-    <button type="button" className="btn btn-ghost" disabled={!screenshotsEnabled || busy || readingImages || screenshots.length >= 3} onClick={() => document.getElementById(`screenshots-${field || "general"}`)?.click()}>{readingImages ? "正在读取…" : screenshots.length >= 3 ? "已选满 3 张" : "＋ 选择截图"}</button>
-    <span aria-live="polite">已选 {screenshots.length} / 3 张 · 点击缩略图查看大图</span>
+    <input id={`screenshots-${field || "general"}`} aria-label={t("选择截图")} type="file" accept="image/png,image/jpeg,image/webp" multiple hidden disabled={!screenshotsEnabled || busy || readingImages || screenshots.length >= 3} onChange={event => { const files = Array.from(event.target.files ?? []); event.target.value = ""; void addScreenshots(files, field); }} />
+    <button type="button" className="btn btn-ghost" disabled={!screenshotsEnabled || busy || readingImages || screenshots.length >= 3} onClick={() => document.getElementById(`screenshots-${field || "general"}`)?.click()}>{t(readingImages ? "正在读取…" : screenshots.length >= 3 ? "已选满 3 张" : "＋ 选择截图")}</button>
+    <span aria-live="polite">{t("已选")}{t(screenshots.length)} {t("/ 3 张 · 点击缩略图查看大图")}</span>
   </div>;
   useEffect(() => {
     const root = previewBody.current;
@@ -265,7 +268,7 @@ export function FeedbackPage() {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "feedback-preview-image";
-      button.setAttribute("aria-label", `放大查看 ${screenshot.file.name}`);
+      button.setAttribute("aria-label", `${t("放大查看")} ${screenshot.file.name}`);
       image.replaceWith(button);
       button.append(image);
       const open = () => setSelectedScreenshot(screenshot.id);
@@ -273,7 +276,7 @@ export function FeedbackPage() {
       cleanups.push(() => { button.removeEventListener("click", open); button.replaceWith(image); });
     });
     return () => { cleanups.forEach(cleanup => { cleanup(); }); };
-  }, [tab, previewIssue?.body, screenshots]);
+  }, [tab, previewIssue?.body, screenshots, t]);
   const selectTab = (value: "edit" | "preview", focus = false) => { setTab(value); if (focus) document.getElementById(`feedback-tab-${value}`)?.focus(); };
 
   return (
@@ -281,107 +284,107 @@ export function FeedbackPage() {
       <ScreenshotViewer images={screenshots} selected={selectedScreenshot} onClose={() => setSelectedScreenshot(null)} />
       <div className="container">
         <div className="feedback-heading">
-          <p className="feedback-kicker">一起改进水杉输入法</p>
-          <h1>反馈问题或提出建议</h1>
-          <p>遇到故障或希望改进功能，都可以在这里反馈。提交后会在 GitHub 对应仓库创建公开的 Issue（反馈记录），无需 GitHub 账号。</p>
+          <p className="feedback-kicker">{t("一起改进水杉输入法")}</p>
+          <h1>{t("反馈问题或提出建议")}</h1>
+          <p>{t("遇到故障或希望改进功能，都可以在这里反馈。提交后会在 GitHub 对应仓库创建公开的 Issue（反馈记录），无需 GitHub 账号。")}</p>
         </div>
         {issueUrl ? <section className="card feedback-success" aria-live="polite" tabIndex={-1} ref={successPanel}>
-          <h2>反馈已提交</h2><p>感谢你帮助水杉输入法变得更好。你可以通过 Issue 查看后续讨论和处理进展。</p>
-          <a className="btn btn-primary" href={issueUrl} target="_blank" rel="noreferrer">查看已创建的 Issue ↗</a>
+          <h2>{t("反馈已提交")}</h2><p>{t("感谢你帮助水杉输入法变得更好。你可以通过 Issue 查看后续讨论和处理进展。")}</p>
+          <a className="btn btn-primary" href={issueUrl} target="_blank" rel="noreferrer">{t("查看已创建的 Issue ↗")}</a>
         </section> : <div className="feedback-layout">
           <form className="card feedback-form" onSubmit={submit} noValidate>
-            <div className="feedback-tabs" role="tablist" aria-label="反馈表单">
-              {(["edit", "preview"] as const).map(value => <button key={value} id={`feedback-tab-${value}`} type="button" role="tab" aria-selected={tab === value} aria-controls={`feedback-panel-${value}`} tabIndex={tab === value ? 0 : -1} onClick={() => selectTab(value)} onKeyDown={event => {
+            <div className="feedback-tabs" role="tablist" aria-label={t("反馈表单")}>
+              {t((["edit", "preview"] as const).map(value => <button key={value} id={`feedback-tab-${value}`} type="button" role="tab" aria-selected={tab === value} aria-controls={`feedback-panel-${value}`} tabIndex={tab === value ? 0 : -1} onClick={() => selectTab(value)} onKeyDown={event => {
                 if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) { event.preventDefault(); selectTab(event.key === "Home" ? "edit" : event.key === "End" ? "preview" : tab === "edit" ? "preview" : "edit", true); }
-              }}>{value === "edit" ? "填写" : "预览"}</button>)}
+              }}>{t(value === "edit" ? "填写" : "预览")}</button>))}
             </div>
-            {error && <p className="feedback-error" role="alert">{error}</p>}
+            {t(error && <p className="feedback-error" role="alert">{t(error)}</p>)}
             <div id="feedback-panel-edit" role="tabpanel" aria-labelledby="feedback-tab-edit" hidden={tab !== "edit"}>
 
             <fieldset disabled={busy || readingImages}>
-              <legend>1. 选择反馈对象</legend>
-              <p id="feedback-target-hint" className="feedback-hint">先选你正在使用的平台。想反馈网站或文档，也可以在这里选择。</p>
-              <div className="feedback-target-grid" role="radiogroup" aria-label="反馈对象" aria-describedby="feedback-target-hint">
-                {Object.entries(targets).map(([key, target]) => <label className="feedback-consent feedback-option" key={key}>
+              <legend>{t("1. 选择反馈对象")}</legend>
+              <p id="feedback-target-hint" className="feedback-hint">{t("先选你正在使用的平台。想反馈网站或文档，也可以在这里选择。")}</p>
+              <div className="feedback-target-grid" role="radiogroup" aria-label={t("反馈对象")} aria-describedby="feedback-target-hint">
+                {t(Object.entries(targets).map(([key, target]) => <label className="feedback-consent feedback-option" key={key}>
                   <input type="radio" name="target" value={key} checked={form.target === key} onChange={() => { saveDraft(); setForm({ ...form, target: feedbackSchema.shape.target.parse(key), templateId: "", templateRevision: "", answers: {} }); setScreenshots([]); setImageError(""); setError(""); }} />
-                  <span>{target.label}</span>
-                </label>)}
+                  <span>{t(target.label)}</span>
+                </label>))}
               </div>
-              <p className="feedback-hint">不知道“公共引擎”或“公共 API”是什么？选你的输入法平台即可，我们会协助分类。</p>
-              <p className="feedback-help-link">遇到使用问题？先看看 <a href="/faq/" target="_blank" rel="noreferrer">常见问题 ↗</a>，或 <a href={`https://github.com/metasequoiaime/${targets[form.target].repo}/issues`} target="_blank" rel="noreferrer">搜索已有反馈 ↗</a>。</p>
-              {templateLoading && <p className="feedback-hint" role="status">正在读取仓库模板…</p>}
-              {templateError && <div className="feedback-error" role="alert"><p>{templateError}</p><button type="button" className="btn btn-ghost" onClick={() => { saveDraft(); setReload(value => value + 1); }}>重新加载模板</button><a href={`https://github.com/metasequoiaime/${targets[form.target].repo}/issues/new/choose`} target="_blank" rel="noreferrer">前往 GitHub 提交 ↗</a></div>}
-              {template && !templateLoading && !templateError && <>
+              <p className="feedback-hint">{t("不知道“公共引擎”或“公共 API”是什么？选你的输入法平台即可，我们会协助分类。")}</p>
+              <p className="feedback-help-link">{t("遇到使用问题？先看看")}<a href={href("/faq/")} target="_blank" rel="noreferrer">{t("常见问题 ↗")}</a>{t("，或")}<a href={`https://github.com/metasequoiaime/${targets[form.target].repo}/issues`} target="_blank" rel="noreferrer">{t("搜索已有反馈 ↗")}</a>。</p>
+              {t(templateLoading && <p className="feedback-hint" role="status">{t("正在读取仓库模板…")}</p>)}
+              {t(templateError && <div className="feedback-error" role="alert"><p>{t(templateError)}</p><button type="button" className="btn btn-ghost" onClick={() => { saveDraft(); setReload(value => value + 1); }}>{t("重新加载模板")}</button><a href={`https://github.com/metasequoiaime/${targets[form.target].repo}/issues/new/choose`} target="_blank" rel="noreferrer">{t("前往 GitHub 提交 ↗")}</a></div>)}
+              {t(template && !templateLoading && !templateError && <>
                 <fieldset className="feedback-choice-field feedback-template-picker">
-                  <legend>2. 你想反馈什么？</legend>
-                  {catalog.templates.map(item => <label className="feedback-consent" key={item.id}>
+                  <legend>{t("2. 你想反馈什么？")}</legend>
+                  {t(catalog.templates.map(item => <label className="feedback-consent" key={item.id}>
                     <input type="radio" name="issue-template" value={item.id} checked={template.id === item.id} onChange={() => { saveDraft(); chooseTemplate(item); }} />
-                    <span><strong>{item.name}</strong><small>{item.description}</small></span>
-                  </label>)}
+                    <span><strong>{t(item.name)}</strong><small>{t(item.description)}</small></span>
+                  </label>))}
                 </fieldset>
-                <p className="feedback-hint">遇到出错、无法使用，选择问题反馈；想增加功能或改善体验，选择功能建议。</p>
-                <p className="feedback-hint">切换类型会保留当前页面中的草稿，刷新或关闭页面后不会保留。</p>
-                <h2 className="feedback-section-heading">3. 描述你的反馈</h2>
-                <p className="feedback-hint">标注“必填”或 * 的项目必须填写，其余可以跳过。按自己的话描述即可。</p>
-                <div className="feedback-progress"><span>必填内容已完成 {completedFields + Number(titleComplete)} / {requiredFields.length + 1} 项</span><progress aria-label="必填内容完成进度" value={completedFields + Number(titleComplete)} max={requiredFields.length + 1} /></div>
-                <label>用一句话概括 <span className="feedback-required" aria-hidden="true">*</span><input name="title" value={form.title} minLength={5} maxLength={100} required aria-describedby="feedback-title-hint" placeholder="例如：候选字显示为方框，或希望能调整字号" onChange={event => setForm({ ...form, title: event.target.value })} /></label>
-                <p id="feedback-title-hint" className="feedback-hint">写清楚哪里出了问题，或希望增加什么。5–100 个字符，不用考虑技术术语。</p>
+                <p className="feedback-hint">{t("遇到出错、无法使用，选择问题反馈；想增加功能或改善体验，选择功能建议。")}</p>
+                <p className="feedback-hint">{t("切换类型会保留当前页面中的草稿，刷新或关闭页面后不会保留。")}</p>
+                <h2 className="feedback-section-heading">{t("3. 描述你的反馈")}</h2>
+                <p className="feedback-hint">{t("标注“必填”或 * 的项目必须填写，其余可以跳过。按自己的话描述即可。")}</p>
+                <div className="feedback-progress"><span>{t("必填内容已完成")}{t(completedFields + Number(titleComplete))} / {t(requiredFields.length + 1)} {t("项")}</span><progress aria-label={t("必填内容完成进度")} value={completedFields + Number(titleComplete)} max={requiredFields.length + 1} /></div>
+                <label>{t("用一句话概括")}<span className="feedback-required" aria-hidden="true">*</span><input name="title" value={form.title} minLength={5} maxLength={100} required aria-describedby="feedback-title-hint" placeholder={t("例如：候选字显示为方框，或希望能调整字号")} onChange={event => setForm({ ...form, title: event.target.value })} /></label>
+                <p id="feedback-title-hint" className="feedback-hint">{t("写清楚哪里出了问题，或希望增加什么。5–100 个字符，不用考虑技术术语。")}</p>
                 <FeedbackFields template={template} answers={form.answers} onChange={(id, value) => setForm(previous => ({ ...previous, answers: { ...previous.answers, [id]: value } }))} upload={renderUpload} />
-              </>}
+              </>)}
               <section className="feedback-screenshots">
-                <label htmlFor="screenshots-general">补充截图（可选）</label>
-                <p id="screenshot-hint" className="feedback-hint">支持 PNG、JPEG、WebP，最多 3 张，每张不超过 5 MiB。截图将随 Issue 公开，请先遮挡个人信息。</p>
-                {renderUpload()}
-                {screenshotsEnabled === null && <p className="feedback-hint" role="status">正在检查截图上传服务…</p>}
-                {screenshotsEnabled === false && <p className="feedback-hint">截图上传暂不可用，仍可提交文字反馈。</p>}
-                {readingImages && <p role="status">正在读取截图…</p>}
-                {imageError && <p className="feedback-error" role="alert">{imageError}</p>}
+                <label htmlFor="screenshots-general">{t("补充截图（可选）")}</label>
+                <p id="screenshot-hint" className="feedback-hint">{t("支持 PNG、JPEG、WebP，最多 3 张，每张不超过 5 MiB。截图将随 Issue 公开，请先遮挡个人信息。")}</p>
+                {t(renderUpload())}
+                {t(screenshotsEnabled === null && <p className="feedback-hint" role="status">{t("正在检查截图上传服务…")}</p>)}
+                {t(screenshotsEnabled === false && <p className="feedback-hint">{t("截图上传暂不可用，仍可提交文字反馈。")}</p>)}
+                {t(readingImages && <p role="status">{t("正在读取截图…")}</p>)}
+                {t(imageError && <p className="feedback-error" role="alert">{t(imageError)}</p>)}
                 <div className="feedback-image-grid">{screenshots.map((item, index) => <figure key={item.id}>
-                  <button type="button" className="feedback-thumbnail" aria-label={`放大查看 ${item.file.name}`} onClick={() => setSelectedScreenshot(item.id)}><img src={item.url} alt={`截图 ${index + 1}：${item.file.name}`} /><span>放大查看 ↗</span></button>
-                  <figcaption title={item.file.name}>{item.file.name}<small>{(item.file.size / 1024 / 1024).toFixed(2)} MiB</small></figcaption>
-                  <details className="feedback-image-position"><summary>调整截图位置</summary><label>截图位置<select aria-label={`截图 ${index + 1} 的位置`} value={item.field} onChange={event => setScreenshots(items => items.map(image => image.id === item.id ? { ...image, field: event.target.value } : image))}><option value="">单独的截图小节</option>{template?.fields.filter(field => canAttach(field) && acceptsScreenshot(field, item.file.type)).map(field => <option key={field.id} value={field.id}>{field.label}</option>)}</select></label></details>
-                  <button type="button" className="btn btn-ghost" aria-label={`移除截图 ${index + 1}`} onClick={() => setScreenshots(items => items.filter((_, i) => i !== index))}>移除</button>
+                  <button type="button" className="feedback-thumbnail" aria-label={t(`放大查看 ${item.file.name}`)} onClick={() => setSelectedScreenshot(item.id)}><img src={item.url} alt={t(`截图 ${index + 1}：${item.file.name}`)} /><span>{t("放大查看 ↗")}</span></button>
+                  <figcaption title={t(item.file.name)}>{item.file.name}<small>{t((item.file.size / 1024 / 1024).toFixed(2))} MiB</small></figcaption>
+                  <details className="feedback-image-position"><summary>{t("调整截图位置")}</summary><label>{t("截图位置")}<select aria-label={t(`截图 ${index + 1} 的位置`)} value={item.field} onChange={event => setScreenshots(items => items.map(image => image.id === item.id ? { ...image, field: event.target.value } : image))}><option value="">{t("单独的截图小节")}</option>{t(template?.fields.filter(field => canAttach(field) && acceptsScreenshot(field, item.file.type)).map(field => <option key={field.id} value={field.id}>{t(field.label)}</option>))}</select></label></details>
+                  <button type="button" className="btn btn-ghost" aria-label={t(`移除截图 ${index + 1}`)} onClick={() => setScreenshots(items => items.filter((_, i) => i !== index))}>{t("移除")}</button>
                 </figure>)}</div>
               </section>
               <details className="feedback-contacts">
-                <summary>留下联系方式（可选）{contactFields.some(field => form[field.name].trim()) && <span className="feedback-hint"> · 已填写</span>}</summary>
-                <p className="feedback-hint">方便维护者进一步了解情况，可填写任意一项或全部留空。填写的联系方式会随 Issue 公开，请只提供愿意公开的账号。</p>
+                <summary>{t("留下联系方式（可选）")}{t(contactFields.some(field => form[field.name].trim()) && <span className="feedback-hint"> {t("· 已填写")}</span>)}</summary>
+                <p className="feedback-hint">{t("方便维护者进一步了解情况，可填写任意一项或全部留空。填写的联系方式会随 Issue 公开，请只提供愿意公开的账号。")}</p>
                 <div className="feedback-contact-grid">
-                  {contactFields.map(field => <label key={field.name}>{field.label}
-                    <input name={field.name} type={field.type} value={form[field.name]} maxLength={field.max} placeholder={field.placeholder} autoCapitalize="none" spellCheck={false} onChange={event => setForm({ ...form, [field.name]: event.target.value })} />
-                  </label>)}
+                  {t(contactFields.map(field => <label key={field.name}>{t(field.label)}
+                    <input name={field.name} type={field.type} value={form[field.name]} maxLength={field.max} placeholder={t(field.placeholder)} autoCapitalize="none" spellCheck={false} onChange={event => setForm({ ...form, [field.name]: event.target.value })} />
+                  </label>))}
                 </div>
               </details>
             </fieldset>
             </div>
             {/* biome-ignore lint/a11y/noNoninteractiveTabindex: WAI-ARIA Tab 面板允许键盘聚焦以阅读预览正文。 */}
             <div id="feedback-panel-preview" role="tabpanel" aria-labelledby="feedback-tab-preview" hidden={tab !== "preview"} tabIndex={0}>
-              {previewIssue && !templateLoading && !templateError ? <article className="feedback-issue">
-                <h2 className="feedback-issue-title">{previewIssue.title || "尚未填写标题"}</h2>
+              {t(previewIssue && !templateLoading && !templateError ? <article className="feedback-issue">
+                <h2 className="feedback-issue-title">{previewIssue.title || t("尚未填写标题")}</h2>
                 {/* biome-ignore lint/security/noDangerouslySetInnerHtml: markdown-it 禁用 HTML 透传并校验链接协议。 */}
                 <div ref={previewBody} className="feedback-issue-body" dangerouslySetInnerHTML={{ __html: markdown.render(previewIssue.body) }} />
-              </article> : <p className="feedback-hint">请先在“填写”中加载仓库模板。</p>}
+              </article> : <p className="feedback-hint">{t("请先在“填写”中加载仓库模板。")}</p>)}
             </div>
-            <h2 className="feedback-section-heading">4. 确认并提交</h2>
-            <p className="feedback-hint">可以在顶部“预览”检查内容。提交成功后会获得反馈链接，方便查看处理进展。</p>
+            <h2 className="feedback-section-heading">{t("4. 确认并提交")}</h2>
+            <p className="feedback-hint">{t("可以在顶部“预览”检查内容。提交成功后会获得反馈链接，方便查看处理进展。")}</p>
             <fieldset disabled={busy || readingImages}>
-              <label className="feedback-consent"><input name="consent" type="checkbox" required checked={consent} onChange={event => setConsent(event.target.checked)} /><span>我同意将以上文字、截图及自愿填写的联系方式公开发布到 GitHub，确认不包含密码、令牌或其他不愿公开的信息。</span></label>
+              <label className="feedback-consent"><input name="consent" type="checkbox" required checked={consent} onChange={event => setConsent(event.target.checked)} /><span>{t("我同意将以上文字、截图及自愿填写的联系方式公开发布到 GitHub，确认不包含密码、令牌或其他不愿公开的信息。")}</span></label>
             </fieldset>
-            <div className="feedback-verification" tabIndex={-1}><div ref={widget} /><p className="feedback-hint" role="status">{status}</p>
-              {!token && widgetId.current !== undefined && <button type="button" className="btn btn-ghost" disabled={busy || readingImages} onClick={() => { if (widgetId.current !== undefined) window.turnstile?.reset(widgetId.current); }}>重新验证</button>}
+            <div className="feedback-verification" tabIndex={-1}><div ref={widget} /><p className="feedback-hint" role="status">{t(status)}</p>
+              {t(!token && widgetId.current !== undefined && <button type="button" className="btn btn-ghost" disabled={busy || readingImages} onClick={() => { if (widgetId.current !== undefined) window.turnstile?.reset(widgetId.current); }}>{t("重新验证")}</button>)}
             </div>
-            {uncertainUrl && <p><a href={uncertainUrl} target="_blank" rel="noreferrer">先查看最新 Issue ↗</a></p>}
-            {tab === "edit" && <button className="btn btn-ghost feedback-preview-action" type="button" onClick={() => { selectTab("preview", true); document.getElementById("feedback-tab-preview")?.scrollIntoView({ block: "start", behavior: "smooth" }); }}>先预览内容</button>}
-            <button className="btn btn-primary" type="submit" disabled={busy || readingImages || templateLoading || !template || Boolean(templateError)}>{busy ? "正在提交…" : "提交反馈"}</button>
+            {t(uncertainUrl && <p><a href={uncertainUrl} target="_blank" rel="noreferrer">{t("先查看最新 Issue ↗")}</a></p>)}
+            {t(tab === "edit" && <button className="btn btn-ghost feedback-preview-action" type="button" onClick={() => { selectTab("preview", true); document.getElementById("feedback-tab-preview")?.scrollIntoView({ block: "start", behavior: "smooth" }); }}>{t("先预览内容")}</button>)}
+            <button className="btn btn-primary" type="submit" disabled={busy || readingImages || templateLoading || !template || Boolean(templateError)}>{t(busy ? "正在提交…" : "提交反馈")}</button>
           </form>
           <aside className="card feedback-aside">
-            <p className="feedback-kicker">提交到</p><h2>{targets[form.target].label}</h2>
-            <a href={`https://github.com/metasequoiaime/${targets[form.target].repo}/issues`} target="_blank" rel="noreferrer">{targets[form.target].repo} ↗</a>
-            <hr /><h3>先查常见问题</h3><p>字体方框、设置打不开或快捷键冲突？<a href="/faq/">查看常见问题 Q&A</a>，试试已有的排查办法。</p>
-            <h3>描述清楚，方便排查</h3>
-            <p>说清楚遇到的问题、目前的做法，以及你希望的结果。提交前也可以查看已有 Issue，避免重复提交。</p>
-            <h3>提交之后</h3><p>页面会显示 Issue 链接。维护者将在对应仓库讨论、评估并跟进；提交并不代表已经排入开发计划。</p>
-            <h3>隐私与安全</h3><p>表单内容会公开。安全漏洞请按 <a href="https://github.com/metasequoiaime/.github/blob/main/SECURITY.md" target="_blank" rel="noreferrer">安全策略</a> 私下报告。</p>
+            <p className="feedback-kicker">{t("提交到")}</p><h2>{t(targets[form.target].label)}</h2>
+            <a href={`https://github.com/metasequoiaime/${targets[form.target].repo}/issues`} target="_blank" rel="noreferrer">{t(targets[form.target].repo)} ↗</a>
+            <hr /><h3>{t("先查常见问题")}</h3><p>{t("字体方框、设置打不开或快捷键冲突？")}<a href={href("/faq/")}>{t("查看常见问题 Q&A")}</a>{t("，试试已有的排查办法。")}</p>
+            <h3>{t("描述清楚，方便排查")}</h3>
+            <p>{t("说清楚遇到的问题、目前的做法，以及你希望的结果。提交前也可以查看已有 Issue，避免重复提交。")}</p>
+            <h3>{t("提交之后")}</h3><p>{t("页面会显示 Issue 链接。维护者将在对应仓库讨论、评估并跟进；提交并不代表已经排入开发计划。")}</p>
+            <h3>{t("隐私与安全")}</h3><p>{t("表单内容会公开。安全漏洞请按")}<a href="https://github.com/metasequoiaime/.github/blob/main/SECURITY.md" target="_blank" rel="noreferrer">{t("安全策略")}</a> {t("私下报告。")}</p>
           </aside>
         </div>}
       </div>

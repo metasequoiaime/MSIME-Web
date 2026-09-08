@@ -1,3 +1,4 @@
+import { useLocale } from "./use-locale";
 import { useQuery } from "@tanstack/react-query";
 import { StarHistoryChart } from "./star-history-chart";
 import { useReveal } from "./use-reveal";
@@ -13,6 +14,7 @@ const fetchCommunity = async () => {
 const groupThousands = (value: number) => value.toLocaleString("en-US");
 
 export function CommunitySection() {
+  const { t } = useLocale();
   const community = useQuery({
     queryKey: ["community"],
     queryFn: fetchCommunity,
@@ -31,23 +33,21 @@ export function CommunitySection() {
   return (
     <section className="container section">
       <div className="section-eyebrow" data-reveal>
-        <span>社区</span>
+        <span>{t("社区")}</span>
         <span className="section-rule" />
       </div>
 
       <h2 className="section-title" data-reveal>
-        开源社区动态
-      </h2>
+        {t("开源社区动态")}</h2>
       <p className="section-lead" data-reveal>
-        以下数据随站点更新，可能与 GitHub 当前数据有差异。贡献者头像由 GitHub 提供。
-      </p>
+        {t("以下数据随站点更新，可能与 GitHub 当前数据有差异。贡献者头像由 GitHub 提供。")}</p>
 
       <div className="community-grid" data-reveal>
         <div className="card community-chart-card">
           <div className="community-chart-head">
             <div>
-              <p className="community-kicker">GitHub Star 累计</p>
-              <strong className="community-figure">{groupThousands(totalStars)}</strong>
+              <p className="community-kicker">{t("GitHub Star 累计")}</p>
+              <strong className="community-figure">{t(groupThousands(totalStars))}</strong>
             </div>
             <a
               className="community-link"
@@ -55,20 +55,18 @@ export function CommunitySection() {
               target="_blank"
               rel="noreferrer"
             >
-              在 GitHub 查看 →
-            </a>
+              {t("在 GitHub 查看 →")}</a>
           </div>
           <StarHistoryChart series={starHistory} />
         </div>
 
         <div className="card community-people-card">
-          <p className="community-kicker">核心贡献者</p>
+          <p className="community-kicker">{t("核心贡献者")}</p>
           <p className="community-people-note">
-            按 {repoCount} 个仓库的提交数合并排序，机器人账号不计入。
-          </p>
+            {t("按")}{t(repoCount)} {t("个仓库的提交数合并排序，机器人账号不计入。")}</p>
 
           <ul className="community-people">
-            {contributors.map((person) => (
+            {t(contributors.map((person) => (
               <li key={person.login}>
                 <a href={person.url} target="_blank" rel="noreferrer">
                   <img
@@ -80,13 +78,12 @@ export function CommunitySection() {
                     decoding="async"
                     referrerPolicy="no-referrer"
                   />
-                  <span className="community-person-name">{person.login}</span>
+                  <span className="community-person-name">{t(person.login)}</span>
                   <span className="community-person-meta">
-                    {groupThousands(person.contributions)} 次提交 · {person.repos} 个仓库
-                  </span>
+                    {t(groupThousands(person.contributions))} {t("次提交 ·")}{t(person.repos)} {t("个仓库")}</span>
                 </a>
               </li>
-            ))}
+            )))}
           </ul>
         </div>
       </div>

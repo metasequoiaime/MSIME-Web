@@ -1,22 +1,27 @@
-import { createMemoryHistory, createRootRoute, createRoute, createRouter, lazyRouteComponent, Link, Outlet } from "@tanstack/react-router";
+import { isTraditional } from "../shared/locales";
+import { loadTraditional } from "../shared/translate";
+import { LocaleLink as Link } from "./locale-link";
+import { useLocale } from "./use-locale";
+import { createMemoryHistory, createRootRoute, createRoute, createRouter, lazyRouteComponent, Outlet } from "@tanstack/react-router";
 import { usePageMeta } from "./page-meta";
 import { docsSearchSchema } from "./docs-search";
 import { SiteShell } from "./site-shell";
 
 function NotFoundPage() {
+  const { t } = useLocale();
   usePageMeta();
   return (
     <main className="content-page">
       <div className="container">
         <div className="card">
-          <h1>页面不存在</h1>
-          <p>这个地址下没有内容，可能是链接过期或输错了。</p>
+          <h1>{t("页面不存在")}</h1>
+          <p>{t("这个地址下没有内容，可能是链接过期或输错了。")}</p>
           <div className="btn-row">
             <Link className="btn btn-primary" to="/">
-              回到首页
+              {t("回到首页")}
             </Link>
             <Link className="btn btn-ghost" to="/docs/$guide/" params={{ guide: "windows" }}>
-              查看文档
+              {t("查看文档")}
             </Link>
           </div>
         </div>
@@ -30,7 +35,7 @@ function RootLayout() {
   return <Outlet />;
 }
 
-const rootRoute = createRootRoute({ component: RootLayout });
+const rootRoute = createRootRoute({ component: RootLayout, beforeLoad: ({ location }) => isTraditional(location.pathname) ? loadTraditional() : undefined });
 
 /**
  * 无路径的布局层：顶栏、导航和页脚都挂在这里，站内换页时它们不重挂，导航胶囊才能连续地滑过去。
@@ -120,21 +125,23 @@ const resumeRoute = createRoute({
   component: lazyRouteComponent(() => import("./page-resume"), "ResumePage"),
 });
 
-const traditionalShell = createRoute({
-  getParentRoute: () => rootRoute,
-  id: 'traditional-shell',
-  component: lazyRouteComponent(() => import('./page-traditional'), 'TraditionalShell'),
-  notFoundComponent: NotFoundPage,
-});
-const traditionalRoutes = (['/zh-TW', '/zh-TW/features', '/zh-TW/download', '/zh-TW/faq', '/zh-TW/feedback'] as const).map(path => createRoute({
-  getParentRoute: () => traditionalShell,
-  path,
-  component: lazyRouteComponent(() => import('./page-traditional'), 'TraditionalPage'),
-}));
+const traditionalRoutes = [
+  createRoute({ getParentRoute: () => shellRoute, path: "/zh-TW/beta", component: lazyRouteComponent(() => import("./page-beta"), "BetaPage") }),
+  createRoute({ getParentRoute: () => shellRoute, path: "/zh-TW/", component: lazyRouteComponent(() => import("./page-home"), "HomePage") }),
+  createRoute({ getParentRoute: () => shellRoute, path: "/zh-TW/features", component: lazyRouteComponent(() => import("./page-features"), "FeaturesPage") }),
+  createRoute({ getParentRoute: () => shellRoute, path: "/zh-TW/download", component: lazyRouteComponent(() => import("./page-download"), "DownloadPage") }),
+  createRoute({ getParentRoute: () => shellRoute, path: "/zh-TW/faq", component: lazyRouteComponent(() => import("./page-faq"), "FaqPage") }),
+  createRoute({ getParentRoute: () => shellRoute, path: "/zh-TW/feedback", component: lazyRouteComponent(() => import("./page-feedback"), "FeedbackPage") }),
+  createRoute({ getParentRoute: () => shellRoute, path: "/zh-TW/about", component: lazyRouteComponent(() => import("./page-about"), "AboutPage") }),
+  createRoute({ getParentRoute: () => shellRoute, path: "/zh-TW/code", component: lazyRouteComponent(() => import("./page-code"), "CodePage") }),
+  createRoute({ getParentRoute: () => shellRoute, path: "/zh-TW/price", component: lazyRouteComponent(() => import("./page-price"), "PricePage") }),
+  createRoute({ getParentRoute: () => shellRoute, path: "/zh-TW/privacy", component: lazyRouteComponent(() => import("./page-privacy"), "PrivacyPage") }),
+  createRoute({ getParentRoute: () => shellRoute, path: "/zh-TW/docs", component: lazyRouteComponent(() => import("./page-docs"), "DocsPage"), validateSearch: docsSearchSchema }),
+  createRoute({ getParentRoute: () => shellRoute, path: "/zh-TW/docs/$guide", component: lazyRouteComponent(() => import("./page-docs"), "DocsPage") })
+];
 
 const routeTree = rootRoute.addChildren([
-  traditionalShell.addChildren(traditionalRoutes),
-  shellRoute.addChildren([indexRoute, featuresRoute, docsRoute, guideRoute, faqRoute, downloadRoute, betaRoute, aboutRoute, codeRoute, priceRoute, privacyRoute, feedbackRoute]),
+  shellRoute.addChildren([...traditionalRoutes, indexRoute, featuresRoute, docsRoute, guideRoute, faqRoute, downloadRoute, betaRoute, aboutRoute, codeRoute, priceRoute, privacyRoute, feedbackRoute]),
   resumeRoute,
 ]);
 

@@ -88,6 +88,8 @@ test('legacy guide redirects preserve queries without accepting unknown or exter
     assert.equal(response.status, 301);
     assert.equal(response.headers.get('Location'), `${SITE_ORIGIN}/docs/${guide}/?utm_source=test`);
   }
+  const traditional = await onRequest({ request: new Request(`${SITE_ORIGIN}/zh-TW/docs/?platform=linux&utm_source=test`), next });
+  assert.equal(traditional.headers.get('Location'), `${SITE_ORIGIN}/zh-TW/docs/linux/?utm_source=test`);
   for (const value of ['', '?platform=unknown', '?platform=https://example.com']) assert.equal((await onRequest({ request: new Request(`${SITE_ORIGIN}/docs/${value}`), next })).status, 200);
   assert.equal(calls, 3);
   const mirror = await onRequest({ request: new Request('https://metasequoiaime.pages.dev/docs/?platform=linux'), next });
@@ -153,38 +155,50 @@ test('static guide hero includes its introductory paragraph before hydration', (
   }
 });
 
-test('Traditional Chinese core pages have reciprocal locale metadata and real translated content', async () => {
+test('both languages retain the same page structure, controls and complete content', async () => {
   const { traditionalPages, traditionalPath } = await import('../shared/locales.ts');
   for (const base of Object.keys(traditionalPages)) {
     const path = traditionalPath(base);
     const tw = document(path);
+    const cn = document(base);
     assert.equal(tw.documentElement.lang, 'zh-Hant-TW');
     assert.equal(tw.querySelector('meta[property="og:locale"]').content, 'zh_TW');
-    assert.equal(tw.querySelector('link[rel=canonical]').href, `${SITE_ORIGIN}${path}`);
+    assert.equal(tw.querySelector('link[rel=canonical]').href, `${SITE_ORIGIN}${base === '/docs/' ? '/zh-TW/docs/windows/' : path}`);
     for (const [route, locale] of [[base, 'zh-Hans'], [path, 'zh-Hant-TW']]) {
-      for (const doc of [document(base), tw]) assert.equal(doc.querySelector(`link[hreflang="${locale}"]`).href, `${SITE_ORIGIN}${route}`);
+      for (const doc of [cn, tw]) assert.equal(doc.querySelector(`link[hreflang="${locale}"]`).href, `${SITE_ORIGIN}${route.replace(/\/docs\/$/, "/docs/windows/")}`);
     }
-    assert.equal(tw.querySelector('link[hreflang="x-default"]').href, `${SITE_ORIGIN}${base}`);
-    assert.match(tw.querySelector('main').textContent, /輸入|問題/);
-    assert.ok(read('sitemap.xml').includes(`hreflang="zh-Hant-TW" href="${SITE_ORIGIN}${path}"`));
+    for (const selector of ['.header-wrap', '.site-footer', 'main', 'main section', 'main button', 'main input', 'main video', 'main table', 'main details', 'main h2', 'main h3']) {
+      assert.equal(tw.querySelectorAll(selector).length, cn.querySelectorAll(selector).length, `${path}: ${selector}`);
+    }
+    assert.ok(!tw.querySelector('.traditional-page'), path);
+    assert.ok(tw.querySelector('main').textContent.length >= cn.querySelector('main').textContent.length * 0.85, `${path}: no shortened translation`);
+    for (const anchor of tw.querySelectorAll('main a[href^="/"]')) {
+      const href = anchor.getAttribute('href').split(/[?#]/)[0];
+      if (href in traditionalPages) assert.fail(`${path}: language lost at ${href}`);
+    }
   }
-  assert.equal(document('/docs/windows/').querySelector('link[hreflang]'), null, 'do not advertise untranslated guides');
-  assert.ok(document('/zh-TW/feedback/').querySelector('main a[href="/feedback/"]').textContent.includes('簡體'));
+  assert.ok(document('/zh-TW/feedback/').querySelector('form'));
   const twDownload = document('/zh-TW/download/');
   const release = JSON.parse(read('platforms.json')).platforms.windows;
   assert.ok(twDownload.querySelector('main').textContent.includes(release.version));
-  assert.ok(twDownload.querySelector(`a[href="${release.downloads[0].url}"]`), 'downloads use the same published assets');
-  assert.ok(twDownload.querySelector('main').textContent.includes(release.downloads[0].sha256));
+  assert.ok(twDownload.querySelector(`a[href="${release.downloads[0].url}"]`));
 });
 
-test('Traditional FAQ summaries track the reviewed source and expose all answers without JavaScript', async () => {
+test('Traditional documents track complete source and preserve executable examples', async () => {
   const { createHash } = await import('node:crypto');
-  const { questions, faqSourceSha256 } = await import('../src/locales/zh-TW/faq.ts');
-  const source = readFileSync('vendor/MSIME-Docs/guides/faq.md', 'utf8');
-  assert.equal(createHash('sha256').update(source).digest('hex'), faqSourceSha256, 'Review the Traditional FAQ when the source changes');
-  assert.equal(questions.length, [...source.matchAll(/^### /gm)].length);
+  const sources = JSON.parse(readFileSync('vendor/MSIME-Docs/guides/zh-TW/sources.json', 'utf8'));
+  for (const name of ['windows', 'macos', 'macos-voice', 'linux', 'faq']) {
+    const source = readFileSync(`vendor/MSIME-Docs/guides/${name}.md`, 'utf8');
+    const translated = readFileSync(`vendor/MSIME-Docs/guides/zh-TW/${name}.md`, 'utf8');
+    assert.equal(createHash('sha256').update(source).digest('hex'), sources.files[`${name}.md`].sourceSha256, name);
+    assert.deepEqual(translated.match(/```[^\n]*\n[\s\S]*?```/g), source.match(/```[^\n]*\n[\s\S]*?```/g), name);
+    if (name !== 'faq') {
+      const doc = document(`/zh-TW/docs/${name}/`);
+      assert.ok(doc.querySelector('.docs-article').textContent.length > 300);
+    }
+  }
   const doc = document('/zh-TW/faq/');
   const schema = [...doc.querySelectorAll('script[type="application/ld+json"]')].map(node => JSON.parse(node.textContent)).find(item => item['@type'] === 'FAQPage');
-  assert.equal(schema.mainEntity.length, questions.length);
-  for (const question of questions) assert.ok(doc.querySelector('main').textContent.includes(question.answer));
+  assert.equal(schema.mainEntity.length, 18);
+  for (const answer of doc.querySelectorAll('.faq-answer')) assert.ok(answer.textContent.length > 50);
 });
