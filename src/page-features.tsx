@@ -306,7 +306,13 @@ export function FeaturesPage() {
                   </div>
                 </fieldset>
               </div>
-              <CandidatePreview scheme={scheme} layout={layout} />
+              <div className="skin-preview">
+                {(["vertical", "horizontal"] as const).map(value => (
+                  <div key={value} data-active={layout === value} aria-hidden="true">
+                    <CandidatePreview scheme={scheme} layout={value} />
+                  </div>
+                ))}
+              </div>
               <p className="skin-note">
                 {t("按皮肤示例仓库")}<code>skin.toml</code> {t("公布的配色现场绘制，用于说明可自定义的范围，不是应用截图。一套皮肤可以声明强调色、选中态、悬停态、边框与背景，并分别给深浅两种配色，还能指定横排 / 竖排支持与候选窗装饰。")}</p>
             </div>
