@@ -6,7 +6,7 @@ export const seoPages: Record<string, { title: string; description: string; noin
   "/": { title: "水杉输入法 MSIME｜开源中文输入法", description: "水杉输入法（MSIME）是开源中文输入法，各平台共用 C++ 引擎。查看 Windows、macOS 和 Linux 下载、iOS 公测、使用指南与常见问题。" },
   "/features/": { title: "功能与界面｜水杉输入法", description: "以 Windows 版为例，查看水杉输入法的候选窗、皮肤、词库与输入功能，了解设置方法和实际界面。" },
   "/download/": { title: "下载 Windows、macOS、Linux 与 iOS 版｜水杉输入法", description: "下载水杉输入法 Windows、macOS 和 Linux 版本，或通过 TestFlight 加入 iOS 公测，查看安装说明与 SHA256 校验方法。" },
-  "/beta/": { title: "macOS 与 iOS 公测｜水杉输入法", description: "加入水杉输入法 macOS 与 iOS 公测：查看 macOS 安装包、使用指南和 iOS TestFlight 安装入口。" },
+  "/beta/": { title: "iOS 公测｜水杉输入法", description: "通过 TestFlight 加入水杉输入法 iOS 公测，查看安装、启用键盘和测试版本说明。" },
   "/docs/": { canonicalPath: "/docs/windows/", title: "使用文档与安装指南｜水杉输入法", description: "水杉输入法 Windows、macOS、macOS 语音与 Linux 使用指南，选择平台查看安装、配置和日常使用方法。" },
   "/faq/": { title: "常见问题与故障排查 Q&A｜水杉输入法", description: "水杉输入法常见问题与排查方法：字体方框、安装启动、快捷键、候选窗口和翻译，附相关指南及 Issue 来源。" },
   "/code/": { title: "开源仓库与贡献入口｜水杉输入法", description: "浏览水杉输入法各平台、公共引擎、输入方案、词库与文档的开源仓库，了解项目分工和贡献入口。" },
