@@ -25,14 +25,14 @@ export function FeedbackFields({ template, answers, onChange, upload }: {
     const hint = field.description ? `${id}-hint` : undefined;
     const label = <>{field.label}{field.required && <span className="feedback-required" aria-hidden="true"> *</span>}</>;
     const description = field.description && <div id={hint} className="feedback-hint"><TemplateMarkdown source={field.description} /></div>;
-    if (field.type === "checkboxes" || (field.type === "dropdown" && field.multiple)) return <fieldset className="feedback-choice-field" key={field.id} aria-describedby={hint}>
+    if (field.type === "checkboxes" || (field.type === "dropdown" && field.multiple)) return <fieldset className="feedback-choice-field" key={field.id} data-feedback-field={field.id} aria-describedby={hint}>
       <legend>{label}</legend>{description}
       {field.options.map(option => <label className="feedback-consent" key={option.label}>
         <input type="checkbox" checked={selected.includes(option.label)} required={field.type === "checkboxes" && option.required} onChange={event => toggle(option.label, event.target.checked)} />
         <span><TemplateMarkdown source={option.label} inline />{option.required && <span className="feedback-required" aria-hidden="true"> *</span>}</span>
       </label>)}
     </fieldset>;
-    if (field.type === "dropdown") return <fieldset className="feedback-choice-field" key={field.id} aria-describedby={hint}>
+    if (field.type === "dropdown") return <fieldset className="feedback-choice-field" key={field.id} data-feedback-field={field.id} aria-describedby={hint}>
       <legend>{label}</legend>{description}
       {field.options.map(option => <label className="feedback-consent" key={option.label}>
         <input type="radio" name={id} value={option.label} checked={selected[0] === option.label} required={field.required} onChange={() => onChange(field.id, [option.label])} />
@@ -40,7 +40,7 @@ export function FeedbackFields({ template, answers, onChange, upload }: {
       </label>)}
       {!field.required && selected.length > 0 && <button type="button" className="btn btn-ghost feedback-clear-choice" onClick={() => onChange(field.id, [])}>清除选择</button>}
     </fieldset>;
-    return <div className="feedback-template-field" key={field.id}>
+    return <div className="feedback-template-field" key={field.id} data-feedback-field={field.id}>
       <label htmlFor={field.type === "upload" ? `screenshots-${field.id}` : id}>{label}</label>{description}
       {field.type === "input" && <input id={id} value={text} maxLength={MAX_ANSWER_LENGTH} required={field.required} aria-describedby={hint} placeholder={field.placeholder} onChange={event => onChange(field.id, event.target.value)} />}
       {field.type === "textarea" && <textarea id={id} value={text} maxLength={MAX_ANSWER_LENGTH} rows={4} required={field.required} aria-describedby={hint} placeholder={field.placeholder} onChange={event => onChange(field.id, event.target.value)} />}
