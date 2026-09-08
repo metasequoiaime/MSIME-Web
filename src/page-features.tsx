@@ -268,9 +268,14 @@ export function FeaturesPage() {
                   <code>{breakAtSeparators("%LOCALAPPDATA%\\metasequoiaime\\skins")}</code> {t("再点「刷新皮肤」即可。")}</p>
               </div>
 
+
+            </div>
+
+            <div className="skin-stage">
               <div className="feature-toggles">
-                <fieldset className="docs-platforms">
-                  <legend className="visually-hidden">{t("预览配色")}</legend>
+                <fieldset className="skin-control">
+                  <legend>{t("配色")}</legend>
+                  <div className="skin-control-options">
                   {t((["dark", "light"] as const).map((value) => (
                     <button
                       key={value}
@@ -282,9 +287,11 @@ export function FeaturesPage() {
                       {t(value === "dark" ? "深色" : "浅色")}
                     </button>
                   )))}
+                  </div>
                 </fieldset>
-                <fieldset className="docs-platforms">
-                  <legend className="visually-hidden">{t("预览排布")}</legend>
+                <fieldset className="skin-control">
+                  <legend>{t("排布")}</legend>
+                  <div className="skin-control-options">
                   {t((["vertical", "horizontal"] as const).map((value) => (
                     <button
                       key={value}
@@ -296,11 +303,9 @@ export function FeaturesPage() {
                       {t(value === "vertical" ? "竖排" : "横排")}
                     </button>
                   )))}
+                  </div>
                 </fieldset>
               </div>
-            </div>
-
-            <div className="skin-stage">
               <CandidatePreview scheme={scheme} layout={layout} />
               <p className="skin-note">
                 {t("按皮肤示例仓库")}<code>skin.toml</code> {t("公布的配色现场绘制，用于说明可自定义的范围，不是应用截图。一套皮肤可以声明强调色、选中态、悬停态、边框与背景，并分别给深浅两种配色，还能指定横排 / 竖排支持与候选窗装饰。")}</p>

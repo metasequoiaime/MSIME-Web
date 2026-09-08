@@ -793,9 +793,19 @@ kbd {
 }
 
 .feature-toggles {
-  display: grid;
-  gap: 8px;
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--hair-3);
 }
+.skin-control { margin: 0; padding: 0; border: 0; min-width: 0; }
+.skin-control legend { padding: 0; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: var(--text-content); }
+.skin-control-options { display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: var(--card-2); }
+.skin-control-options .docs-platform { min-height: 44px; padding: 8px 18px; border-radius: 8px; background: transparent; }
+.skin-control-options .docs-platform.is-active { background: var(--accent-soft); border-color: var(--accent-soft); }
+
 
 /*
  * 这几组切换按钮用 fieldset 是为了语义（一组同类选项 + legend 说明它是什么），不是为了它自带的方框。
@@ -809,9 +819,6 @@ fieldset.docs-platforms {
   min-inline-size: 0;
 }
 
-.feature-toggles .docs-platforms {
-  border-bottom: none;
-}
 
 /* 候选窗预览：按皮肤声明的配色现场画，颜色走内联 style，结构和间距归这里 */
 .skin-stage {
@@ -1102,7 +1109,6 @@ fieldset.docs-platforms {
   .feature-block-head { gap: 16px; }
   .feature-block-lead, .feature-sub { font-size: 16px; line-height: 1.75; }
   .feature-toggles { min-width: 0; width: 100%; align-items: stretch; }
-  .feature-toggles .docs-platforms { flex-wrap: wrap; }
   .skin-stage { padding: 20px 10px; min-width: 0; overflow-x: auto; }
   .skin-window { max-width: 100%; }
 }
