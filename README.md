@@ -130,3 +130,14 @@ Issue 作者为 App 的机器人账号（例如 `msime-feedback[bot]`）。后�
 上线后可在 Google Search Console / Bing Webmaster Tools 的已有域名资源中提交 `https://msime.app/sitemap.xml`，检查抓取、canonical、索引覆盖和搜索表现。站点验证凭据不写入仓库；当前改动不声称已向未授权的外部站长账户提交。Cloudflare 自定义域名应保持搜索抓取器可访问，生产 `pages.dev` 镜像通过 301 归一到正式域名。
 
 参考：[Google 搜索技术要求](https://developers.google.com/search/docs/essentials/technical)、[noindex 与抓取](https://developers.google.com/search/docs/crawling-indexing/block-indexing)、[OpenAI 抓取器](https://developers.openai.com/api/docs/bots)、[llms.txt 提案](https://llmstxt.org/)。
+
+
+### 规范域名与首屏加载
+
+正式域名为 `https://msime.app`。Cloudflare 账户中的 `Canonical www.msime.app to msime.app` 单条规则精确匹配 www 主机；`Canonical production Pages mirror` 批量规则引用 `msime_pages_canonical` 列表，将 `metasequoiaime.pages.dev/` 全路径 301 到正式域名。均保留路径和查询参数；镜像规则不开启 Include subdomains，PR 预览域名不受影响。域名级跳转不能写进 Pages `_redirects`。
+
+`pnpm test:seo:live` 核验上述线上规则；它依赖网络，部署完成后执行。构建测试同时检查站内链接和面包屑都使用规范页面。
+
+初次启动使用 TanStack Router 的 SSR 状态恢复并由 React hydrateRoot 接管静态正文；构建为当前页面生成 modulepreload，不预取其他页面。路由恢复脚本作为同源带内容哈希的资源输出，避免额外内联脚本撑大 CSP。主题在接管前保持与静态快照一致，随后在绘制前应用偏好。文档首段在静态构建时就放入页头，不依赖浏览器二次移动。
+
+安装截图保持 Docs 原文不变，在网站渲染时使用本地 WebP、尺寸声明和响应式候选。派生文件可用 `cwebp -q 85 -resize 480 0 public/screenshots/install-finish.png -o public/screenshots/install-finish-480.webp` 和 `cwebp -q 85 public/screenshots/install-finish.png -o public/screenshots/install-finish.webp` 重建。

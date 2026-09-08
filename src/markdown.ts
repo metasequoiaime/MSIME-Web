@@ -17,9 +17,19 @@ const localizeSiteLinks = (root: ParentNode) => {
 
   root.querySelectorAll("a[href]").forEach((element) => {
     strip(element, "href");
+    if (element.getAttribute("href") === "/docs/") element.setAttribute("href", "/docs/windows/");
   });
   root.querySelectorAll("img[src]").forEach((element) => {
     strip(element, "src");
+    if (element.getAttribute("src") === "/screenshots/install-finish.png") {
+      element.setAttribute("src", "/screenshots/install-finish.webp");
+      element.setAttribute("srcset", "/screenshots/install-finish-480.webp 480w, /screenshots/install-finish.webp 998w");
+      element.setAttribute("sizes", "(max-width: 600px) calc(100vw - 40px), (max-width: 1100px) 65vw, 760px");
+      element.setAttribute("width", "998");
+      element.setAttribute("height", "767");
+      element.setAttribute("loading", "lazy");
+      element.setAttribute("decoding", "async");
+    }
   });
 };
 
@@ -157,7 +167,7 @@ const liftHero = (root: ParentNode) => {
   const intro = heading.nextElementSibling;
   let leadHtml = "";
 
-  if (intro instanceof HTMLParagraphElement) {
+  if (intro?.tagName === "P") {
     leadHtml = intro.innerHTML;
     intro.remove();
   }
@@ -188,7 +198,7 @@ const groupSections = (root: HTMLElement) => {
 const splitRepoRows = (root: ParentNode) => {
   root.querySelectorAll<HTMLLIElement>("li").forEach((item) => {
     const link = item.firstChild;
-    if (!(link instanceof HTMLAnchorElement)) return;
+    if (!(link instanceof HTMLElement) || link.tagName !== "A") return;
 
     const name = document.createElement("span");
     name.className = "repo-name";

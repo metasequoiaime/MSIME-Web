@@ -53,6 +53,9 @@ const radiusToFarthestCorner = ({ x, y }: RevealOrigin) =>
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
+  // Match the static snapshot during hydration, then apply the bootstrapped preference before paint.
+  const [mounted, setMounted] = useState(false);
+  useLayoutEffect(() => setMounted(true), []);
   const [theme, setThemeState] = useState<ThemeChoice>(readInitialTheme);
   const [systemIsLight, setSystemIsLight] = useState(prefersLight);
 
@@ -115,8 +118,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<ThemeContextValue>(
-    () => ({ theme, isLight: resolveIsLight(theme, systemIsLight), setTheme }),
-    [theme, systemIsLight, setTheme]
+    () => ({ theme: mounted ? theme : "system", isLight: mounted ? resolveIsLight(theme, systemIsLight) : false, setTheme }),
+    [mounted, theme, systemIsLight, setTheme]
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

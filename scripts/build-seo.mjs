@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { parseHTML } from 'linkedom';
 import TurndownService from 'turndown';
 import { seoPages, pageSeo, structuredData, serializeJsonLd, SITE_ORIGIN, markdownPath } from '../shared/site-seo.ts';
@@ -26,11 +27,31 @@ for (const path of pages) {
   const html = parseHTML(guide ? docsTemplate : readFileSync(`${dist}/${template}`, 'utf8'));
   const document = html.document;
   const data = path === '/download/' ? { platforms: JSON.parse(readFileSync('public/platforms.json')), 'update-manifest': JSON.parse(readFileSync('public/update.json')) } : path === '/' ? { community: JSON.parse(readFileSync('public/community.json')) } : {};
-  const body = await render(path === '/404/' ? '/__not-found__/' : path, data);
+  const { html: body, bootstrap } = await render(path === '/404/' ? '/__not-found__/' : path, data);
   if (!body.includes('<h1') || body.includes('data-msg=') || body.includes('data-stck=')) throw new Error(`Static render failed for ${path}: ${body.slice(body.indexOf('data-msg='), body.indexOf('data-msg=') + 500)}`);
   document.getElementById('root').innerHTML = body;
+  const bootstrapCode = [...bootstrap.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map(match => match[1]).join('\n');
+  const bootstrapFile = `/assets/router-state-${createHash('sha256').update(bootstrapCode).digest('hex').slice(0, 16)}.js`;
+  write(`${dist}${bootstrapFile}`, bootstrapCode);
+  const stateScript = document.createElement('script'); stateScript.src = bootstrapFile; stateScript.setAttribute('defer', ''); stateScript.setAttribute('data-router-state', ''); document.body.append(stateScript);
+  const statePreload = document.createElement('link'); statePreload.rel = 'preload'; statePreload.setAttribute('as', 'script'); statePreload.href = bootstrapFile; document.head.append(statePreload);
   document.documentElement.classList.remove('preload');
   document.documentElement.setAttribute('data-prerendered', 'true');
+  const pageModule = path.startsWith('/docs/') ? 'docs' : path === '/' ? 'home' : path.split('/')[1];
+  const routeEntry = Object.keys(manifest).find(key => key === `src/page-${pageModule}.tsx`);
+  const visited = new Set();
+  const preload = key => {
+    if (!key || visited.has(key)) return;
+    visited.add(key);
+    const entry = manifest[key];
+    if (!entry) return;
+    if (!document.head.querySelector(`link[href="/${entry.file}"]`)) {
+      const link = document.createElement('link'); link.rel = 'modulepreload'; link.href = `/${entry.file}`; document.head.append(link);
+    }
+    for (const dependency of entry.imports ?? []) preload(dependency);
+  };
+  preload(routeEntry);
+
   document.title = metadata.title;
   const meta = (attribute, name, content) => {
     let element = document.head.querySelector(`meta[${attribute}="${name}"]`);
