@@ -176,39 +176,41 @@ export function HomePage() {
                 只渲染当前主题用得上的那一份。样式表本来就把另一份藏起来了，但 display: none 不阻止请求 ——
                 两份一起下会白白多取一整段视频，而它一个像素都不会显示。
               */}
-              {isLight ? (
-                <video
-                  className="hero-media hero-media-light"
-                  ref={videoRef}
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
-                  poster="/img/typing_words_light_poster.jpg"
-                  aria-label="输入演示"
-                >
-                  <source src={LIGHT_DEMO} type="video/mp4" />
-                </video>
-              ) : (
-                /*
-                  暗色这份原来是 GIF，而那张 GIF 把录制时的窗口边框一起录进去了：第 0 行整行是 rgb(224,227,230)，
-                  左右两列的首像素同样。浅色下它跟周围一样亮，看不出来；暗色下就是 #2a2a2a 底上的一道白边。
-                  仓库里本来就有同一段演示的暗色视频，没有那道边框，还比 GIF 小 141 KB。
-                */
-                <video
-                  className="hero-media hero-media-dark"
-                  ref={videoRef}
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
-                  poster="/img/typing_words_poster.jpg"
-                  aria-label="输入演示"
-                >
-                  <source src={DARK_DEMO} type="video/mp4" />
-                  <source src="/img/typing_words.webm" type="video/webm" />
-                </video>
-              )}
+              <div className="hero-media-frame">
+                {isLight ? (
+                  <video
+                    className="hero-media hero-media-light"
+                    ref={videoRef}
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                    poster="/img/typing_words_light_poster.jpg"
+                    aria-label="输入演示"
+                  >
+                    <source src={LIGHT_DEMO} type="video/mp4" />
+                  </video>
+                ) : (
+                  /*
+                    暗色这份原来是 GIF，而那张 GIF 把录制时的窗口边框一起录进去了：第 0 行整行是 rgb(224,227,230)，
+                    左右两列的首像素同样。浅色下它跟周围一样亮，看不出来；暗色下就是 #2a2a2a 底上的一道白边。
+                    仓库里本来就有同一段演示的暗色视频，没有那道边框，还比 GIF 小 141 KB。
+                  */
+                  <video
+                    className="hero-media hero-media-dark"
+                    ref={videoRef}
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                    poster="/img/typing_words_poster.jpg"
+                    aria-label="输入演示"
+                  >
+                    <source src={DARK_DEMO} type="video/mp4" />
+                    <source src="/img/typing_words.webm" type="video/webm" />
+                  </video>
+                )}
+              </div>
             </div>
           </div>
         </div>

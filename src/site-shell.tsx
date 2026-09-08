@@ -131,7 +131,43 @@ function RouteProgress() {
 function NavMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const pathname = useLocation({ select: (location) => location.pathname });
   const listRef = useRef<HTMLUListElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const activeLinkRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const menu = menuRef.current;
+    const opener = document.getElementById("btn-toggle");
+    menu?.querySelector<HTMLButtonElement>(".btn-close")?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+      }
+      if (event.key !== "Tab" || !menu) return;
+      const items = Array.from(menu.querySelectorAll<HTMLElement>("button, a[href]"));
+      const first = items[0];
+      const last = items.at(-1);
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
+    };
+    const desktop = window.matchMedia("(min-width: 1101px)");
+    const onResize = () => {
+      if (desktop.matches) onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    desktop.addEventListener("change", onResize);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      desktop.removeEventListener("change", onResize);
+      opener?.focus();
+    };
+  }, [isOpen, onClose]);
 
   // 当前 tab 的胶囊从上一页的位置滑过来。偏移要在浏览器画这一帧之前写好，否则胶囊会先出现在终点再跳回起点。
   // biome-ignore lint/correctness/useExhaustiveDependencies: pathname 不在函数体里用，它是触发条件 —— 换页之后才去量新旧两个标签的位置差
@@ -150,7 +186,9 @@ function NavMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
   }, [pathname]);
 
   return (
-    <nav className={`nav-menu${isOpen ? " show" : ""}`} id="nav-menu" aria-label="站点导航">
+    // biome-ignore lint/a11y/useAriaPropsSupportedByRole: 手机展开时为 modal dialog，桌面为 navigation；两种角色均支持 aria-label。
+    <div ref={menuRef} className={`nav-menu${isOpen ? " show" : ""}`} id="nav-menu" aria-label="站点导航" role={isOpen ? "dialog" : "navigation"} aria-modal={isOpen || undefined}>
+      <div className="nav-mobile-heading" aria-hidden="true">探索水杉</div>
       <button className="btn-close" id="btn-close" type="button" aria-label="关闭导航菜单" onClick={onClose}>
         <img src="/img/icons/Close_round.svg" alt="" className="nav-icon" />
       </button>
@@ -170,7 +208,7 @@ function NavMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
           </li>
         ))}
       </ul>
-    </nav>
+    </div>
   );
 }
 
@@ -230,9 +268,9 @@ function useHeaderAutoHide(menuIsOpen: boolean) {
   }, []);
 }
 
-function SiteFooter() {
+function SiteFooter({ inert }: { inert: boolean }) {
   return (
-    <footer className="site-footer">
+    <footer className="site-footer" inert={inert}>
       <div className="container">
         <div className="site-footer-grid">
           <div>
@@ -305,19 +343,6 @@ export function SiteShell() {
     };
   }, [menuIsOpen]);
 
-  useEffect(() => {
-    if (!menuIsOpen) return;
-
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMenuIsOpen(false);
-    };
-
-    document.addEventListener("keydown", closeOnEscape);
-    return () => {
-      document.removeEventListener("keydown", closeOnEscape);
-    };
-  }, [menuIsOpen]);
-
   return (
     <>
       {/* 键盘和读屏用户的第一站：不加这个，每换一页都要按十几次 Tab 才走完顶栏 */}
@@ -325,7 +350,7 @@ export function SiteShell() {
         跳到正文
       </a>
 
-      <div className="header-wrap">
+      <div className="header-wrap" inert={menuIsOpen}>
         <header className="container header">
           <Link className="logo" to="/">
             <img src="/msime-logo.png" width="34" height="34" decoding="async" alt="logo" />
@@ -333,7 +358,7 @@ export function SiteShell() {
           </Link>
 
           <div className="header-actions">
-            <a className="header-github" href="https://github.com/metasequoiaime" target="_blank" rel="noreferrer">
+            <a className="header-github" aria-label="GitHub" href="https://github.com/metasequoiaime" target="_blank" rel="noreferrer">
               <GithubMark />
               <span>GitHub</span>
             </a>
@@ -345,6 +370,8 @@ export function SiteShell() {
               id="btn-toggle"
               type="button"
               aria-label="打开导航菜单"
+              aria-expanded={menuIsOpen}
+              aria-controls="nav-menu"
               onClick={() => {
                 setMenuIsOpen(true);
               }}
@@ -358,11 +385,11 @@ export function SiteShell() {
       <NavMenu isOpen={menuIsOpen} onClose={closeMenu} />
       <RouteProgress />
 
-      <div id="site-content" tabIndex={-1}>
+      <div id="site-content" tabIndex={-1} inert={menuIsOpen}>
         <Outlet />
       </div>
 
-      <SiteFooter />
+      <SiteFooter inert={menuIsOpen} />
     </>
   );
 }

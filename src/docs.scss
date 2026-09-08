@@ -706,24 +706,6 @@ kbd {
   }
 }
 
-@media screen and (max-width: 640px) {
-  .docs-article {
-    padding: 22px 18px 26px;
-  }
-
-  .doc-card {
-    padding: 20px 18px;
-  }
-
-  .docs-content {
-    font-size: 15px;
-  }
-
-  .docs-content h2 {
-    font-size: 1.45em;
-  }
-}
-
 /* ==== FEATURES · 功能页 ==== */
 .feature-shots {
   display: grid;
@@ -740,6 +722,7 @@ kbd {
 .feature-shot img {
   display: block;
   width: 100%;
+  height: auto;
   /* 截图各自尺寸不一，统一裁到同一比例才排得齐；取上沿，候选窗基本都在画面上半部 */
   aspect-ratio: 16 / 10;
   object-fit: cover;
@@ -1084,4 +1067,43 @@ fieldset.docs-platforms {
   .download-panel-more li > * {
     padding: 12px 0;
   }
+}
+
+/* 手机正文用足阅读宽度，避免外层留白与卡片内边距重复挤压。 */
+@media screen and (max-width: 640px) {
+  .docs-page, .content-page { padding-top: 24px; }
+  .docs-shell { min-width: 0; }
+  .docs-sidebar { margin-bottom: 24px; padding: 8px; border-radius: 14px; }
+  .docs-toc-toggle { min-height: 44px; justify-content: space-between; }
+  .docs-platforms { gap: 6px; margin-bottom: 4px; padding-bottom: 8px; }
+  .docs-sidebar .docs-platforms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .docs-platform { min-height: 44px; padding: 8px 12px; font-size: 14px; }
+  .docs-toc a { min-height: 44px; padding-block: 10px; }
+  .docs-toc { max-height: 55dvh; }
+  .docs-article { padding: 0; border-radius: 0; background: none; box-shadow: none; }
+  .docs-content { font-size: 16px; line-height: 1.8; overflow-wrap: anywhere; }
+  .docs-content h2 { font-size: 24px; margin-top: 36px; margin-bottom: 14px; }
+  .docs-content h3 { font-size: 19px; margin-top: 28px; }
+  .docs-content pre { padding: 14px; font-size: 13px; }
+  .docs-content th, .docs-content td { padding: 10px 12px; }
+  .doc-card { padding: 20px 16px; }
+  .doc-card > :first-child { margin-top: 0; }
+  .doc-card + .doc-card { margin-top: 16px; }
+  .download-panel { padding: 16px; border-radius: 16px; min-width: 0; margin-bottom: 20px; }
+  .download-panel-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .download-panel-tabs .docs-platform { padding-inline: 4px; }
+  .download-panel-action { gap: 14px; }
+  .download-panel-action .btn { height: auto; min-height: 50px; padding: 12px; font-size: 16px; line-height: 1.5; }
+  .download-panel-meta { min-width: 0; width: 100%; }
+  .download-panel-file code { width: 100%; overflow-wrap: anywhere; font-size: 12px; }
+  .download-panel-arches { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .download-panel-more li > * { padding-block: 12px; }
+  .feature-block { padding: 20px 16px; }
+  .feature-block h2 { font-size: 24px; }
+  .feature-block-head { gap: 16px; }
+  .feature-block-lead, .feature-sub { font-size: 16px; line-height: 1.75; }
+  .feature-toggles { min-width: 0; width: 100%; align-items: stretch; }
+  .feature-toggles .docs-platforms { flex-wrap: wrap; }
+  .skin-stage { padding: 20px 10px; min-width: 0; overflow-x: auto; }
+  .skin-window { max-width: 100%; }
 }
