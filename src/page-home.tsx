@@ -109,7 +109,7 @@ const HERO_STATS = [
 ] as const;
 
 const PLATFORMS = [
-  { name: "Windows 10 / 11", desc: "纯 TSF 前端 + 常驻 Server", status: "公开内测", isLive: true },
+  { name: "Windows 10 / 11", desc: "纯 TSF 前端 + 常驻 Server", status: "公开测试", isLive: true },
   { name: "macOS 12+", desc: "InputMethodKit + AppKit", status: "开发中", isLive: false },
   { name: "Linux", desc: "IBus 前端，另含 GTK 设置程序", status: "开发中", isLive: false },
   { name: "iOS", desc: "宿主 App + 键盘扩展", status: "开发中", isLive: false },
