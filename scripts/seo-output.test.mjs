@@ -84,4 +84,7 @@ test('legacy guide redirects preserve queries without accepting unknown or exter
   }
   for (const value of ['', '?platform=unknown', '?platform=https://example.com']) assert.equal((await onRequest({ request: new Request(`${SITE_ORIGIN}/docs/${value}`), next })).status, 200);
   assert.equal(calls, 3);
+  const mirror = await onRequest({ request: new Request('https://metasequoiaime.pages.dev/docs/?platform=linux'), next });
+  assert.equal(mirror.status, 301);
+  assert.equal(mirror.headers.get('Location'), 'https://msime.app/docs/?platform=linux');
 });
