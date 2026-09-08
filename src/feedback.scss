@@ -9,14 +9,14 @@
   legend { font-size: 1.3rem; font-weight: 600; color: var(--lg-heading); margin-bottom: 1.5rem; }
   label { display: block; color: var(--text-body); font-weight: 600; margin-top: 1.25rem; }
   .feedback-consent > span, .feedback-hint { font-size: .85rem; color: var(--text-muted); font-weight: 400; }
-  input:not([type=checkbox]), select, textarea { display: block; width: 100%; margin-top: .6rem; border: 1px solid var(--hair-3); border-radius: 10px; background: var(--card-2); color: var(--text-body); font: inherit; font-weight: 400; padding: .8rem 1rem; }
+  input:not([type=checkbox]):not([type=radio]), select, textarea { display: block; width: 100%; margin-top: .6rem; border: 1px solid var(--hair-3); border-radius: 10px; background: var(--card-2); color: var(--text-body); font: inherit; font-weight: 400; padding: .8rem 1rem; }
   .feedback-required { color: #c64b50; margin-left: .2em; }
   input:user-invalid, textarea:user-invalid { border-color: #c64b50; }
   textarea { resize: vertical; line-height: 1.7; }
   input::placeholder, textarea::placeholder { color: var(--text-muted); }
   input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; }
   .feedback-consent { display: flex; gap: .75rem; align-items: start; line-height: 1.7; }
-  input[type=checkbox] { flex: 0 0 auto; width: 18px; height: 18px; margin-top: 3px; accent-color: var(--primary-color); }
+  input[type=checkbox], input[type=radio] { flex: 0 0 auto; width: 18px; height: 18px; margin-top: 3px; accent-color: var(--primary-color); }
   .feedback-contacts { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--hair-3); }
   .feedback-contacts h2 { font-size: 1.1rem; margin-bottom: .5rem; color: var(--lg-heading); }
   .feedback-contact-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1rem; }
@@ -78,7 +78,7 @@
     legend { font-size: 20px; margin-bottom: 8px; }
     label { margin-top: 20px; font-size: 16px; }
     .feedback-consent > span { display: block; margin-top: 4px; font-size: 13px; }
-    input:not([type=checkbox]), select, textarea { font-size: 16px; min-height: 48px; padding: 12px; }
+    input:not([type=checkbox]):not([type=radio]), select, textarea { font-size: 16px; min-height: 48px; padding: 12px; }
     textarea { line-height: 1.65; }
     .feedback-contact-grid { gap: 0; }
     summary { min-height: 44px; align-content: center; font-size: 15px; }
@@ -126,3 +126,8 @@
   .is-original img { max-width: none; max-height: none; margin: auto; }
   @media (max-width: 550px) { width: 100vw; height: 100dvh; max-width: 100vw; max-height: 100dvh; border-radius: 0; footer { gap: 6px; padding: 10px; } button { font-size: 14px; } }
 }
+
+.feedback-page .feedback-choice-field .feedback-consent { min-height: 44px; align-items: center; margin-top: .25rem; cursor: pointer; }
+.feedback-page .feedback-choice-field input { margin-top: 0; }
+.feedback-page .feedback-choice-field .feedback-consent > span { margin-top: 0; }
+.feedback-page .feedback-clear-choice { margin-top: .5rem; font-size: .85rem; }
