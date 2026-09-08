@@ -67,7 +67,7 @@ test('all four guides and FAQ answers are present without JavaScript', () => {
     assert.ok(faq.querySelector('#root').textContent.includes(item.name));
     assert.ok(item.acceptedAnswer.text.length > 20);
   }
-  assert.ok(document('/download/').querySelector('.docs-content').textContent.includes(JSON.parse(read('update.json')).version));
+  assert.ok(document('/download/').querySelector('.download-panel').textContent.includes(JSON.parse(read('update.json')).version));
 });
 
 test('noindex pages and Markdown duplicates do not pollute canonical indexing', () => {
@@ -251,5 +251,17 @@ test('all old beta links redirect to the localized download option', async () =>
         assert.equal(destination.searchParams.get('utm_source'), 'shared');
       }
     }
+  }
+});
+
+
+test('download actions and installation instructions share one surface without a sidebar', () => {
+  for (const path of ['/download/', '/zh-TW/download/']) {
+    const doc = document(path);
+    const surface = doc.querySelector('.content-flow');
+    assert.ok(surface?.querySelector('.download-panel'));
+    assert.ok(surface?.querySelector('#download-content'));
+    assert.equal(doc.querySelector('main aside'), null);
+    assert.equal(surface.querySelector('.doc-card'), null);
   }
 });

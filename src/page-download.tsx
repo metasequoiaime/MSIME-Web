@@ -278,10 +278,10 @@ function DownloadPanel({ platforms }: { platforms: Partial<Record<Platform, Plat
       </div>
 
       {t(current && current.downloads.length > 1 && (
-        <div className="download-panel-more">
-          <span className="download-panel-more-label">{t("全部下载")}</span>
+        <details className="download-panel-more">
+          <summary className="download-panel-more-label">{t("其他安装包")}</summary>
           <div className="download-panel-arches">
-            {t(groupByArch(current.downloads).map(([arch, entries]) => (
+            {t(groupByArch(current.downloads.filter(entry => entry.url !== primary?.url)).map(([arch, entries]) => (
               <section key={arch}>
                 <h3>{t(arch)}</h3>
                 <ul>
@@ -297,19 +297,18 @@ function DownloadPanel({ platforms }: { platforms: Partial<Record<Platform, Plat
               </section>
             )))}
           </div>
-        </div>
+        </details>
       ))}
 
       <p className="download-panel-note">
         {t(platform === "ios" ? (
           // 没有版本号也没有校验值可说：iOS 装的是 TestFlight 当前放出的那个构建，版本由 Apple 那边决定。
-          <>{t("不需要邮箱，也不需要开发者账号。上架计划与常见问题见下方 iOS 小节。")}</>
+          t("通过 TestFlight 安装，无需开发者账号。")
         ) : current ? (
           <>
-            {t(current.prerelease ? "公开测试版本，" : "")}{t("发布于")}{t(current.publishedAt.slice(0, 10))}{t("。校验值与安装步骤见下方")}{t(" ")}
-            {t(PLATFORM_LABELS[platform])} {t("小节。")}</>
+            {t(current.prerelease ? "公开测试版本，" : "")}{t("发布于")}{t(current.publishedAt.slice(0, 10))}{t("。")}{" "}<a href={current.releaseUrl} rel="noreferrer">{t("发布说明与校验值 ↗")}</a></>
         ) : (
-          <>{t("安装步骤、校验值与常见问题见下方")}{t(PLATFORM_LABELS[platform])} {t("小节。")}</>
+          t("安装步骤见下方说明。")
         ))}
       </p>
     </div>
@@ -356,7 +355,7 @@ export function DownloadPage() {
 
   const source = useMemo(() => {
     if (!ready || !fullSource) return fullSource;
-    return fullSource.split(/(?=^## )/m).filter((section, index) => index === 0 || section.startsWith(`## ${PLATFORM_LABELS[platform]}\n`) || section.startsWith("## 隐私\n")).join("");
+    return fullSource.split(/(?=^## )/m).filter((section, index) => index === 0 || section.startsWith(`## ${PLATFORM_LABELS[platform]}\n`) || section.startsWith("## 隐私\n")).join("").replace(`## ${PLATFORM_LABELS[platform]}\n`, "## 安装说明\n").replace(/^### 安装(?:说明|与启用)\n/gm, "");
   }, [fullSource, ready, platform]);
 
   return (
@@ -369,7 +368,7 @@ export function DownloadPage() {
       heroSource={downloadSource}
       contentId="download-content"
       contentClass="download-content"
-      sectioned
+      continuous
       banner={<DownloadPanel platforms={platforms.data?.platforms} />}
     />
   );

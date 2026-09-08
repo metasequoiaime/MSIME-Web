@@ -4,9 +4,6 @@
 
 ## Windows
 
-适用于 Windows 10 和 Windows 11。当前最新版本：**v{{version}}**
-
-- [GitHub Release 下载]({{releaseUrl}}) — 官方发布位置，随包附带校验值
 - [阿里云盘下载](https://www.alipan.com/s/wKbWStNYVLZ)（提取码：`27qi`）— 备用镜像，访问速度因网络而异；下载后请与官方发布的 SHA256 核对
 
 ### 安装说明
@@ -39,10 +36,6 @@ gh attestation verify .\{{installerName}} --repo metasequoiaime/MSIME-Windows
 
 ## macOS
 
-macOS 版已开放公测，适用于 macOS 12 及以上。当前最新版本：**v{{macosVersion}}**，{{macosPackages}}。
-
-- [GitHub Release 下载]({{macosReleaseUrl}}) — 官方发布位置，随包附带校验值
-
 安装包直接双击运行；压缩包解开后把输入法包放进 `~/Library/Input Methods`，再到「系统设置 → 键盘 → 文字输入 → 编辑」中启用「水杉输入法」。
 
 {{macosSigning}}
@@ -51,14 +44,10 @@ macOS 版内置 Sparkle 自动更新，安装后可从输入法菜单中的「�
 
 ## iOS
 
-需要 iOS 15 或更高版本。iOS 版已开放公测，目前通过 TestFlight 提供安装。
-
-- [加入 TestFlight 公测](https://testflight.apple.com/join/bUzPvyqt) — 用 iPhone 打开链接即可安装，不需要邮箱，也不需要开发者账号
-
 ### 安装与启用
 
 1. 在 iPhone 上安装 [TestFlight](https://apps.apple.com/app/testflight/id899247664)。
-2. 打开上方公测链接，在 TestFlight 中点“接受”，再点“安装”。
+2. 打开 [TestFlight 公测链接](https://testflight.apple.com/join/bUzPvyqt)，在 TestFlight 中点“接受”，再点“安装”。
 3. 安装完成后，到“设置 → 通用 → 键盘 → 键盘 → 添加新键盘”中启用“水杉输入法”。
 
 TestFlight 的每个构建有效期为 90 天，到期前在 TestFlight 中更新即可，无需重新加入。
@@ -69,9 +58,7 @@ TestFlight 的每个构建有效期为 90 天，到期前在 TestFlight 中更�
 
 ## Linux
 
-以 IBus 输入法的形式提供。当前最新版本：**v{{linuxVersion}}**，{{linuxPackages}}。
-
-- [GitHub Release 下载]({{linuxReleaseUrl}}) — 官方发布位置，随包附带校验值
+水杉输入法通过 IBus 接入 Linux 桌面。
 
 按发行版选择对应的包。安装后重启 IBus，再在桌面环境的输入源设置中添加「Metasequoia IME」。
 

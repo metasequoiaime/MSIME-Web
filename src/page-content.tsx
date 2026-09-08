@@ -116,6 +116,8 @@ const MarkdownArticle = memo(function MarkdownArticle({
 });
 
 type ContentPageProps = {
+  /** Keep download actions and instructions in one surface, without a sidebar. */
+  continuous?: boolean;
   documentTitle: string;
   description: string;
   kicker: string;
@@ -149,6 +151,7 @@ export function ContentPage({
   sectioned = false,
   repoRows = false,
   banner,
+  continuous = false,
 }: ContentPageProps) {
   const { t, tw, path } = useLocale();
   const articleRef = useRef<HTMLElement>(null);
@@ -174,13 +177,16 @@ export function ContentPage({
   useReveal([content]);
 
   // 有两节以上就给索引。这不只是导航，也是这一栏宽度的用处：不放索引就得让正文自己撑满整幅，一行又回到 65 个汉字；只收窄不填东西，两侧就白空半屏。
-  const hasIndex = content.toc.length >= 2;
+  const hasIndex = !continuous && content.toc.length >= 2;
+
+  const article = <MarkdownArticle className={`docs-content ${contentClass}`} id={contentId} html={content.html} articleRef={articleRef} />;
 
   return (
     <>
       <PageHero kicker={kicker} title={t(hero.title)} leadHtml={hero.leadHtml} />
       <main className="content-page">
-        <div className={`container${hasIndex ? " docs-shell" : ""}`}>
+        <div className={`container${hasIndex ? " docs-shell" : ""}${continuous ? " content-flow-container" : ""}`}>
+          {continuous ? <div className="card content-flow">{banner}{article}</div> : <>
           {t(banner)}
           {t(hasIndex && (
             <SectionIndex
@@ -191,12 +197,8 @@ export function ContentPage({
               onSelect={lockUntilScrollEnds}
             />
           ))}
-          <MarkdownArticle
-            className={`docs-content ${contentClass}`}
-            id={contentId}
-            html={content.html}
-            articleRef={articleRef}
-          />
+          {article}
+          </>}
         </div>
       </main>
     </>
