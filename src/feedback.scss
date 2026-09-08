@@ -50,3 +50,30 @@
   .feedback-success p { margin: 1rem 0 1.5rem; }
   @media (max-width: 850px) { .feedback-layout { grid-template-columns: minmax(0, 1fr); } }
 }
+
+@media screen and (max-width: 640px) {
+  .feedback-page {
+    padding-top: 28px;
+    .feedback-heading { margin-bottom: 24px; }
+    h1 { font-size: 28px; line-height: 1.35; }
+    .feedback-heading > p:last-child { font-size: 16px; line-height: 1.75; }
+    .feedback-form { padding: 20px 16px; }
+    fieldset { padding: 0; margin: 0; }
+    legend { font-size: 20px; margin-bottom: 8px; }
+    label { margin-top: 20px; font-size: 16px; }
+    label > span { display: block; margin-top: 4px; font-size: 13px; }
+    input:not([type=checkbox]), select, textarea { font-size: 16px; min-height: 48px; padding: 12px; }
+    textarea { line-height: 1.65; }
+    .feedback-contact-grid { gap: 0; }
+    .feedback-preview { padding: 12px; }
+    summary { min-height: 44px; align-content: center; font-size: 15px; }
+    .feedback-issue-title { font-size: 20px; }
+    .feedback-issue-body { font-size: 15px; }
+    .feedback-consent { font-size: 14px; font-weight: 400; }
+    .feedback-consent input { width: 22px; height: 22px; }
+    .feedback-form > .btn { width: 100%; min-height: 50px; font-size: 16px; }
+    .feedback-aside { padding: 20px 16px; }
+    .feedback-success { padding: 24px 16px; }
+    .feedback-success .btn { width: 100%; }
+  }
+}
