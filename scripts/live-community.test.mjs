@@ -30,7 +30,8 @@ test('live collection follows pagination, excludes forks and does not hide contr
     assert.equal(options.headers.Authorization, 'Bearer test');
     if (url.includes('/orgs/')) return Response.json([{ name: 'repo', fork: false, private: false, archived: false, stargazers_count: 2 }, { name: 'fork', fork: true, private: false, archived: false, stargazers_count: 100 }]);
     if (url.includes('/contributors')) return Response.json([{ login: 'human', type: 'User', avatar_url: fallback.contributors[0].avatarUrl, html_url: fallback.contributors[0].url, contributions: 4 }]);
-    return Response.json([{ starred_at: '2026-09-01T00:00:00Z' }], { headers: url.includes('page=2') ? {} : { link: '<https://api.github.com/example>; rel="next"' } });
+    assert.ok(url.includes('/stargazers/history?per_page=30'));
+    return Response.json([{ week: 1788048000, days: [0, 0, 1, 0, 0, 0, 0] }], { headers: url.includes('page=2') ? {} : { link: '<https://api.github.com/example>; rel="next"' } });
   };
   const result = await loadCommunity('test', request);
   assert.equal(result.totalStars, 2);
