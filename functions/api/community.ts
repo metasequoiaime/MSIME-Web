@@ -8,8 +8,17 @@ export async function onRequest({ request, env }: { request: Request; env: Recor
   const key = new Request(new URL("/api/community", request.url));
   const cache = (caches as CacheStorage & { default: Cache }).default;
   const data = await cachedCommunity(key, cache, async () => {
-    const token = await communityToken(githubAppConfig.parse(env));
-    return loadCommunity(token);
+    let stage = "configuration";
+    try {
+      const config = githubAppConfig.parse(env);
+      stage = "authentication";
+      const token = await communityToken(config);
+      stage = "statistics";
+      return await loadCommunity(token);
+    } catch (error) {
+      console.warn("Community refresh failed", stage, error instanceof Error && error.name !== "ZodError" ? error.message : "Invalid response or configuration");
+      throw error;
+    }
   }, fallback);
   return Response.json(data, { headers });
 }

@@ -43,7 +43,7 @@ async function createInstallationToken(config: z.infer<typeof githubAppConfig>, 
     body: JSON.stringify(scope),
     signal: AbortSignal.timeout(10_000),
   });
-  if (!response.ok) throw new Error("App authentication failed");
+  if (!response.ok) throw new Error(`App authentication failed: HTTP ${response.status}`);
   return z.object({ token: z.string().min(1) }).parse(await response.json()).token;
 }
 
