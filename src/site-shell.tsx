@@ -373,7 +373,7 @@ export function SiteShell() {
               <span>GitHub</span>
             </a>
 
-            <a className="header-language" lang={isTraditional(languagePath) ? "zh-Hans" : "zh-Hant-TW"} hrefLang={isTraditional(languagePath) ? "zh-Hans" : "zh-Hant-TW"} href={isTraditional(languagePath) ? (baseLocalePath(languagePath) === "/docs/" ? "/docs/windows/" : baseLocalePath(languagePath)) : traditionalPath(baseLocalePath(languagePath) in traditionalPages ? baseLocalePath(languagePath) : '/')} aria-label={isTraditional(languagePath) ? "切換到簡體中文" : "切换到繁体中文"}>{isTraditional(languagePath) ? "简体" : "繁體"}</a>
+            <a className="header-language" lang={isTraditional(languagePath) ? "zh-Hans" : "zh-Hant-TW"} hrefLang={isTraditional(languagePath) ? "zh-Hans" : "zh-Hant-TW"} href={isTraditional(languagePath) ? (baseLocalePath(languagePath) === "/docs/" ? "/docs/windows/" : baseLocalePath(languagePath)) : traditionalPath(baseLocalePath(languagePath) in traditionalPages ? baseLocalePath(languagePath) : '/')} aria-label={isTraditional(languagePath) ? "切換到簡體中文" : "切换到繁体中文"} title={isTraditional(languagePath) ? "切換到簡體中文" : "切换到繁体中文"}><span aria-hidden="true">{isTraditional(languagePath) ? "简" : "繁"}</span></a>
             <ThemeSwitcher />
 
             <button
