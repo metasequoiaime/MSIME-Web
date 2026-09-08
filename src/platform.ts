@@ -1,3 +1,6 @@
+export const DESKTOP_PLATFORMS = ["windows", "macos", "linux"] as const;
+export type DesktopPlatform = (typeof DESKTOP_PLATFORMS)[number];
+
 export const PLATFORMS = ["windows", "macos", "ios", "linux"] as const;
 
 export type Platform = (typeof PLATFORMS)[number];

@@ -10,12 +10,9 @@ import "./beta.scss";
  * 结果一样，代价却是本站要部署一份 Apple 私钥，还得在输入框前面加人机验证——否则那个地址栏就是一台替人发邀请信的中继。
  */
 const TESTFLIGHT_LINK = "https://testflight.apple.com/join/bUzPvyqt";
-const TITLE = "iOS 内测 | 水杉输入法";
-// 与 `beta/index.html` 里的 `<meta name="description">` 保持逐字一致：直接访问时首帧用的是那一份，站内跳转过来时 usePageMeta 用的是这一份，两边写岔了同一页会有两种描述。
-const DESCRIPTION = "加入水杉输入法 iOS 版的 TestFlight 内测：用 iPhone 打开链接即可安装，不需要邮箱或开发者账号";
 
 export function BetaPage() {
-  usePageMeta(TITLE, DESCRIPTION);
+  usePageMeta();
   useReveal();
 
   return (

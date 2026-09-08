@@ -5,7 +5,7 @@ import { baseLocalePath, traditionalPath, traditionalPages } from '../shared/loc
 import { serializeJsonLd } from '../shared/site-seo';
 import { renderContent } from './markdown';
 import { fetchPlatforms } from './platforms-data';
-import { PLATFORM_LABELS, PLATFORMS, type Platform } from './platform';
+import { PLATFORM_LABELS, DESKTOP_PLATFORMS, type DesktopPlatform } from './platform';
 import { usePageMeta } from './page-meta';
 import { questions, faqRevision } from './locales/zh-TW/faq';
 import home from './locales/zh-TW/home.md?raw';
@@ -34,11 +34,11 @@ export function TraditionalShell() {
 }
 
 function Downloads() {
-  const [platform, setPlatform] = useState<Platform>('windows');
+  const [platform, setPlatform] = useState<DesktopPlatform>('windows');
   const query = useQuery({ queryKey: ['platforms'], queryFn: fetchPlatforms, staleTime: Infinity, retry: 1 });
   const release = query.data?.platforms[platform];
   return <section className="card traditional-download" aria-label="下載安裝套件">
-    <fieldset><legend>選擇作業系統</legend><div className="btn-row">{PLATFORMS.map(value => <button type="button" key={value} className={`btn ${value === platform ? 'btn-primary' : 'btn-ghost'}`} aria-pressed={value === platform} onClick={() => setPlatform(value)}>{PLATFORM_LABELS[value]}</button>)}</div></fieldset>
+    <fieldset><legend>選擇作業系統</legend><div className="btn-row">{DESKTOP_PLATFORMS.map(value => <button type="button" key={value} className={`btn ${value === platform ? 'btn-primary' : 'btn-ghost'}`} aria-pressed={value === platform} onClick={() => setPlatform(value)}>{PLATFORM_LABELS[value]}</button>)}</div></fieldset>
     {release ? <><h2>{PLATFORM_LABELS[platform]} v{release.version}</h2><p>{release.prerelease ? '公開測試版本 · ' : ''}發布日期：{release.publishedAt.slice(0, 10)} · <a href={release.releaseUrl}>發布說明</a></p><p>請依電腦架構與套件格式選擇；完整安裝方式見下方說明。</p>
       <ul className="traditional-packages">{release.downloads.map(file => <li key={file.url}><a className="btn btn-primary" href={file.url}>下載 {file.arch} · {file.name.split('.').pop()?.toUpperCase()}</a><p><code>{file.name}</code> · {(file.size / 1024 / 1024).toFixed(1)} MiB</p>{file.sha256 ? <details><summary>查看 SHA256 校驗值</summary><code>{file.sha256}</code></details> : <p>目前未取得校驗值，請查看發布頁。</p>}</li>)}</ul></> : <p role="status">{query.isPending ? '正在讀取版本資訊…' : '暫時無法讀取版本資訊，請稍後重試，或前往官方發布頁。'}</p>}
     <p><a href={`https://github.com/metasequoiaime/${{ windows: 'MSIME-Windows', macos: 'MSIME-Apple', linux: 'MSIME-Linux' }[platform]}/releases`}>查看 {PLATFORM_LABELS[platform]} 所有發布版本</a></p>

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PLATFORMS, type Platform } from "./platform";
+import { DESKTOP_PLATFORMS, type DesktopPlatform } from "./platform.ts";
 
 const PROJECT_RELEASES = "https://github.com/metasequoiaime/";
 
@@ -31,7 +31,7 @@ const downloadSchema = z.object({
 const platformsSchema = z.object({
   generatedAt: z.string(),
   platforms: z.record(
-    z.enum(PLATFORMS),
+    z.enum(DESKTOP_PLATFORMS),
     z.object({
       version: z.string().regex(/^\d+(?:\.\d+)*$/),
       releaseUrl: projectUrl,
@@ -71,5 +71,5 @@ export const fetchPlatforms = async () => {
 
 
 export type Platforms = z.infer<typeof platformsSchema>["platforms"];
-export type PlatformRelease = NonNullable<Platforms[Platform]>;
+export type PlatformRelease = NonNullable<Platforms[DesktopPlatform]>;
 export type Dictionary = NonNullable<z.infer<typeof platformsSchema>["dictionary"]>;
