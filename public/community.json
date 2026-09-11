@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-09-07T03:57:31.114Z",
-  "totalStars": 1354,
-  "repoCount": 12,
+  "generatedAt": "2026-09-11T17:28:43.209Z",
+  "totalStars": 1442,
+  "repoCount": 13,
   "starHistory": [
     {
       "month": "2023-11",
@@ -137,11 +137,11 @@
     },
     {
       "month": "2026-08",
-      "stars": 831
+      "stars": 829
     },
     {
       "month": "2026-09",
-      "stars": 1354
+      "stars": 1442
     }
   ],
   "contributors": [
@@ -149,35 +149,35 @@
       "login": "fanlusky",
       "avatarUrl": "https://avatars.githubusercontent.com/u/69321395?v=4",
       "url": "https://github.com/fanlusky",
-      "contributions": 1578,
+      "contributions": 1628,
       "repos": 9
     },
     {
       "login": "houko",
       "avatarUrl": "https://avatars.githubusercontent.com/u/12625278?v=4",
       "url": "https://github.com/houko",
-      "contributions": 1184,
-      "repos": 12
+      "contributions": 1627,
+      "repos": 13
     },
     {
       "login": "jsfaint",
       "avatarUrl": "https://avatars.githubusercontent.com/u/571829?v=4",
       "url": "https://github.com/jsfaint",
-      "contributions": 9,
+      "contributions": 22,
       "repos": 2
     },
     {
       "login": "Neptrue-Lin",
       "avatarUrl": "https://avatars.githubusercontent.com/u/29837162?v=4",
       "url": "https://github.com/Neptrue-Lin",
-      "contributions": 9,
+      "contributions": 19,
       "repos": 1
     },
     {
       "login": "ouchihao",
       "avatarUrl": "https://avatars.githubusercontent.com/u/108930485?v=4",
       "url": "https://github.com/ouchihao",
-      "contributions": 9,
+      "contributions": 12,
       "repos": 2
     },
     {
@@ -185,6 +185,20 @@
       "avatarUrl": "https://avatars.githubusercontent.com/u/42336971?v=4",
       "url": "https://github.com/PathGao",
       "contributions": 9,
+      "repos": 2
+    },
+    {
+      "login": "Aegon8719",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/127523266?v=4",
+      "url": "https://github.com/Aegon8719",
+      "contributions": 5,
+      "repos": 2
+    },
+    {
+      "login": "linyanm",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/38402334?v=4",
+      "url": "https://github.com/linyanm",
+      "contributions": 4,
       "repos": 2
     },
     {
@@ -212,20 +226,6 @@
       "login": "AaGMix",
       "avatarUrl": "https://avatars.githubusercontent.com/u/295558529?v=4",
       "url": "https://github.com/AaGMix",
-      "contributions": 1,
-      "repos": 1
-    },
-    {
-      "login": "EwigMidori",
-      "avatarUrl": "https://avatars.githubusercontent.com/u/15173855?v=4",
-      "url": "https://github.com/EwigMidori",
-      "contributions": 1,
-      "repos": 1
-    },
-    {
-      "login": "Jiangpip",
-      "avatarUrl": "https://avatars.githubusercontent.com/u/160361124?v=4",
-      "url": "https://github.com/Jiangpip",
       "contributions": 1,
       "repos": 1
     }

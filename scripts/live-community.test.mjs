@@ -7,7 +7,7 @@ const memoryCache = () => {
   let stored;
   return { match: async () => stored?.clone(), put: async (_, value) => { stored = value; } };
 };
-test('cache refresh is shared, reused for one minute and failure keeps its original timestamp', async () => {
+test('cache refresh is shared, reused for ten minutes and failure keeps its original timestamp', async () => {
   const cache = memoryCache();
   const key = new Request('https://msime.app/api/community');
   let calls = 0;
@@ -21,7 +21,57 @@ test('cache refresh is shared, reused for one minute and failure keeps its origi
   assert.equal(failed.stale, true);
   assert.equal(failed.generatedAt, fallback.generatedAt);
   await cachedCommunity(key, cache, load, fallback);
-  assert.equal(calls, 1, 'failures also back off for one minute');
+  assert.equal(calls, 1, 'failures also back off for the whole window');
+});
+test('an expired entry answers immediately while the refresh runs behind the response', async () => {
+  const cache = memoryCache();
+  const key = new Request('https://msime.app/api/community');
+  const background = [];
+  const refreshed = { ...fallback, generatedAt: '2026-09-02T00:00:00Z', totalStars: 2, stale: false };
+  let calls = 0;
+  const load = async () => { calls++; await new Promise(resolve => setTimeout(resolve, 5)); return refreshed; };
+  await cache.put(key, Response.json({ checkedAt: 0, data: fallback }));
+  const served = await cachedCommunity(key, cache, load, fallback, task => background.push(task));
+  assert.equal(served.totalStars, fallback.totalStars, 'the expired entry is served without waiting for GitHub');
+  assert.equal(background.length, 1);
+  await Promise.all(background);
+  assert.equal((await cachedCommunity(key, cache, load, fallback, task => background.push(task))).totalStars, 2);
+  assert.equal(calls, 1, 'the refreshed entry counts as fresh for the next minute');
+});
+test('a cold cache answers from the shipped snapshot rather than holding the request open', async () => {
+  const cache = memoryCache();
+  const key = new Request('https://msime.app/api/community');
+  const background = [];
+  const collect = task => background.push(task);
+  const live = { ...fallback, generatedAt: '2026-09-03T00:00:00Z', totalStars: 3, stale: false };
+  const first = await cachedCommunity(key, cache, async () => live, fallback, collect);
+  assert.equal(first.totalStars, fallback.totalStars, 'the snapshot answers now and the sweep runs behind it');
+  assert.equal(background.length, 1);
+  await Promise.all(background);
+  assert.equal((await cachedCommunity(key, cache, async () => live, fallback, collect)).totalStars, 3);
+});
+test('one lower reading is held back, the same reading twice is published', async () => {
+  const cache = memoryCache();
+  const key = new Request('https://msime.app/api/community');
+  const high = { ...fallback, totalStars: 10, starHistory: [{ month: '2026-09', stars: 10 }], contributors: [{ ...fallback.contributors[0], contributions: 1627 }], stale: false };
+  const lower = { ...high, contributors: [{ ...high.contributors[0], contributions: 1625 }] };
+  const expire = async () => {
+    const stored = await (await cache.match(key)).json();
+    await cache.put(key, Response.json({ ...stored, checkedAt: 0 }));
+    return stored;
+  };
+
+  await cache.put(key, Response.json({ checkedAt: 0, data: high }));
+  const held = await cachedCommunity(key, cache, async () => lower, fallback);
+  assert.equal(held.contributors[0].contributions, 1627, 'a replica disagreeing by two commits does not move the published number');
+  assert.equal((await expire()).unconfirmed.contributors[0].contributions, 1625, 'the rejected reading is remembered');
+
+  const published = await cachedCommunity(key, cache, async () => lower, fallback);
+  assert.equal(published.contributors[0].contributions, 1625, 'a decrease that reads the same way twice is real and is published');
+  assert.equal((await expire()).unconfirmed, undefined);
+
+  const climbing = { ...high, totalStars: 11, starHistory: [{ month: '2026-09', stars: 11 }] };
+  assert.equal((await cachedCommunity(key, cache, async () => climbing, fallback)).totalStars, 11, 'an increase is never delayed');
 });
 test('live collection follows pagination, excludes forks and does not hide contributor failures', async () => {
   const urls = [];
@@ -41,11 +91,12 @@ test('live collection follows pagination, excludes forks and does not hide contr
   assert.equal(urls.length, 4);
   await assert.rejects(loadCommunity('test', async (url, options) => url.includes('/contributors') ? new Response(null, { status: 403 }) : request(url, options)), /unavailable/);
 });
-test('endless pagination is rejected instead of silently publishing partial totals', async () => {
+test('endless pagination is rejected per path instead of silently publishing partial totals', async () => {
   let calls = 0;
   await assert.rejects(loadCommunity('test', async () => {
     calls++;
     return Response.json([], { headers: { link: '<https://api.github.com/example>; rel="next"' } });
-  }), /budget/);
-  assert.equal(calls, 45);
+  }), /Pagination did not terminate/);
+  // Per path, so adding repositories or another thirty weeks of star history cannot push a healthy sweep over the edge the way one shared budget did.
+  assert.equal(calls, 30);
 });

@@ -11,6 +11,9 @@ const fetchCommunity = async () => {
   return communitySchema.parse(await response.json());
 };
 
+// 对齐 /api/community 的边缘缓存窗口（shared/live-community.ts 的 freshFor）。轮询比缓存更勤只会反复拿回同一份数据，白白多打自己的接口。
+const refreshInterval = 600_000;
+
 const groupThousands = (value: number) => value.toLocaleString("en-US");
 
 export function CommunitySection() {
@@ -20,7 +23,7 @@ export function CommunitySection() {
     queryFn: fetchCommunity,
     staleTime: 0,
     refetchOnMount: "always",
-    refetchInterval: 60_000,
+    refetchInterval: refreshInterval,
     refetchOnWindowFocus: true,
     retry: 1,
   });
@@ -43,7 +46,7 @@ export function CommunitySection() {
       <h2 className="section-title" data-reveal>
         {t("开源社区动态")}</h2>
       <p className="section-lead" data-reveal>
-        {t("每分钟自动刷新。提交数可能因 GitHub 缓存而延迟，贡献者头像由 GitHub 提供。")}</p>
+        {t("每十分钟自动刷新。提交数可能因 GitHub 缓存而延迟，贡献者头像由 GitHub 提供。")}</p>
 
       <p className="community-people-note">
         {t(community.data.stale || community.isError ? "暂时无法更新，显示最近可用数据：" : "数据获取时间：")}

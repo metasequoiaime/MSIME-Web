@@ -2,7 +2,7 @@ import { communityToken, githubAppConfig } from "../../shared/github-app.ts";
 import { cachedCommunity, loadCommunity } from "../../shared/live-community.ts";
 import fallback from "../../public/community.json";
 
-export async function onRequest({ request, env }: { request: Request; env: Record<string, unknown> }) {
+export async function onRequest({ request, env, waitUntil }: { request: Request; env: Record<string, unknown>; waitUntil: (task: Promise<unknown>) => void }) {
   const headers = { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" };
   if (request.method !== "GET") return new Response(null, { status: 405, headers: { ...headers, Allow: "GET" } });
   const key = new Request(new URL("/api/community", request.url));
@@ -19,6 +19,6 @@ export async function onRequest({ request, env }: { request: Request; env: Recor
       console.warn("Community refresh failed", stage, error instanceof Error && error.name !== "ZodError" ? error.message : "Invalid response or configuration");
       throw error;
     }
-  }, fallback);
+  }, fallback, waitUntil);
   return Response.json(data, { headers });
 }
