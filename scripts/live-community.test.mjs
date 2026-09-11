@@ -23,6 +23,30 @@ test('cache refresh is shared, reused for one minute and failure keeps its origi
   await cachedCommunity(key, cache, load, fallback);
   assert.equal(calls, 1, 'failures also back off for one minute');
 });
+test('an expired entry answers immediately while the refresh runs behind the response', async () => {
+  const cache = memoryCache();
+  const key = new Request('https://msime.app/api/community');
+  const background = [];
+  const refreshed = { ...fallback, generatedAt: '2026-09-02T00:00:00Z', totalStars: 2, stale: false };
+  let calls = 0;
+  const load = async () => { calls++; await new Promise(resolve => setTimeout(resolve, 5)); return refreshed; };
+  await cache.put(key, Response.json({ checkedAt: 0, data: fallback }));
+  const served = await cachedCommunity(key, cache, load, fallback, task => background.push(task));
+  assert.equal(served.totalStars, fallback.totalStars, 'the expired entry is served without waiting for GitHub');
+  assert.equal(background.length, 1);
+  await Promise.all(background);
+  assert.equal((await cachedCommunity(key, cache, load, fallback, task => background.push(task))).totalStars, 2);
+  assert.equal(calls, 1, 'the refreshed entry counts as fresh for the next minute');
+});
+test('a cold cache waits for the refresh, because there is nothing to serve early', async () => {
+  const cache = memoryCache();
+  const key = new Request('https://msime.app/api/community');
+  const background = [];
+  const live = { ...fallback, totalStars: 3, stale: false };
+  const data = await cachedCommunity(key, cache, async () => live, fallback, task => background.push(task));
+  assert.equal(data.totalStars, 3);
+  assert.equal(background.length, 0);
+});
 test('live collection follows pagination, excludes forks and does not hide contributor failures', async () => {
   const urls = [];
   const request = async (url, options) => {

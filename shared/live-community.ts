@@ -63,20 +63,31 @@ type Community = z.infer<typeof communitySchema>;
 type Entry = { checkedAt: number; data: Community };
 const pending = new Map<string, Promise<Community>>();
 
-export async function cachedCommunity(key: Request, cache: Cache, load: () => Promise<Community>, fallback: Community): Promise<Community> {
-  const hit = await cache.match(key);
-  const entry = hit ? await hit.json() as Entry : undefined;
-  if (entry && Date.now() - entry.checkedAt < 60_000) return entry.data;
+function refreshCommunity(key: Request, cache: Cache, load: () => Promise<Community>, previous: Community | undefined, fallback: Community): Promise<Community> {
   const existing = pending.get(key.url);
   if (existing) return existing;
   const refresh = (async () => {
     let data: Community;
     try { data = await load(); }
-    catch { data = { ...(entry?.data ?? fallback), stale: true }; }
+    catch { data = { ...(previous ?? fallback), stale: true }; }
     await cache.put(key, Response.json({ checkedAt: Date.now(), data }, { headers: { "Cache-Control": "max-age=86400" } }));
     return data;
   })();
   pending.set(key.url, refresh);
-  try { return await refresh; }
-  finally { pending.delete(key.url); }
+  // Clearing in `finally` rather than around an await keeps the entry alive for the whole background refresh, so concurrent requests still collapse onto it. The derived promise gets its own catch because a rejected `cache.put` would otherwise land as an unhandled rejection; the caller still sees the rejection through `refresh` itself.
+  refresh.finally(() => { if (pending.get(key.url) === refresh) pending.delete(key.url); }).catch(() => {});
+  return refresh;
+}
+
+export async function cachedCommunity(key: Request, cache: Cache, load: () => Promise<Community>, fallback: Community, background?: (task: Promise<unknown>) => void): Promise<Community> {
+  const hit = await cache.match(key);
+  const entry = hit ? await hit.json() as Entry : undefined;
+  if (entry && Date.now() - entry.checkedAt < 60_000) return entry.data;
+  const refresh = refreshCommunity(key, cache, load, entry?.data, fallback);
+  // Serve the expired entry and revalidate behind the response: a full GitHub sweep takes ten seconds or more, and whoever happens to arrive first should not wait for it. Without a cached entry there is nothing to serve, so that request does wait.
+  if (entry && background) {
+    background(refresh);
+    return entry.data;
+  }
+  return refresh;
 }

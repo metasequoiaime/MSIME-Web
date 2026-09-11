@@ -1,8 +1,10 @@
 name: Sync community snapshot
 
-# Manual refresh of the static SSR/offline fallback. Live statistics use /api/community.
+# Refreshes the static SSR/offline fallback. Live statistics use /api/community, but the prerendered home page ships this snapshot, so leaving it to sit for weeks makes every page load open on numbers that then jump when the live fetch lands.
 
 on:
+  schedule:
+    - cron: '20 3 * * *'
   workflow_dispatch:
 
 permissions:
