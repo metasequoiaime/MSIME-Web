@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-09-13T12:20:46.829Z",
+  "generatedAt": "2026-09-14T07:12:52.758Z",
   "platforms": {
     "windows": {
       "repository": "metasequoiaime/MSIME-Windows",
       "version": "0.7.1",
       "releaseUrl": "https://github.com/metasequoiaime/MSIME-Windows/releases/tag/v0.7.1",
-      "publishedAt": "2026-09-08T19:36:19Z",
+      "publishedAt": "2026-09-13T20:09:06Z",
       "prerelease": false,
       "signed": true,
       "downloads": [
@@ -16,6 +16,14 @@
           "url": "https://github.com/metasequoiaime/MSIME-Windows/releases/download/v0.7.1/MetasequoiaIME_Setup_v0.7.1.exe",
           "size": 56903912,
           "sha256": "f35b9038766988ed6e57cb856db982109b56fc6da77a1f48e53f6d4663211dc8"
+        },
+        {
+          "label": "安装程序",
+          "arch": "x64",
+          "name": "MetasequoiaIME_Setup_v0.7.1_with_pdb.exe",
+          "url": "https://github.com/metasequoiaime/MSIME-Windows/releases/download/v0.7.1/MetasequoiaIME_Setup_v0.7.1_with_pdb.exe",
+          "size": 85872192,
+          "sha256": "5b14b20bea26428e19790c127231bc4b484f0fd076799dfcb244f6c7c492a453"
         }
       ]
     },
