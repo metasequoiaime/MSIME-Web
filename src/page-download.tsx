@@ -3,10 +3,13 @@ import { useLocale } from "./use-locale";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useLayoutEffect, useMemo } from "react";
 import { z } from "zod";
-import downloadSource from "./content/download.md?raw";
+import downloadSourceRaw from "./content/download.md?raw";
 import { ContentPage } from "./page-content";
 import { detectPlatform, PLATFORM_LABELS, PLATFORMS, type Platform } from "./platform";
 import { fetchPlatforms, type PlatformRelease } from "./platforms-data";
+
+// `?raw` 原样带进磁盘上的字节：Windows 上 git 可能把这份 md 签出成 CRLF。下面按 `## ` 分段、匹配 `## Windows\n` 全按 LF 写死，CRLF 会让整段匹配落空、正文只剩开头，所以在入口处统一归一成 LF。
+const downloadSource = downloadSourceRaw.replace(/\r\n/g, "\n");
 
 const RELEASES_PAGE_URL = "https://github.com/metasequoiaime/MSIME-Windows/releases";
 
