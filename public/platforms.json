@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-20T07:06:54.862Z",
+  "generatedAt": "2026-09-20T11:44:37.169Z",
   "platforms": {
     "windows": {
       "repository": "metasequoiaime/MSIME-Windows",
@@ -112,5 +112,36 @@
       ]
     }
   },
-  "dictionary": null
+  "dictionary": {
+    "repository": "metasequoiaime/MSIME-Engine",
+    "tag": "dict-v2.0.0",
+    "releaseUrl": "https://github.com/metasequoiaime/MSIME-Engine/releases/tag/dict-v2.0.0",
+    "publishedAt": "2026-09-20T10:54:03Z",
+    "files": [
+      {
+        "name": "msime.db",
+        "label": "全拼与五笔主词库",
+        "size": 76296192,
+        "sha256": "d7bea324d5a8cc42c74ed9e15d511011e728b473f8991421daac9ca04d753e57"
+      },
+      {
+        "name": "dict_japanese.dat",
+        "label": "日文词典（源自 Mozc）",
+        "size": 66538457,
+        "sha256": "8baafcfc3881d0280cdda8bda7cf3968d8f8fbc94243fea94847cff2b6e2cd66"
+      },
+      {
+        "name": "english.db",
+        "label": "英文词库",
+        "size": 1667072,
+        "sha256": "83f8c2fe7a33f9797392cd914056cc97fc6e62480c2d787e17019ce6daddba8a"
+      },
+      {
+        "name": "others.db",
+        "label": "扩展词库",
+        "size": 1495040,
+        "sha256": "501bdd6619963bdce79374cd6b7c9ccafe1bf539c59a32cc5311b1fd93c5c8fb"
+      }
+    ]
+  }
 }
