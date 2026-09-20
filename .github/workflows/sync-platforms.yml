@@ -54,13 +54,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          node --test scripts/generate-platforms.test.mjs
+          node --test scripts/generate-platforms.test.mjs scripts/manifest-changed.test.mjs
           node scripts/generate-platforms.mjs
-          if git diff --quiet -- "$MANIFEST"; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          fi
+          # Not `git diff`: this manifest also carries generatedAt, and at 48 runs a day it was the
+          # only thing 19 of the 20 commits before this one changed.
+          echo "changed=$(node scripts/manifest-changed.mjs "$MANIFEST")" >> "$GITHUB_OUTPUT"
 
       - name: Require the PR automation credential
         if: steps.write.outputs.changed == 'true'
