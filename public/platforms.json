@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-20T11:44:37.169Z",
+  "generatedAt": "2026-09-20T16:31:40.449Z",
   "platforms": {
     "windows": {
       "repository": "metasequoiaime/MSIME-Windows",
@@ -114,15 +114,15 @@
   },
   "dictionary": {
     "repository": "metasequoiaime/MSIME-Engine",
-    "tag": "dict-v2.0.0",
-    "releaseUrl": "https://github.com/metasequoiaime/MSIME-Engine/releases/tag/dict-v2.0.0",
-    "publishedAt": "2026-09-20T10:54:03Z",
+    "tag": "dict-v2.0.1",
+    "releaseUrl": "https://github.com/metasequoiaime/MSIME-Engine/releases/tag/dict-v2.0.1",
+    "publishedAt": "2026-09-20T12:58:28Z",
     "files": [
       {
         "name": "msime.db",
         "label": "全拼与五笔主词库",
         "size": 76296192,
-        "sha256": "d7bea324d5a8cc42c74ed9e15d511011e728b473f8991421daac9ca04d753e57"
+        "sha256": "960d0491458bf3c5b4f199c5f5705353e1ecb6506eafbae5e8e1474d70232894"
       },
       {
         "name": "dict_japanese.dat",
