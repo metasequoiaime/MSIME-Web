@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { communitySchema } from "../src/community-data.ts";
-import { aggregateContributors } from "./community-aggregation.mjs";
+import { aggregateContributors, monthlyStarHistory } from "./community-aggregation.mjs";
 
 const repositorySchema = z.object({ name: z.string().regex(/^[\w.-]+$/), fork: z.boolean(), archived: z.boolean(), private: z.boolean(), stargazers_count: z.number().int().nonnegative() });
 const contributorSchema = z.object({ login: z.string(), type: z.string(), avatar_url: z.string(), html_url: z.string(), contributions: z.number().int().nonnegative() });
@@ -25,7 +25,7 @@ export async function loadCommunity(token: string, request: typeof fetch = fetch
   const repositories = z.array(repositorySchema).parse(await pages("orgs/metasequoiaime/repos?sort=full_name"))
     .filter(repo => !repo.fork && !repo.archived && !repo.private);
   const perRepository = [];
-  const monthlyStars = new Map<string, number>();
+  const starWeeks = [];
   // Sequential calls respect GitHub's secondary rate limit and bound open connections.
   for (const repo of repositories) {
     const base = `repos/metasequoiaime/${repo.name}`;
@@ -33,29 +33,12 @@ export async function loadCommunity(token: string, request: typeof fetch = fetch
     perRepository.push({ repo: repo.name, contributors });
     if (repo.stargazers_count) {
       // GitHub restricts individual stargazer lists; aggregate history is public.
-      const weeks = z.array(z.object({ week: z.number().int(), days: z.array(z.number().int().nonnegative()).length(7) })).parse(await pages(`${base}/stargazers/history`, 30));
-      for (const week of weeks) week.days.forEach((count, day) => {
-        const month = new Date((week.week + day * 86400) * 1000).toISOString().slice(0, 7);
-        monthlyStars.set(month, (monthlyStars.get(month) ?? 0) + count);
-      });
-    }
-  }
-  const starHistory = [];
-  const firstMonth = [...monthlyStars.keys()].sort()[0];
-  let total = 0;
-  if (firstMonth) {
-    const cursor = new Date(`${firstMonth}-01T00:00:00Z`);
-    const end = new Date();
-    while (cursor <= end) {
-      const month = cursor.toISOString().slice(0, 7);
-      total += monthlyStars.get(month) ?? 0;
-      starHistory.push({ month, stars: total });
-      cursor.setUTCMonth(cursor.getUTCMonth() + 1);
+      starWeeks.push(...z.array(z.object({ week: z.number().int(), days: z.array(z.number().int().nonnegative()).length(7) })).parse(await pages(`${base}/stargazers/history`, 30)));
     }
   }
   return communitySchema.parse({ generatedAt: new Date().toISOString(), stale: false,
     totalStars: repositories.reduce((sum, repo) => sum + repo.stargazers_count, 0), repoCount: repositories.length,
-    contributors: aggregateContributors(perRepository), starHistory,
+    contributors: aggregateContributors(perRepository), starHistory: monthlyStarHistory(starWeeks),
   });
 }
 

@@ -8,4 +8,10 @@ export interface Contributor {
 export function aggregateContributors(repositories: { repo: string; contributors: Contributor[] }[], limit?: number): {
   login: string; avatarUrl: string; url: string; contributions: number; repos: number;
 }[];
-export function monthlyStarHistory(timestamps: string[]): { month: string; stars: number }[];
+export interface StarWeek {
+  /** Unix seconds for the Sunday the week starts on, as `/stargazers/history` reports it. */
+  week: number;
+  /** Seven daily counts, Sunday first. */
+  days: number[];
+}
+export function monthlyStarHistory(weeks: StarWeek[]): { month: string; stars: number }[];

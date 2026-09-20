@@ -28,34 +28,33 @@ export function aggregateContributors(perRepository, limit = 12) {
 }
 
 /**
- * Turn raw `starred_at` timestamps into a cumulative monthly series.
+ * Turn GitHub's weekly star buckets — `{ week, days }` entries from `/stargazers/history` — into a cumulative monthly series.
  *
- * Monthly buckets, not one point per star: the chart is about the shape of the curve, and 1400 points would draw the same line while making the file 30x bigger. Months with no new stars still get a point so a quiet stretch reads as a plateau instead of a straight line between distant dates.
+ * The weekly aggregate rather than per-star `starred_at` timestamps because `/stargazers` answers 403 to both tokens this project has: the worker's app installation token and the snapshot workflow's `GITHUB_TOKEN`. Only the aggregate is public, so it is the one source both callers can share, and sharing it is the point — the snapshot job spent nine days broken because the worker moved off `/stargazers` and its own copy of this code did not.
+ *
+ * Monthly buckets, not one point per star: the chart is about the shape of the curve, and 1400 points would draw the same line while making the file 30x bigger. Months with no new stars still get a point so a quiet stretch reads as a plateau instead of a straight line between distant dates. That includes the empty weeks GitHub reports before a repository's first star, which is what anchors the series at repository creation rather than at the first star.
  */
-export function monthlyStarHistory(timestamps) {
-  const months = timestamps
-    // The string check has to come first: `new Date(null)` is not an invalid date, it is 1970-01-01, so a single missing timestamp would stretch the series back fifty years.
-    .filter(value => typeof value === 'string')
-    .map(value => new Date(value))
-    .filter(date => !Number.isNaN(date.getTime()))
-    .sort((left, right) => left - right)
-    .map(date => `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`);
-
-  if (!months.length) return [];
-
+export function monthlyStarHistory(weeks) {
   const perMonth = new Map();
-  for (const month of months) perMonth.set(month, (perMonth.get(month) ?? 0) + 1);
+  for (const { week, days } of weeks) {
+    days.forEach((count, day) => {
+      const month = new Date((week + day * 86400) * 1000).toISOString().slice(0, 7);
+      perMonth.set(month, (perMonth.get(month) ?? 0) + count);
+    });
+  }
+
+  const first = [...perMonth.keys()].sort()[0];
+  if (!first) return [];
 
   const series = [];
   let total = 0;
-  const [firstYear, firstMonth] = months[0].split('-').map(Number);
-  const cursor = new Date(Date.UTC(firstYear, firstMonth - 1, 1));
+  const cursor = new Date(`${first}-01T00:00:00Z`);
   const end = new Date();
 
   while (cursor <= end) {
-    const key = `${cursor.getUTCFullYear()}-${String(cursor.getUTCMonth() + 1).padStart(2, '0')}`;
-    total += perMonth.get(key) ?? 0;
-    series.push({ month: key, stars: total });
+    const month = cursor.toISOString().slice(0, 7);
+    total += perMonth.get(month) ?? 0;
+    series.push({ month, stars: total });
     cursor.setUTCMonth(cursor.getUTCMonth() + 1);
   }
 
