@@ -2,6 +2,9 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { aggregateContributors, monthlyStarHistory } from './generate-community.mjs';
 
+/** GitHub reports each bucket as the Unix second its week starts on. */
+const week = day => Date.parse(`${day}T00:00:00Z`) / 1000;
+
 test('contributions are summed across repositories and bots are left out', () => {
   const ranked = aggregateContributors([
     {
@@ -42,9 +45,10 @@ test('the ranking is capped and ties break on login so the output is stable', ()
 
 test('star history accumulates by month and keeps quiet months as plateaus', () => {
   const series = monthlyStarHistory([
-    '2026-01-10T00:00:00Z',
-    '2026-01-20T00:00:00Z',
-    '2026-03-02T00:00:00Z',
+    { week: week('2026-01-04'), days: [0, 0, 1, 0, 0, 0, 0] },
+    { week: week('2026-01-18'), days: [1, 0, 0, 0, 0, 0, 0] },
+    { week: week('2026-02-01'), days: [0, 0, 0, 0, 0, 0, 0] },
+    { week: week('2026-03-01'), days: [0, 1, 0, 0, 0, 0, 0] },
   ]);
 
   const upToMarch = series.slice(0, 3);
@@ -59,7 +63,20 @@ test('star history accumulates by month and keeps quiet months as plateaus', () 
   for (let i = 1; i < series.length; i += 1) assert.ok(series[i].stars >= series[i - 1].stars);
 });
 
-test('unparseable timestamps are dropped rather than poisoning the series', () => {
-  assert.deepEqual(monthlyStarHistory(['not-a-date', null, undefined]), []);
-  assert.equal(monthlyStarHistory(['nope', '2026-05-01T00:00:00Z'])[0].stars, 1);
+test('a week straddling a month boundary splits its stars, and empty weeks still anchor the start', () => {
+  // GitHub reports every week since the repository was created, so the first bucket is usually empty. The series has to start there rather than at the first star, because the worker starts there too and the home page hydrates one over the other.
+  const series = monthlyStarHistory([
+    { week: week('2025-12-28'), days: [0, 0, 0, 0, 0, 0, 0] },
+    { week: week('2026-01-28'), days: [1, 0, 0, 0, 2, 0, 0] },
+  ]);
+
+  assert.deepEqual(series.slice(0, 3), [
+    { month: '2025-12', stars: 0 },
+    { month: '2026-01', stars: 1 },
+    { month: '2026-02', stars: 3 },
+  ]);
+});
+
+test('no history at all produces no series rather than a run of empty months', () => {
+  assert.deepEqual(monthlyStarHistory([]), []);
 });
