@@ -2,9 +2,14 @@ name: Sync community snapshot
 
 # Refreshes the static SSR/offline fallback. Live statistics use /api/community, but the prerendered home page ships this snapshot, so leaving it to sit for weeks makes every page load open on numbers that then jump when the live fetch lands.
 #
-# 半小时一轮，自动合并 —— 和发布清单、平台下载走同一条路。原先是每天一轮、人工合并，两者都不成立：
+# 自动合并，cron 尽可能勤 —— 和发布清单、平台下载走同一条路。原先是每天一轮、人工合并，两者都不成立：
 # 人工合并那条 sync-platforms 早就写过结论，「不自动合就等于没有：PR 堆在那里没人合，页面上的数字会一直停在最后一次人工生成的时刻」；
-# 每天一轮则意味着爬虫和不跑 JS 的访客最多看到一天前的数字，而边缘接口每十分钟就刷新一次，两条链路没有理由差二十四小时。
+# 每天一轮则意味着爬虫和不跑 JS 的访客最多看到一天前的数字，而边缘接口每十分钟就刷新一次。
+#
+# 但这个 cron 买不到半小时。GitHub 实际只投递约 15% 的定时运行：update-manifest 写着 `*/30`、
+# sync-platforms 写着 `23,53`，各期望每天 48 次，实测各只跑 7 次，平均三个多小时一轮。
+# 写得勤仍然是对的 —— 申请 48 次拿到 7 次，申请 1 次就只有 1 次 —— 但预渲染页面的时效上限由
+# GitHub 的排程决定，不由这一行决定，别照着这个数字去承诺什么。
 #
 # 这里没有 repository_dispatch：star 和提交发生在十四个仓库里，本仓库收不到这种事件，除非组织级 webhook 往这边投。
 # 在那之前 cron 就是唯一的触发源，所以它的间隔直接决定了预渲染页面的时效上限。

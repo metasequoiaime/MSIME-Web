@@ -1,0 +1,62 @@
+name: Update automation branches
+
+# main 要求分支与它同步才能合并，而 GitHub 的 auto-merge 不会自己更新落后的分支。
+# 只有一条自动化在产 PR 时这不会暴露：没有别人能把它顶落后。现在快照和平台清单都在产 PR，
+# 先合的那条就把另一条顶成 BEHIND，auto-merge 开着也一动不动 —— 实测卡了三十分钟。
+#
+# 落后只可能由 main 前进造成，所以这里就挂在 main 的 push 上，按事件处理而不是轮询。
+# 下一轮 sync 也会把分支重建到新 base，但 GitHub 实际只投递约 15% 的定时运行（两条 cron 写着
+# 每天 48 次的工作流，真实各只跑 7 次），所以「等下一轮」可能是等三四个小时。
+#
+# 用 RELEASE_PLEASE_TOKEN 而不是 GITHUB_TOKEN：更新分支会往 PR 分支推一个提交，而
+# GITHUB_TOKEN 推的提交不触发工作流，PR 的必需检查就永远不会在新 head 上跑完，auto-merge 照样合不了。
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: update-automation-branches
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: Bring behind automation PRs up to date
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Update every automation PR that main left behind
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          # GitHub recomputes mergeability asynchronously, so straight after a push every PR reads
+          # UNKNOWN. Asking once here would find nothing to do and leave the branch stranded, which
+          # is the whole failure being fixed, so wait for a real answer before deciding.
+          for attempt in 1 2 3 4 5 6; do
+            pending=$(gh pr list --repo "$GH_REPO" --state open --limit 100 \
+              --json number,headRefName,mergeStateStatus \
+              | jq -r '[.[] | select(.headRefName | startswith("automation/")) | select(.mergeStateStatus == "UNKNOWN")] | length')
+            [ "$pending" -eq 0 ] && break
+            echo "Mergeability still being computed for $pending automation PR(s); attempt $attempt"
+            sleep 10
+          done
+
+          behind=$(gh pr list --repo "$GH_REPO" --state open --limit 100 \
+            --json number,headRefName,mergeStateStatus \
+            | jq -r '.[] | select(.headRefName | startswith("automation/")) | select(.mergeStateStatus == "BEHIND") | .number')
+
+          if [ -z "$behind" ]; then
+            echo "No automation PR is behind main."
+            exit 0
+          fi
+
+          for pr in $behind; do
+            echo "Updating #$pr onto main"
+            # One stranded PR must not stop the others from being rescued.
+            gh pr update-branch "$pr" --repo "$GH_REPO" || echo "::warning::Could not update #$pr; it may have conflicts that need a human"
+          done
