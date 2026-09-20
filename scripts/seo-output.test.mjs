@@ -144,18 +144,21 @@ test('document screenshots reserve layout and use responsive local images', () =
 });
 
 
-test('guide tabs share a stable hero and retain each introduction in the article', () => {
-  const hero = document('/docs/windows/').querySelector('.page-hero').textContent;
+// This asserted the opposite until the four guides were checked against Search Console: one hard-coded hero meant four indexable URLs, each with its own title, canonical and sitemap entry, all opening on the same H1 and the same summary. The stability the old name was after is structural -- same hero shape on every tab -- not identical words.
+test('each guide has its own hero and retains its introduction in the article', () => {
+  const heroes = new Set();
   for (const guide of ['windows', 'macos', 'macos-voice', 'linux']) {
     const doc = document(`/docs/${guide}/`);
     const lead = doc.querySelector('#page-lead').textContent.trim();
     assert.ok(lead.length > 10, guide);
-    assert.equal(doc.querySelector('.page-hero').textContent, hero, guide);
+    assert.ok(doc.querySelector('#page-title').textContent.trim().length > 2, guide);
+    heroes.add(doc.querySelector('.page-hero').textContent);
     assert.ok(doc.querySelector('.docs-guide-intro > div').textContent.trim().length > 10, guide);
     assert.ok(!doc.querySelector('.docs-article').textContent.trim().startsWith(lead), guide);
     assert.ok(doc.querySelector('script[src^="/assets/router-state-"]'));
     assert.equal(doc.querySelector('link[href^="/assets/router-state-"]').getAttribute('as'), 'script');
   }
+  assert.equal(heroes.size, 4, 'every guide page needs its own main heading and summary');
 });
 
 test('both languages retain the same page structure, controls and complete content', async () => {

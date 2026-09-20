@@ -3,6 +3,7 @@ const faqImages = import.meta.glob<string>("../vendor/MSIME-Docs/guides/assets/f
 import { isTraditional } from "../shared/locales";
 import { toTraditional } from "../shared/translate";
 import { localeHref } from "../shared/locales";
+import { GUIDE_NAMES } from "../shared/site-seo";
 import MarkdownIt from "markdown-it";
 
 export const markdown = new MarkdownIt({
@@ -26,6 +27,23 @@ export function localizedHtml(html: string, path: string) {
 
 const SITE_ORIGIN = "https://msime.app";
 
+/**
+ * 把旧的 `/docs/?platform=xxx` 地址换成指南自己的地址。
+ *
+ * 每个指南现在有独立地址，但固定 gitlink 里的 FAQ 仍按旧写法互相引用，一共十二条。旧地址指向 `/docs/`，而 `/docs/` 的 canonical 是 Windows 指南 —— 于是 macOS 和 Linux 指南在全站拿不到任何一条指向自己的站内链接，两页都停在 Search Console 的「已发现、尚未编入索引」。
+ *
+ * 这里原先只认字符串完全等于 `/docs/` 的写法，而十二条链接每一条都带查询或锚点，没有一条命中。
+ */
+const canonicalGuideHref = (href: string) => {
+  const match = /^\/docs\/?(\?[^#]*)?(#.*)?$/.exec(href);
+  if (!match) return href;
+  const query = new URLSearchParams(match[1] ?? "");
+  const guide = query.get("platform") ?? "";
+  query.delete("platform");
+  const rest = query.toString();
+  return `/docs/${Object.hasOwn(GUIDE_NAMES, guide) ? guide : "windows"}/${rest ? `?${rest}` : ""}${match[2] ?? ""}`;
+};
+
 /** Docs 是独立仓库，正文里写的是绝对地址，便于在别处引用。渲染到本站时换回站内路径，否则自己的图片和链接要绕一圈生产域名，本地预览和非生产部署都会走外网。 */
 const localizeSiteLinks = (root: ParentNode, localePath: string) => {
   const strip = (element: Element, attribute: string) => {
@@ -35,7 +53,7 @@ const localizeSiteLinks = (root: ParentNode, localePath: string) => {
 
   root.querySelectorAll("a[href]").forEach((element) => {
     strip(element, "href");
-    if (element.getAttribute("href") === "/docs/") element.setAttribute("href", "/docs/windows/");
+    element.setAttribute("href", canonicalGuideHref(element.getAttribute("href") ?? ""));
   });
   root.querySelectorAll("a[href]").forEach(element => { element.setAttribute("href", localeHref(element.getAttribute("href") ?? "", localePath)); });
   root.querySelectorAll("img[src]").forEach((element) => {

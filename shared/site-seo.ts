@@ -15,9 +15,14 @@ export const seoPages: Record<string, { title: string; description: string; noin
   "/feedback/": { title: "问题反馈与功能建议｜水杉输入法", description: "无需 GitHub 账号，选择平台反馈问题或提出建议，支持截图与预览。提交内容将公开发布到 GitHub。" },
   "/resume/": { title: "陆凡 | 软件工程师 / 独立开发者", description: "陆凡的软件工程师个人简历", noindex: true },
 };
-for (const [id, name] of Object.entries(GUIDE_NAMES)) seoPages[`/docs/${id}/`] = {
-  title: `${name} 安装与使用指南｜水杉输入法`, description: `水杉输入法 ${name} 使用指南：安装、配置、输入操作与常见问题排查。内容来自官方 MSIME-Docs 文档。`,
+// Written out per guide rather than generated from the platform name. The template these replaced titled the voice guide "macOS 语音 安装与使用指南", a page with no installation section in it, and gave four pages one description that differed only by a platform name. The Traditional titles in locales.ts have always been written by hand; these mirror them.
+const GUIDE_SEO: Record<keyof typeof GUIDE_NAMES, { title: string; description: string }> = {
+  windows: { title: "Windows 安装与使用指南｜水杉输入法", description: "Windows 版水杉输入法完整使用指南：安装、输入方案、设置、词库与故障排查。" },
+  macos: { title: "macOS 安装与使用指南｜水杉输入法", description: "macOS 版水杉输入法使用指南：安装与启用、常用操作、设置与候选窗口、备份与更新。" },
+  "macos-voice": { title: "macOS 语音输入指南｜水杉输入法", description: "配置水杉输入法的 macOS 语音输入：云端识别与本地 Whisper 模型、录音快捷键、文本整理，以及麦克风权限和数据说明。" },
+  linux: { title: "Linux 安装与使用指南｜水杉输入法", description: "Linux IBus 版水杉输入法指南：下载启用、输入与快捷键、辅助码设置、数据升级与故障排查。" },
 };
+for (const [id, page] of Object.entries(GUIDE_SEO)) seoPages[`/docs/${id}/`] = page;
 for (const [path, page] of Object.entries(traditionalPages)) seoPages[traditionalPath(path)] = path === "/docs/" ? { ...page, canonicalPath: "/zh-TW/docs/windows/" } : page;
 
 export const normalizePath = (path: string) => path === "/" ? "/" : `${path.replace(/\/+$/, "")}/`;
