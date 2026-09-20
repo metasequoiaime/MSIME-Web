@@ -18,11 +18,12 @@ import { useInternalLinks } from "./use-internal-links";
 import { TocNav } from "./toc-nav";
 
 // The site distributes Windows, macOS and Linux builds, but this page only ever rendered the Windows guide -- the other three guides were written and sitting in the submodule unreferenced.
+// `heading` and `lead` are per guide because the hero used to be one hard-coded string: four URLs with four different <title>s all opened on the same H1, "水杉输入法使用文档", and the same summary. The wording tracks each guide's own sections.
 const GUIDES = [
-  { id: "windows", label: "Windows", source: windowsGuide },
-  { id: "macos", label: "macOS", source: macosGuide },
-  { id: "macos-voice", label: "macOS 语音", source: macosVoiceGuide },
-  { id: "linux", label: "Linux", source: linuxGuide },
+  { id: "windows", label: "Windows", source: windowsGuide, heading: "Windows 使用指南", lead: "在 Windows 上安装水杉输入法，配置输入方案、词库与设置窗口，以及更新、备份与故障排查。" },
+  { id: "macos", label: "macOS", source: macosGuide, heading: "macOS 使用指南", lead: "在 macOS 上安装并启用水杉输入法，了解常用操作、设置与候选窗口、本地快捷模式，以及更新与卸载。" },
+  { id: "macos-voice", label: "macOS 语音", source: macosVoiceGuide, heading: "macOS 语音输入指南", lead: "配置云端识别或本地 Whisper 模型，使用快捷键录音上屏，并了解麦克风权限与数据去向。" },
+  { id: "linux", label: "Linux", source: linuxGuide, heading: "Linux 使用指南", lead: "在 Linux 上通过 IBus 启用水杉输入法，配置输入与辅助码、联网功能与桌面工具，以及数据、升级和故障排查。" },
 ] as const;
 
 
@@ -63,7 +64,7 @@ export function DocsPage() {
   if (guideId && !GUIDES.some(item => item.id === guideId)) return <main className="content-page"><div className="container"><h1>{t("指南不存在")}</h1><Link to="/docs/$guide/" params={{ guide: "windows" }}>{t("查看 Windows 使用指南")}</Link></div></main>;
   return (
     <>
-      <PageHero kicker="文档" title={t("水杉输入法使用文档")} leadHtml={t("选择你使用的平台，查看安装、配置与日常使用指南。")} />
+      <PageHero kicker="文档" title={t(guide.heading)} leadHtml={t(guide.lead)} />
 
       <main className="docs-page">
         <div className="container docs-toolbar">
