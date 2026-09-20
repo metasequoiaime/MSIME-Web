@@ -1,10 +1,17 @@
 name: Sync community snapshot
 
 # Refreshes the static SSR/offline fallback. Live statistics use /api/community, but the prerendered home page ships this snapshot, so leaving it to sit for weeks makes every page load open on numbers that then jump when the live fetch lands.
+#
+# 半小时一轮，自动合并 —— 和发布清单、平台下载走同一条路。原先是每天一轮、人工合并，两者都不成立：
+# 人工合并那条 sync-platforms 早就写过结论，「不自动合就等于没有：PR 堆在那里没人合，页面上的数字会一直停在最后一次人工生成的时刻」；
+# 每天一轮则意味着爬虫和不跑 JS 的访客最多看到一天前的数字，而边缘接口每十分钟就刷新一次，两条链路没有理由差二十四小时。
+#
+# 这里没有 repository_dispatch：star 和提交发生在十四个仓库里，本仓库收不到这种事件，除非组织级 webhook 往这边投。
+# 在那之前 cron 就是唯一的触发源，所以它的间隔直接决定了预渲染页面的时效上限。
 
 on:
   schedule:
-    - cron: '20 3 * * *'
+    - cron: '11,41 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -40,13 +47,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          node --test scripts/generate-community.test.mjs
+          node --test scripts/generate-community.test.mjs scripts/manifest-changed.test.mjs
           node scripts/generate-community.mjs
-          if git diff --quiet -- "$SNAPSHOT"; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          fi
+          # Not `git diff`: generatedAt moves on every run, so that would propose a PR every half hour
+          # whether or not a single star or commit had changed.
+          echo "changed=$(node scripts/manifest-changed.mjs "$SNAPSHOT")" >> "$GITHUB_OUTPUT"
 
       - name: Require the PR automation credential
         if: steps.write.outputs.changed == 'true'
@@ -57,6 +62,7 @@ jobs:
       - name: Create or update the snapshot PR
         if: steps.write.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        id: proposal
         with:
           # A trusted token triggers PR CI and deployment after merging.
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
@@ -66,4 +72,13 @@ jobs:
           delete-branch: true
           commit-message: 'chore(site): refresh community snapshot'
           title: 'chore(site): refresh community snapshot'
-          body: 'Star history and contributor totals regenerated from the GitHub API. Review and merge by hand; this file is outside the release manifest auto-merge allowlist.'
+          body: 'Star history and contributor totals regenerated from the GitHub API. Auto-merge requires the normal build, workflow validation and dependency review.'
+
+      - name: Enable auto-merge behind the required checks
+        if: steps.proposal.outputs.pull-request-number != '' && steps.proposal.outputs.pull-request-operation != 'closed'
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ steps.proposal.outputs.pull-request-number }}
+          HEAD_SHA: ${{ steps.proposal.outputs.pull-request-head-sha }}
+        run: python3 scripts/enable-manifest-automerge.py --repo "$GH_REPO" --pr "$PR_NUMBER" --sha "$HEAD_SHA"
