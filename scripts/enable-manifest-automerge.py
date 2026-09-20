@@ -11,6 +11,7 @@ REQUIRED = {'Build', 'Workflow validation', 'Dependency review'}
 ALLOWED = {
     'automation/update-manifest': 'public/update.json',
     'automation/platform-downloads': 'public/platforms.json',
+    'automation/community-snapshot': 'public/community.json',
 }
 BRANCH = 'automation/update-manifest'
 
