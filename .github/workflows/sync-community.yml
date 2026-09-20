@@ -47,13 +47,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          node --test scripts/generate-community.test.mjs
+          node --test scripts/generate-community.test.mjs scripts/manifest-changed.test.mjs
           node scripts/generate-community.mjs
-          if git diff --quiet -- "$SNAPSHOT"; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          fi
+          # Not `git diff`: generatedAt moves on every run, so that would propose a PR every half hour
+          # whether or not a single star or commit had changed.
+          echo "changed=$(node scripts/manifest-changed.mjs "$SNAPSHOT")" >> "$GITHUB_OUTPUT"
 
       - name: Require the PR automation credential
         if: steps.write.outputs.changed == 'true'
