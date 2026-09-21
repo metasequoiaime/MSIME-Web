@@ -45,6 +45,25 @@ test('an asset hosted somewhere other than this repository is refused', () => {
   assert.deepEqual(classifyAssets('linux', foreign), []);
 });
 
+// 真实发生过：匿名取 MSIME-Linux 的 releases，GitHub 回的地址是 metasequoiaime/msime-linux，区分大小写的前缀比较全部落空，六个 Linux 包一个不剩，整个平台从清单里消失 —— 页面上只剩「前往发布页」，没有任何报错。
+test('a repository name returned in a different case is still this repository', () => {
+  const lowercased = [asset('metasequoia-ime-linux_0.9.1_amd64.deb', {
+    browser_download_url: 'https://github.com/metasequoiaime/msime-linux/releases/download/v0.9.1/metasequoia-ime-linux_0.9.1_amd64.deb',
+  })];
+  // 写进清单的是配置里那个拼法：大小写翻来翻去不该产生一份新清单
+  assert.deepEqual(classifyAssets('linux', lowercased).map(d => d.url), [
+    'https://github.com/metasequoiaime/MSIME-Linux/releases/download/v0.9.1/metasequoia-ime-linux_0.9.1_amd64.deb',
+  ]);
+  const chosen = selectRelease('linux', [{ tag_name: 'v0.9.1', draft: false, published_at: '2026-09-06T00:00:00Z',
+    html_url: 'https://github.com/metasequoiaime/msime-linux/releases/tag/v0.9.1', assets: lowercased }]);
+  assert.equal(chosen.releaseUrl, 'https://github.com/metasequoiaime/MSIME-Linux/releases/tag/v0.9.1');
+});
+
+test('a release page hosted somewhere other than this repository is refused', () => {
+  assert.equal(selectRelease('linux', [{ tag_name: 'v0.9.1', draft: false, published_at: '2026-09-06T00:00:00Z',
+    html_url: 'https://example.invalid/releases/tag/v0.9.1', assets: linuxAssets }]), null);
+});
+
 test('macOS keeps the installer and archive but never the iOS build', () => {
   const macos = ['MetasequoiaIME-v0.47.2-macos-universal-unsigned.pkg',
                  'MetasequoiaIME-v0.47.2-macos-universal-unsigned.zip',

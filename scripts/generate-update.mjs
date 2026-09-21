@@ -1,5 +1,6 @@
 import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import { canonicalGithubUrl } from './github-url.mjs';
 
 const repository = 'metasequoiaime/MSIME-Windows';
 
@@ -10,11 +11,15 @@ export function metadataFromRelease(release, channel = 'stable') {
   if (typeof tag !== 'string' || !/^v?\d+\.\d+\.\d+(?:\.\d+)?$/.test(tag))
     throw new Error('Unsupported Windows release tag');
   const expectedUrl = `https://github.com/${repository}/releases/tag/${tag}`;
-  if (release.html_url !== expectedUrl)
+  // 仓库名的大小写由 GitHub 那边决定，不由这里断言，见 github-url.mjs。
+  if (canonicalGithubUrl(repository, release.html_url) !== expectedUrl)
     throw new Error('Unexpected release repository or URL');
-  const installer = release.assets?.find(asset =>
-    /^MetasequoiaIME_Setup_v.*\.exe$/i.test(asset.name) && asset.size > 0 &&
-    asset.browser_download_url?.startsWith(`https://github.com/${repository}/releases/download/${tag}/`));
+  const downloadPrefix = `https://github.com/${repository}/releases/download/${tag}/`;
+  const installerUrl = asset =>
+    asset.size > 0 && /^MetasequoiaIME_Setup_v.*\.exe$/i.test(asset.name)
+      ? canonicalGithubUrl(repository, asset.browser_download_url)
+      : null;
+  const installer = release.assets?.find(asset => installerUrl(asset)?.startsWith(downloadPrefix));
   if (!installer) throw new Error('Published release has no Windows installer');
   // The digest is computed by GitHub over the stored asset, so it is not something a release author types into the notes. Publishing it here gives the download page a checksum users can verify, which matters most while the installer is unsigned and a mirror is offered alongside it.
   const digest = typeof installer.digest === 'string' && installer.digest.startsWith('sha256:')
@@ -24,7 +29,7 @@ export function metadataFromRelease(release, channel = 'stable') {
     version: tag.replace(/^v/, ''),
     releaseUrl: expectedUrl,
     installerName: installer.name,
-    installerUrl: installer.browser_download_url,
+    installerUrl: installerUrl(installer),
     installerSha256: digest,
     signed: !/-unsigned\.exe$/i.test(installer.name),
   };
