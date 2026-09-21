@@ -12,8 +12,7 @@ on:
   workflow_run:
     workflows:
       - Sync community snapshot
-      - Sync platform downloads
-      - Sync update manifest
+      - Sync downloads
       - CodeQL
     types: [completed]
 

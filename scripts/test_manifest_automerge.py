@@ -28,17 +28,25 @@ class ManifestGate(unittest.TestCase):
         with self.assertRaises(ValueError):
             gate.validate(self.pr, ['public/update.json'], rules, 'a' * 40)
 
-    def test_each_branch_may_only_change_its_own_manifest(self):
+    def test_each_branch_may_only_change_its_own_manifests(self):
         for branch, allowed in gate.ALLOWED.items():
             pr = copy.deepcopy(self.pr)
             pr['head']['ref'] = branch
-            gate.validate(pr, [allowed], self.rules, 'a' * 40)
-            # 换成另一条自动化分支的文件也不行：分支和文件是绑死的
-            for other in gate.ALLOWED.values():
-                if other == allowed:
-                    continue
+            # 自己的文件，单独一个或者一起来，都放行
+            gate.validate(pr, sorted(allowed), self.rules, 'a' * 40)
+            for owned in allowed:
+                gate.validate(pr, [owned], self.rules, 'a' * 40)
+            # 换成另一条自动化分支的文件就不行：分支和文件是绑死的
+            for other in set().union(*gate.ALLOWED.values()) - allowed:
                 with self.assertRaises(ValueError):
                     gate.validate(pr, [other], self.rules, 'a' * 40)
+                with self.assertRaises(ValueError):
+                    gate.validate(pr, sorted(allowed) + [other], self.rules, 'a' * 40)
+
+    def test_rejects_a_repeated_filename(self):
+        # 同一个文件报两遍不该顶掉 changed_files 的计数：那正是被截断的文件列表看起来的样子
+        with self.assertRaises(ValueError):
+            gate.validate(self.pr, ['public/update.json', 'public/update.json'], self.rules, 'a' * 40)
 
     def test_rejects_an_unknown_automation_branch(self):
         pr = copy.deepcopy(self.pr)
