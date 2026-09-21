@@ -1,0 +1,90 @@
+name: Sync downloads
+
+# 两份清单都带着 Windows 的版本号：public/update.json 是 Windows 客户端「检查更新」读的接口，public/platforms.json 是下载页的三平台产物清单。构建里有一条断言把它们钉在一起（scripts/seo-output.test.mjs）—— 下载面板渲染的版本必须等于 update.json 里的版本，因为页面上写着「下载 v0.8.0」而客户端自动更新到 0.7.1 是在对用户说假话。
+#
+# 所以这两份文件必须在同一个 PR 里一起动。拆成两条自动化各产一个 PR 的时候，两个 PR 各自只改了一半，于是各自都违反那条断言、各自的 Build 都挂、auto-merge 谁也合不了，页面就停在旧版本不动。这不是偶发：0.6.7 和 0.7.1 两次发版都是这么卡住的，两次都靠人手工把两份文件并成一个提交推上去（231040e、af5b998），0.8.0 是第三次，卡了一天。
+#
+# macOS / Linux / 词库的刷新也在这里。它们和 Windows 的版本号无关，但本来就写在 platforms.json 同一个文件里，没有理由再拆一条流水线出来。
+#
+# 半小时一轮的 cron 只是兜底。真正让页面跟上发布的是 repository_dispatch：上游（MSIME-Windows / MSIME-Apple / MSIME-Linux）的发布流水线发完版后往本仓库投一个事件即可触发，Windows 发版后 4 秒站上就是新版本。两个历史事件名都保留，上游不用改。
+#
+# 守卫（scripts/enable-manifest-automerge.py）把分支和它能改的文件绑死：这条分支只能改这两份清单，其余检查（非草稿、base 为 main、head sha 精确匹配、同仓来源、main 必须有 PR 规则和三项必需检查）一律不变。
+
+on:
+  schedule:
+    - cron: '23,53 * * * *'
+  workflow_dispatch:
+  repository_dispatch:
+    types: [update-manifest, sync-platforms]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-downloads
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Propose refreshed download manifests
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the site
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: main
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+
+      - name: Validate and regenerate
+        id: write
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          node --test scripts/generate-update.test.mjs scripts/generate-platforms.test.mjs scripts/manifest-changed.test.mjs
+          node scripts/generate-update.mjs
+          node scripts/generate-platforms.mjs
+          # update.json 没有时间戳，`git diff` 就是答案。platforms.json 另有一个 generatedAt，每轮都不一样，直接比会让一天 48 轮里的绝大多数都产出一个只挪时间戳的提交。
+          changed=false
+          if ! git diff --quiet -- public/update.json; then changed=true; fi
+          if [ "$(node scripts/manifest-changed.mjs public/platforms.json)" = true ]; then changed=true; fi
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
+
+      - name: Require the PR automation credential
+        if: steps.write.outputs.changed == 'true'
+        env:
+          AUTOMATION_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+        run: test -n "$AUTOMATION_TOKEN"
+
+      - name: Create or update the downloads PR
+        if: steps.write.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        id: proposal
+        with:
+          # A trusted token triggers PR CI and deployment after merging.
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          add-paths: |
+            public/update.json
+            public/platforms.json
+          branch: automation/downloads
+          base: main
+          delete-branch: true
+          commit-message: 'chore(site): refresh download manifests'
+          title: 'chore(site): refresh download manifests'
+          body: 'Latest published release and packages for Windows, macOS and Linux, plus the Windows update endpoint the app polls. Both manifests carry the Windows version, so they move together. Auto-merge requires the normal build, workflow validation and dependency review.'
+
+      - name: Enable auto-merge behind the required checks
+        if: steps.proposal.outputs.pull-request-number != '' && steps.proposal.outputs.pull-request-operation != 'closed'
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ steps.proposal.outputs.pull-request-number }}
+          HEAD_SHA: ${{ steps.proposal.outputs.pull-request-head-sha }}
+        run: python3 scripts/enable-manifest-automerge.py --repo "$GH_REPO" --pr "$PR_NUMBER" --sha "$HEAD_SHA"

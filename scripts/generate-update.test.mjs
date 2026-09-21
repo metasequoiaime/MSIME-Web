@@ -41,6 +41,20 @@ test('drafts, prereleases, absent installers and foreign URLs cannot advertise a
   }
 });
 
+// GitHub 回的仓库名大小写不稳定（见 github-url.mjs）。按字面比较的话，回小写的那一轮会被判成「不是我们的仓库」，整轮同步抛错失败；而放行之后如果把原样地址写进去，大小写每翻一次就是一份新清单、一个 PR 和一次部署。
+test('a lowercased repository in the returned URLs is accepted and written back in canonical form', () => {
+  const lowercased = {
+    ...release,
+    html_url: 'https://github.com/metasequoiaime/msime-windows/releases/tag/0.0.9.2',
+    assets: [{ ...release.assets[0],
+      browser_download_url: 'https://github.com/metasequoiaime/msime-windows/releases/download/0.0.9.2/setup.exe' }],
+  };
+  assert.deepEqual(metadataFromRelease(lowercased), expected);
+  // 另一个仓库还是另一个仓库，不是大小写问题
+  assert.throws(() => metadataFromRelease({ ...lowercased,
+    html_url: 'https://github.com/metasequoiaime/msime-windows-mirror/releases/tag/0.0.9.2' }));
+});
+
 test('preview policy accepts published previews but excludes newer drafts and missing installers', () => {
   const preview = {...release, prerelease: true};
   assert.deepEqual(selectRelease([{...preview, draft: true}, {...preview, assets: []}, preview], 'preview'),

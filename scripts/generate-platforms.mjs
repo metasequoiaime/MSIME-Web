@@ -1,4 +1,5 @@
 import { writeFile } from 'node:fs/promises';
+import { canonicalGithubUrl } from './github-url.mjs';
 
 /*
  * public/platforms.json 给下载页提供三个平台各自的最新版本与安装包。
@@ -69,12 +70,13 @@ export function classifyAssets(platform, assets) {
   for (const [pattern, label, arch] of rules) {
     for (const asset of assets) {
       if (isNoise(asset.name) || !pattern.test(asset.name)) continue;
-      if (!asset.browser_download_url?.startsWith(`https://github.com/${SOURCES[platform]}/releases/download/`)) continue;
+      const url = canonicalGithubUrl(SOURCES[platform], asset.browser_download_url);
+      if (!url?.startsWith(`https://github.com/${SOURCES[platform]}/releases/download/`)) continue;
       downloads.push({
         label,
         arch,
         name: asset.name,
-        url: asset.browser_download_url,
+        url,
         size: asset.size ?? 0,
         sha256: sha256Of(asset),
       });
@@ -107,9 +109,12 @@ export function selectRelease(platform, releases) {
     if (release.draft !== false || !release.published_at || !RELEASE_TAG.test(tag)) continue;
     const downloads = classifyAssets(platform, release.assets ?? []);
     if (!downloads.length) continue;
+    // 产物地址已经按仓库校验过，发布页地址没有理由松一档 —— 页面上「发布说明与校验值」就指向它。
+    const releaseUrl = canonicalGithubUrl(SOURCES[platform], release.html_url);
+    if (!releaseUrl) continue;
     eligible.push({
       version: tag.replace(/^v/, ''),
-      releaseUrl: release.html_url,
+      releaseUrl,
       publishedAt: release.published_at,
       prerelease: release.prerelease === true,
       signed: signingState(platform, downloads),
@@ -136,6 +141,8 @@ const DICTIONARY_FILES = {
 
 export function selectDictionary(release) {
   if (release?.draft !== false || !release.published_at) return null;
+  const releaseUrl = canonicalGithubUrl(DICTIONARY_REPOSITORY, release.html_url);
+  if (!releaseUrl) return null;
   const files = (release.assets ?? [])
     .filter(asset => asset.name in DICTIONARY_FILES)
     .map(asset => ({
@@ -147,7 +154,7 @@ export function selectDictionary(release) {
     .sort((left, right) => right.size - left.size);
 
   if (!files.length) return null;
-  return { repository: DICTIONARY_REPOSITORY, tag: release.tag_name, releaseUrl: release.html_url, publishedAt: release.published_at, files };
+  return { repository: DICTIONARY_REPOSITORY, tag: release.tag_name, releaseUrl, publishedAt: release.published_at, files };
 }
 
 async function main() {
