@@ -170,8 +170,13 @@ async function main() {
     if (selected) platforms[platform] = { repository, ...selected };
   }
 
-  // 一个平台都取不到就别写：宁可让页面回落到「前往发布页」，也不要发布一份空清单。
-  if (!Object.keys(platforms).length) throw new Error('Refusing to write an empty platform manifest');
+  // 每个平台都是下载页的固定桌面分支。上游暂时没有可识别产物时，不能把该键静默删掉：
+  // 这会让自动化 PR 通过生成步骤，却在站点 schema 校验阶段才失败，并把已有下载信息变成
+  // 「前往发布页」。宁可让同步任务失败，等上游产物恢复后再生成。
+  const missingPlatforms = Object.keys(SOURCES).filter(platform => !platforms[platform]);
+  if (missingPlatforms.length) {
+    throw new Error(`Refusing to write an incomplete platform manifest: missing ${missingPlatforms.join(', ')}`);
+  }
 
   const dictionaryResponse = await fetch(`https://api.github.com/repos/${DICTIONARY_REPOSITORY}/releases?per_page=30`,
     { headers, signal: AbortSignal.timeout(30000) });
