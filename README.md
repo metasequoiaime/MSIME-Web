@@ -86,7 +86,7 @@ Biome 只开了 linter，formatter 处于关闭状态——仓库既有代码尚
 | `GITHUB_APP_INSTALLATION_ID` | App 安装到组织后的安装 ID（安装配置页 URL 末尾数字） |
 | `GITHUB_APP_PRIVATE_KEY` | App 生成的完整 PEM 私钥，保留换行，作为 Pages secret 保存；支持 GitHub 下载的 PKCS#1 和 PKCS#8 |
 
-在组织内创建专用 GitHub App（例如 `msime-feedback`），主页填 `https://msime.app/feedback/`，关闭 Webhook，无需 OAuth 回调或 Client secret。仓库权限只选 Issues: Read and write（Metadata: Read-only 自动附带），仅允许本组织安装。生成私钥，再安装到 MSIME-Windows、MSIME-Apple、MSIME-Linux、MSIME-Engine、MSIME-Backend、MSIME-Docs、MSIME-Web 这七个仓库，仓库需开启 Issues。
+在组织内创建专用 GitHub App（例如 `msime-feedback`），主页填 `https://msime.app/feedback/`，关闭 Webhook，无需 OAuth 回调或 Client secret。仓库权限只选 Issues: Read and write（Metadata: Read-only 自动附带），仅允许本组织安装。生成私钥，再安装到 MSIME-Windows、msime（原 MSIME-Apple，现为多平台仓库，也接收 Linux 反馈）、MSIME-Engine、MSIME-Backend、MSIME-Docs、MSIME-Web 这六个仓库，仓库需开启 Issues。
 
 Issue 作者为 App 的机器人账号（例如 `msime-feedback[bot]`）。后端在验证 Turnstile 后签发 JWT，兑换仅限本次目标仓库、Issues 写权限的一小时安装令牌，再创建 Issue；不使用用户授权令牌。旧的 `GITHUB_ISSUES_TOKEN` 已不再读取，切换后从 Pages 配置中移除；旧 PAT 若无其他用途，可在 GitHub 撤销。更新生产变量后需重新部署才能生效。
 

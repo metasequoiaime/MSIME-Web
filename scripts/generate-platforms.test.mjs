@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { classifyAssets, selectRelease, signingState } from './generate-platforms.mjs';
+import { classifyAssets, selectRelease, signingState, versionOrder } from './generate-platforms.mjs';
 
 const asset = (name, extra = {}) => ({
   name,
@@ -69,7 +69,7 @@ test('macOS keeps the installer and archive but never the iOS build', () => {
                  'MetasequoiaIME-v0.47.2-macos-universal-unsigned.zip',
                  'MetasequoiaIME-v0.47.2-macos-universal-unsigned-update.zip',
                  'MetasequoiaIME-v0.47.2-ios-unsigned.ipa'].map(n => asset(n, {
-    browser_download_url: `https://github.com/metasequoiaime/MSIME-Apple/releases/download/v0.47.2/${n}`,
+    browser_download_url: `https://github.com/metasequoiaime/msime/releases/download/v0.47.2/${n}`,
   }));
   const labels = classifyAssets('macos', macos).map(d => d.label);
   assert.deepEqual(labels, ['安装包 · pkg', '压缩包 · zip']);
@@ -100,16 +100,58 @@ test('nothing is returned when no release qualifies, so the page can fall back',
   assert.equal(selectRelease('linux', [{ tag_name: 'v1', draft: true, assets: linuxAssets }]), null);
 });
 
-test('a tag that is not a plain version is refused, the same way the update manifest refuses it', () => {
+test('tags carry an optional platform prefix and build suffix, anything else is refused', () => {
   const withAssets = tag => ({
     tag_name: tag, draft: false, published_at: '2026-09-07T00:00:00Z',
     html_url: `https://github.com/metasequoiaime/MSIME-Linux/releases/tag/${tag}`, assets: linuxAssets,
   });
-  // 上游真发过 v0.6.2-beta：update.json 按规则拒掉，这份也必须拒，否则同一页会出现两个版本号
-  assert.equal(selectRelease('linux', [withAssets('v0.6.2-beta')]), null);
   assert.equal(selectRelease('linux', [withAssets('nightly')]), null);
+  // 后缀只收字母、数字和点：版本号要拼进 markdown 和按钮文字
+  assert.equal(selectRelease('linux', [withAssets('v0.9.1-[x](y)')]), null);
+  // 前缀只认自己平台的，iOS 的 tag 不会被当成 Linux 或 macOS 的版本
+  assert.equal(selectRelease('linux', [withAssets('ios-v0.9.1')]), null);
+  assert.equal(selectRelease('linux', [withAssets('linux-v0.9.1-build.3')]).version, '0.9.1-build.3');
+  assert.equal(selectRelease('linux', [withAssets('v0.6.2-beta')]).version, '0.6.2-beta');
   assert.equal(selectRelease('linux', [withAssets('v0.9.1')]).version, '0.9.1');
   assert.equal(selectRelease('linux', [withAssets('v0.9.1.2')]).version, '0.9.1.2');
+});
+
+test('versions order by numeric core, then a bare version above its suffixed builds, then build numbers numerically', () => {
+  const sorted = ['0.50.0-build.9', '0.48.6', '0.50.0-build.11', '0.50.0', '0.48.6-build.1002.61.1', '0.10.0']
+    .sort(versionOrder);
+  assert.deepEqual(sorted, ['0.50.0', '0.50.0-build.11', '0.50.0-build.9', '0.48.6', '0.48.6-build.1002.61.1', '0.10.0']);
+});
+
+const release = (tag, prerelease, published = '2026-09-10T00:00:00Z') => ({
+  tag_name: tag, draft: false, prerelease, published_at: published,
+  html_url: `https://github.com/metasequoiaime/MSIME-Linux/releases/tag/${tag}`, assets: linuxAssets,
+});
+
+test('the stable release takes the main slot and a newer pre-release rides along as the preview', () => {
+  // 取自 macOS 仓库的真实形状：每次合并自动发一个 Pre-release，人工挑过的那个才是正式版
+  const chosen = selectRelease('linux', [
+    release('v0.50.0-build.11', true), release('v0.50.0-build.9', true),
+    release('v0.48.6-build.1002.61.1', false), release('v0.48.6', true), release('v0.46.0', false),
+  ]);
+  assert.equal(chosen.version, '0.48.6-build.1002.61.1');
+  assert.equal(chosen.prerelease, false);
+  assert.equal(chosen.preview.version, '0.50.0-build.11');
+  assert.equal(chosen.preview.releaseUrl, 'https://github.com/metasequoiaime/MSIME-Linux/releases/tag/v0.50.0-build.11');
+  assert.equal(chosen.preview.downloads.length, 4);
+  assert.equal('prerelease' in chosen.preview, false);
+});
+
+test('a pre-release no newer than the stable release is not offered', () => {
+  const chosen = selectRelease('linux', [release('v0.8.0', false), release('v0.6.8-beta.1', true), release('v0.8.0-rc.1', true)]);
+  assert.equal(chosen.version, '0.8.0');
+  assert.equal(chosen.preview, null);
+});
+
+test('without any stable release the newest pre-release keeps the platform on the page', () => {
+  const chosen = selectRelease('linux', [release('v0.9.1', true), release('v0.9.0', true)]);
+  assert.equal(chosen.version, '0.9.1');
+  assert.equal(chosen.prerelease, true);
+  assert.equal(chosen.preview, null);
 });
 
 test('the highest version wins, not the most recently published', () => {

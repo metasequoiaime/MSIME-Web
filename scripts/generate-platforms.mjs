@@ -4,13 +4,14 @@ import { canonicalGithubUrl } from './github-url.mjs';
 /*
  * public/platforms.json 给下载页提供三个平台各自的最新版本与安装包。
  *
- * 在这之前只有 Windows 有版本信息（来自 public/update.json），macOS 和 Linux 的访客在官网上拿不到版本号、拿不到文件、也拿不到校验值，只能被推去 GitHub 自己翻。三个平台各自在自己的仓库发版，版本号互不相通，所以这里逐个仓库取最新一个已发布的版本。
+ * 在这之前只有 Windows 有版本信息（来自 public/update.json），macOS 和 Linux 的访客在官网上拿不到版本号、拿不到文件、也拿不到校验值，只能被推去 GitHub 自己翻。三个平台各自在自己的仓库发版，版本号互不相通，所以这里逐个仓库取最新的正式版，另附一个比它更新的预览版（如果有）。
  *
  * update.json 不动：它是 Windows 客户端「检查更新」读的接口，形状是对外承诺，不该为了页面好看去改。
  */
 const SOURCES = {
   windows: 'metasequoiaime/MSIME-Windows',
-  macos: 'metasequoiaime/MSIME-Apple',
+  // 原来叫 MSIME-Apple。改名后 API 回的地址全是新名字，按旧名校验前缀会把 macOS 的产物全部丢掉、整轮同步失败。
+  macos: 'metasequoiaime/msime',
   linux: 'metasequoiaime/MSIME-Linux',
 };
 
@@ -42,20 +43,38 @@ const RULES = {
 };
 
 /*
- * 版本号规则与 update.json 那份保持一致，两份清单必须对同一个仓库给出同一个版本。
+ * tag 规则：可选的平台前缀（macOS 仓库的 `macos-v…`）、可选的 `v`、三到四段数字，再加一个可选的后缀（`-build.11`、`-beta.1`）。
  *
- * 不统一的后果刚发生过：上游发了 v0.6.2-beta，update.json 按规则拒掉（带后缀的 tag 不算正式版本），这份却收了，于是同一页上下载按钮说 v0.6.2-beta、正文说 v0.5.4。
+ * 以前这里只收纯数字 tag，理由是和 update.json 保持一致：上游发过 v0.6.2-beta，update.json 拒掉了，这份却收了，于是同一页上下载按钮说 v0.6.2-beta、正文说 v0.5.4。现在正式版和预览版在页面上分开展示、各自标明，那个矛盾不再出现；而 macOS 仓库已经只发带 `-build.N` 后缀的 tag，连带 Latest 徽章的正式版也是，继续只收纯数字 tag 会让 macOS 永远停在最后一个纯数字版本上。
  *
- * 选最高版本而不是最新发布，也是照搬那边的做法：补发一个旧版本不该把页面推回去。
+ * 后缀只允许字母、数字和点：版本号会被拼进 markdown 和按钮文字，不能让它带进别的符号。
  */
-const RELEASE_TAG = /^v?\d+\.\d+\.\d+(?:\.\d+)?$/;
+const releaseTag = platform => new RegExp(`^(?:${platform}-)?v?(\\d+\\.\\d+\\.\\d+(?:\\.\\d+)?(?:-[0-9A-Za-z.]+)?)$`);
 
-const versionOrder = (left, right) => {
-  const a = left.split('.').map(Number), b = right.split('.').map(Number);
+/*
+ * 按 semver 的思路比较：先比数字主干，主干相同时不带后缀的排在带后缀的前面，后缀按点分段，纯数字段按数值比（build.11 高于 build.9）。
+ *
+ * 选最高版本而不是最新发布：补发一个旧版本不该把页面推回去。
+ */
+const compareSegments = (left, right) => {
+  for (let i = 0; i < Math.max(left.length, right.length); i += 1) {
+    const a = left[i], b = right[i];
+    if (a === undefined) return 1;
+    if (b === undefined) return -1;
+    const numeric = /^\d+$/.test(a) && /^\d+$/.test(b);
+    if (numeric ? Number(a) !== Number(b) : a !== b) return numeric ? Number(b) - Number(a) : (b < a ? -1 : 1);
+  }
+  return 0;
+};
+
+export const versionOrder = (left, right) => {
+  const [coreA, suffixA] = left.split(/-(.*)/s), [coreB, suffixB] = right.split(/-(.*)/s);
+  const a = coreA.split('.').map(Number), b = coreB.split('.').map(Number);
   for (let i = 0; i < Math.max(a.length, b.length); i += 1) {
     if ((a[i] || 0) !== (b[i] || 0)) return (b[i] || 0) - (a[i] || 0);
   }
-  return 0;
+  if (suffixA === undefined || suffixB === undefined) return (suffixA === undefined ? 0 : 1) - (suffixB === undefined ? 0 : 1);
+  return compareSegments(suffixA.split('.'), suffixB.split('.'));
 };
 
 const sha256Of = asset =>
@@ -101,29 +120,56 @@ export const signingState = (platform, downloads) => {
   return NAMES_DECLARE_SIGNING.has(platform) ? true : null;
 };
 
+const toRelease = (platform, release) => {
+  const match = releaseTag(platform).exec(String(release.tag_name ?? ''));
+  if (release.draft !== false || !release.published_at || !match) return null;
+  const downloads = classifyAssets(platform, release.assets ?? []);
+  if (!downloads.length) return null;
+  // 产物地址已经按仓库校验过，发布页地址没有理由松一档 —— 页面上「发布说明与校验值」就指向它。
+  const releaseUrl = canonicalGithubUrl(SOURCES[platform], release.html_url);
+  if (!releaseUrl) return null;
+  return {
+    version: match[1],
+    releaseUrl,
+    publishedAt: release.published_at,
+    prerelease: release.prerelease === true,
+    signed: signingState(platform, downloads),
+    downloads,
+  };
+};
+
+/*
+ * 正式版和预览版同时给出。
+ *
+ * 正式版是最高的非 Pre-release；预览版是比正式版更高的 Pre-release —— 比正式版还旧的预览版没有理由再摆出来。macOS 仓库每次合并都自动发一个 Pre-release，却只把人工挑过的那个标成正式版，只给其中一个，要么让来下载的人拿不到最新改动，要么把没挑过的构建当成正式版推给所有人。
+ *
+ * 一个正式版都没有的平台（上游只发过 Pre-release）用最高的预览版顶上主位，preview 留空：平台不能从清单里消失。
+ */
 export function selectRelease(platform, releases) {
-  const eligible = [];
+  const eligible = releases.map(release => toRelease(platform, release)).filter(Boolean)
+    .sort((left, right) => versionOrder(left.version, right.version));
+  const stable = eligible.find(release => !release.prerelease);
+  if (!stable) return eligible[0] ? { ...eligible[0], preview: null } : null;
+  const newer = eligible.find(release => release.prerelease && versionOrder(release.version, stable.version) < 0);
+  const preview = newer ? (({ prerelease, ...rest }) => rest)(newer) : null;
+  return { ...stable, preview };
+}
 
-  for (const release of releases) {
-    const tag = String(release.tag_name ?? '');
-    if (release.draft !== false || !release.published_at || !RELEASE_TAG.test(tag)) continue;
-    const downloads = classifyAssets(platform, release.assets ?? []);
-    if (!downloads.length) continue;
-    // 产物地址已经按仓库校验过，发布页地址没有理由松一档 —— 页面上「发布说明与校验值」就指向它。
-    const releaseUrl = canonicalGithubUrl(SOURCES[platform], release.html_url);
-    if (!releaseUrl) continue;
-    eligible.push({
-      version: tag.replace(/^v/, ''),
-      releaseUrl,
-      publishedAt: release.published_at,
-      prerelease: release.prerelease === true,
-      signed: signingState(platform, downloads),
-      downloads,
-    });
+/*
+ * 取全部 release，而不是第一页。
+ *
+ * macOS 仓库每次合并都自动发一个 Pre-release，正式版很快就被挤出第一页：取 30 条的时候，带 Latest 徽章的那个排在第 25 条，再过几天就看不到了，页面会把预览版当成正式版。
+ */
+async function fetchAllReleases(repository, headers) {
+  const releases = [];
+  for (let page = 1; ; page += 1) {
+    const response = await fetch(`https://api.github.com/repos/${repository}/releases?per_page=100&page=${page}`,
+      { headers, signal: AbortSignal.timeout(30000) });
+    if (!response.ok) throw new Error(`${repository} releases failed: HTTP ${response.status}`);
+    const batch = await response.json();
+    releases.push(...batch);
+    if (batch.length < 100) return releases;
   }
-
-  eligible.sort((left, right) => versionOrder(left.version, right.version));
-  return eligible[0] ?? null;
 }
 
 /*
@@ -163,10 +209,7 @@ async function main() {
 
   const platforms = {};
   for (const [platform, repository] of Object.entries(SOURCES)) {
-    const response = await fetch(`https://api.github.com/repos/${repository}/releases?per_page=30`,
-      { headers, signal: AbortSignal.timeout(30000) });
-    if (!response.ok) throw new Error(`${repository} releases failed: HTTP ${response.status}`);
-    const selected = selectRelease(platform, await response.json());
+    const selected = selectRelease(platform, await fetchAllReleases(repository, headers));
     if (selected) platforms[platform] = { repository, ...selected };
   }
 
@@ -188,7 +231,7 @@ async function main() {
 
   await writeFile(new URL('../public/platforms.json', import.meta.url),
     `${JSON.stringify({ generatedAt: new Date().toISOString(), platforms, dictionary }, null, 2)}\n`);
-  console.log(Object.entries(platforms).map(([k, v]) => `${k} v${v.version} (${v.downloads.length} 个产物)`).join(', '),
+  console.log(Object.entries(platforms).map(([k, v]) => `${k} v${v.version} (${v.downloads.length} 个产物)${v.preview ? ` + 预览版 v${v.preview.version}` : ''}`).join(', '),
     dictionary ? `| 词库 ${dictionary.tag} (${dictionary.files.length} 个文件)` : '| 词库 未取到');
 }
 

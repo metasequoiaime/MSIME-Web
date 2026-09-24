@@ -309,6 +309,13 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* 预览版排在正式版之下，用分隔线和次级按钮压一档，别和主按钮抢 */
+.download-panel-preview {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--hair);
+}
+
 .download-panel-note {
   margin: 16px 0 0;
   padding-top: 14px;

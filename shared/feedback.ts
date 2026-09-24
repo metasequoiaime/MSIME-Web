@@ -4,8 +4,9 @@ import type { IssueTemplate, Screenshot } from "./feedback-templates.ts";
 
 export const targets = {
   windows: { label: "Windows 输入法", repo: "MSIME-Windows" },
-  apple: { label: "macOS / iOS 输入法", repo: "MSIME-Apple" },
-  linux: { label: "Linux 输入法", repo: "MSIME-Linux" },
+  // MSIME-Apple 改名为 msime 并成为多平台仓库；MSIME-Linux 已归档并关闭 Issues，Linux 前端的开发和反馈都并入 msime。
+  apple: { label: "macOS / iOS 输入法", repo: "msime" },
+  linux: { label: "Linux 输入法", repo: "msime" },
   engine: { label: "公共引擎、输入方案与词库", repo: "MSIME-Engine" },
   backend: { label: "公共 API", repo: "MSIME-Backend" },
   docs: { label: "使用文档", repo: "MSIME-Docs" },
