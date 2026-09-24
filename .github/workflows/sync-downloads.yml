@@ -6,7 +6,7 @@ name: Sync downloads
 #
 # macOS / Linux / 词库的刷新也在这里。它们和 Windows 的版本号无关，但本来就写在 platforms.json 同一个文件里，没有理由再拆一条流水线出来。
 #
-# 半小时一轮的 cron 只是兜底。真正让页面跟上发布的是 repository_dispatch：上游（MSIME-Windows / MSIME-Apple / MSIME-Linux）的发布流水线发完版后往本仓库投一个事件即可触发，Windows 发版后 4 秒站上就是新版本。两个历史事件名都保留，上游不用改。
+# 半小时一轮的 cron 只是兜底。真正让页面跟上发布的是 repository_dispatch：上游（MSIME-Windows / msime，原 MSIME-Apple / 已归档的 MSIME-Linux）的发布流水线发完版后往本仓库投一个事件即可触发，Windows 发版后 4 秒站上就是新版本。两个历史事件名都保留，上游不用改。
 #
 # 守卫（scripts/enable-manifest-automerge.py）把分支和它能改的文件绑死：这条分支只能改这两份清单，其余检查（非草稿、base 为 main、head sha 精确匹配、同仓来源、main 必须有 PR 规则和三项必需检查）一律不变。
 

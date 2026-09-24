@@ -13,8 +13,10 @@ const { privateKey, publicKey } = generateKeyPairSync('rsa', { modulusLength: 20
 const env = { GITHUB_APP_ID: '123', GITHUB_APP_INSTALLATION_ID: '456', GITHUB_APP_PRIVATE_KEY: privateKey.export({ type: 'pkcs1', format: 'pem' }), TURNSTILE_SITE_KEY: 'test-only-sitekey', TURNSTILE_SECRET: 'test-only-secret', FEEDBACK_ORIGIN: 'https://msime.app' };
 const sources = Object.fromEntries(['windows','linux','common'].map(name => [name, readFileSync(new URL(`fixtures/feedback/${name}.yml`, import.meta.url),'utf8')]));
 const sha = source => createHash('sha1').update(`blob ${Buffer.byteLength(source)}\0${source}`).digest('hex');
-function templateFor(target = 'windows', source = sources[target] ?? sources.common) {
-  const repo = ['windows','linux'].includes(target) ? targets[target].repo : '.github';
+// apple 和 linux 共用 msime 仓库，所以模板按仓库而不是按 target 取
+const fixtureOf = target => ({ 'MSIME-Windows': 'windows', msime: 'linux' })[targets[target]?.repo];
+function templateFor(target = 'windows', source = sources[fixtureOf(target)] ?? sources.common) {
+  const repo = fixtureOf(target) ? targets[target].repo : '.github';
   return parseTemplate(source, { id: `${repo}/feature_request.yml`, revision: sha(source), sourceUrl: `https://github.com/metasequoiaime/${repo}/blob/HEAD/.github/ISSUE_TEMPLATE/feature_request.yml` });
 }
 function validForm(target = 'windows', template = templateFor(target)) {
@@ -37,8 +39,8 @@ function mockFetch(t, { verification = { success: true, action: 'feedback', host
     if (url.includes('/contents/')) {
       if (templateStatus) return new Response(null,{status:templateStatus});
       const repo = url.split('/')[5];
-      if (!['MSIME-Windows','MSIME-Linux','.github'].includes(repo)) return new Response(null,{status:404});
-      const source = sourceOverride ?? (repo === 'MSIME-Windows' ? sources.windows : repo === 'MSIME-Linux' ? sources.linux : sources.common);
+      if (!['MSIME-Windows','msime','.github'].includes(repo)) return new Response(null,{status:404});
+      const source = sourceOverride ?? (repo === 'MSIME-Windows' ? sources.windows : repo === 'msime' ? sources.linux : sources.common);
       return Response.json([{name:'feature_request.yml',path:'.github/ISSUE_TEMPLATE/feature_request.yml',sha:sha(source),type:'file'}]);
     }
     if (url.includes('/git/blobs/')) {

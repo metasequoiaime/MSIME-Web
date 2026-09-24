@@ -54,7 +54,7 @@ TestFlight 的每个构建有效期为 90 天，到期前在 TestFlight 中更�
 
 若链接提示“不接受新测试员”，请稍后再试，或到 [Telegram 群](https://t.me/msimegroup)确认当前开放状态。
 
-是否上架 App Store 尚未决定：iOS 词库中包含 GPL-3.0 的第三方数据，与 App Store 条款存在冲突，需要先解决授权问题。原委见 [ios-distribution.md](https://github.com/metasequoiaime/MSIME-Apple/blob/main/docs/ios-distribution.md)。
+是否上架 App Store 尚未决定：iOS 词库中包含 GPL-3.0 的第三方数据，与 App Store 条款存在冲突，需要先解决授权问题。原委见 [ios-distribution.md](https://github.com/metasequoiaime/msime/blob/v0.50.0-build.11/docs/ios-distribution.md)。
 
 ## Linux
 
