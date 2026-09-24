@@ -108,3 +108,20 @@ test('desktop release data stays valid without an iOS artifact', async (t) => {
   const result = await fetchPlatforms();
   assert.deepEqual(Object.keys(result.platforms).sort(), ['linux', 'macos', 'windows']);
 });
+
+test('a broken preview drops only the preview, never the stable release beside it', async (t) => {
+  const manifest = JSON.parse(read('public/platforms.json'));
+  const stable = manifest.platforms.macos;
+  const preview = { version: '0.50.0-build.11', releaseUrl: 'https://github.com/metasequoiaime/msime/releases/tag/v0.50.0-build.11', publishedAt: '2026-09-18T07:46:28Z', signed: true, downloads: stable.downloads };
+  const serve = platforms => t.mock.method(globalThis, 'fetch', async () => Response.json({ ...manifest, platforms: { ...manifest.platforms, macos: { ...stable, ...platforms } } }));
+  serve({ preview });
+  assert.equal((await fetchPlatforms()).platforms.macos.preview.version, '0.50.0-build.11');
+  serve({ preview: { ...preview, releaseUrl: 'https://evil.example/releases' } });
+  const result = await fetchPlatforms();
+  assert.equal(result.platforms.macos.preview, null);
+  assert.equal(result.platforms.macos.version, stable.version);
+  // 旧清单没有 preview 字段，照样能读
+  const { preview: _omitted, ...legacy } = stable;
+  t.mock.method(globalThis, 'fetch', async () => Response.json({ ...manifest, platforms: { ...manifest.platforms, macos: legacy } }));
+  assert.equal((await fetchPlatforms()).platforms.macos.preview, null);
+});

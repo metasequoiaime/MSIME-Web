@@ -6,7 +6,7 @@ import { z } from "zod";
 import downloadSourceRaw from "./content/download.md?raw";
 import { ContentPage } from "./page-content";
 import { detectPlatform, PLATFORM_LABELS, PLATFORMS, type Platform } from "./platform";
-import { fetchPlatforms, type PlatformRelease } from "./platforms-data";
+import { fetchPlatforms, type PlatformRelease, type PreviewRelease } from "./platforms-data";
 
 // `?raw` 原样带进磁盘上的字节：Windows 上 git 可能把这份 md 签出成 CRLF。下面按 `## ` 分段、匹配 `## Windows\n` 全按 LF 写死，CRLF 会让整段匹配落空、正文只剩开头，所以在入口处统一归一成 LF。
 const downloadSource = downloadSourceRaw.replace(/\r\n/g, "\n");
@@ -145,7 +145,7 @@ const fillTemplate = (
 // 取不到 platforms.json 时的发布页兜底；iOS 直接通过 TestFlight 安装。
 const RELEASE_PAGES: Record<Exclude<Platform, "ios">, string> = {
   windows: RELEASES_PAGE_URL,
-  macos: "https://github.com/metasequoiaime/MSIME-Apple/releases",
+  macos: "https://github.com/metasequoiaime/msime/releases",
   linux: "https://github.com/metasequoiaime/MSIME-Linux/releases",
 };
 
@@ -214,6 +214,76 @@ const groupByArch = (downloads: PlatformRelease["downloads"]) => {
   return [...groups];
 };
 
+function FileLine({ entry, signed }: { entry: PlatformRelease["downloads"][number]; signed: boolean | null | undefined }) {
+  const { t } = useLocale();
+  return (
+    <p className="download-panel-file">
+      <code>{entry.name}</code>
+      <span className="download-panel-arch">{t(entry.arch)}</span>
+      <span>{t(readableSize(entry.size))}</span>
+      {/* signed 是三态：判不出来时（比如 Linux 的文件名不带签名信息）什么都不显示，而不是猜一个 */}
+      {t(signed === true && <span className="download-panel-signed">{t("已签名")}</span>)}
+      {t(signed === false && <span className="download-panel-unsigned">{t("未签名")}</span>)}
+    </p>
+  );
+}
+
+/* 主推那个之外的包，按架构分组收进折叠区。正式版和预览版各用一份。 */
+function MorePackages({ downloads }: { downloads: PlatformRelease["downloads"] }) {
+  const { t } = useLocale();
+  return (
+    <details className="download-panel-more">
+      <summary className="download-panel-more-label">{t("其他安装包")}</summary>
+      <div className="download-panel-arches">
+        {t(groupByArch(downloads).map(([arch, entries]) => (
+          <section key={arch}>
+            <h3>{t(arch)}</h3>
+            <ul>
+              {t(entries.map((entry) => (
+                <li key={entry.url}>
+                  <a href={entry.url} rel="noreferrer">
+                    {t(entry.label)}
+                  </a>
+                  <span className="download-panel-size">{t(readableSize(entry.size))}</span>
+                </li>
+              )))}
+            </ul>
+          </section>
+        )))}
+      </div>
+    </details>
+  );
+}
+
+/**
+ * 比正式版更新的预览版，和正式版并列展示。
+ *
+ * 上游每次合并都会自动发一个 Pre-release，却只把人工挑过的那个标成正式版。只展示正式版，想试最新改动的人得自己去 GitHub 翻；只展示预览版，又等于把没挑过的构建推给所有人。所以两个都给，正式版占主按钮，预览版在下面明确标出来。
+ */
+function PreviewPanel({ preview }: { preview: PreviewRelease }) {
+  const { t } = useLocale();
+  const [first] = preview.downloads;
+
+  return (
+    <section className="download-panel-preview">
+      <p className="download-panel-more-label">{t("预览版")}</p>
+      <div className="download-panel-action">
+        <a className="btn btn-ghost" href={first.url} rel="noreferrer">
+          {t(`下载预览版 v${preview.version}`)}
+        </a>
+        <div className="download-panel-meta">
+          <p>
+            {t("包含尚未进入正式版的改动，可能不稳定。发布于")}{t(preview.publishedAt.slice(0, 10))}{t("。")}{" "}
+            <a href={preview.releaseUrl} rel="noreferrer">{t("发布说明与校验值 ↗")}</a>
+          </p>
+          <FileLine entry={first} signed={preview.signed} />
+        </div>
+      </div>
+      {t(preview.downloads.length > 1 && <MorePackages downloads={preview.downloads.slice(1)} />)}
+    </section>
+  );
+}
+
 /**
  * 页面顶部的下载入口。
  *
@@ -267,41 +337,11 @@ function DownloadPanel({ platforms }: { platforms: Partial<Record<Platform, Plat
 
         <div className="download-panel-meta">
           <p>{t(PLATFORM_HINTS[platform])}</p>
-          {t(primary && (
-            <p className="download-panel-file">
-              <code>{primary.name}</code>
-              <span className="download-panel-arch">{t(primary.arch)}</span>
-              <span>{t(readableSize(primary.size))}</span>
-              {/* signed 是三态：判不出来时（比如 Linux 的文件名不带签名信息）什么都不显示，而不是猜一个 */}
-              {t(current?.signed === true && <span className="download-panel-signed">{t("已签名")}</span>)}
-              {t(current?.signed === false && <span className="download-panel-unsigned">{t("未签名")}</span>)}
-            </p>
-          ))}
+          {t(primary && <FileLine entry={primary} signed={current?.signed} />)}
         </div>
       </div>
 
-      {t(current && current.downloads.length > 1 && (
-        <details className="download-panel-more">
-          <summary className="download-panel-more-label">{t("其他安装包")}</summary>
-          <div className="download-panel-arches">
-            {t(groupByArch(current.downloads.filter(entry => entry.url !== primary?.url)).map(([arch, entries]) => (
-              <section key={arch}>
-                <h3>{t(arch)}</h3>
-                <ul>
-                  {t(entries.map((entry) => (
-                    <li key={entry.url}>
-                      <a href={entry.url} rel="noreferrer">
-                        {t(entry.label)}
-                      </a>
-                      <span className="download-panel-size">{t(readableSize(entry.size))}</span>
-                    </li>
-                  )))}
-                </ul>
-              </section>
-            )))}
-          </div>
-        </details>
-      ))}
+      {t(current && current.downloads.length > 1 && <MorePackages downloads={current.downloads.slice(1)} />)}
 
       <p className="download-panel-note">
         {t(platform === "ios" ? (
@@ -314,6 +354,8 @@ function DownloadPanel({ platforms }: { platforms: Partial<Record<Platform, Plat
           t("安装步骤见下方说明。")
         ))}
       </p>
+
+      {t(platform !== "ios" && current?.preview && <PreviewPanel preview={current.preview} />)}
     </div>
   );
 }

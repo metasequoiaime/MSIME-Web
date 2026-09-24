@@ -27,19 +27,25 @@ const downloadSchema = z.object({
   sha256: z.string().regex(/^[0-9a-f]{64}$/).nullable().catch(null),
 });
 
-/** 由 scripts/generate-platforms.mjs 生成，三个平台各自最新一个已发布版本。 */
+const releaseSchema = z.object({
+  // 允许 `-build.11`、`-beta.1` 这样的后缀，但只收字母、数字和点：版本号会被拼进按钮文字和 markdown。
+  version: z.string().regex(/^\d+(?:\.\d+)*(?:-[0-9A-Za-z.]+)?$/),
+  releaseUrl: projectUrl,
+  publishedAt: z.string(),
+  // 三态：true 已签名、false 未签名、null 判不出来。判不出来时页面什么都不说。
+  signed: z.boolean().nullable().catch(null),
+  downloads: z.array(downloadSchema).min(1),
+});
+
+/** 由 scripts/generate-platforms.mjs 生成：三个平台各自的正式版，另附比它更新的预览版（没有就是 null）。 */
 const platformsSchema = z.object({
   generatedAt: z.string(),
   platforms: z.record(
     z.enum(DESKTOP_PLATFORMS),
-    z.object({
-      version: z.string().regex(/^\d+(?:\.\d+)*$/),
-      releaseUrl: projectUrl,
-      publishedAt: z.string(),
+    releaseSchema.extend({
       prerelease: z.boolean().catch(false),
-      // 三态：true 已签名、false 未签名、null 判不出来。判不出来时页面什么都不说。
-      signed: z.boolean().nullable().catch(null),
-      downloads: z.array(downloadSchema).min(1),
+      // 预览版坏了只是预览版缺席，不拖垮正式版。
+      preview: releaseSchema.nullable().catch(null),
     })
   ),
   /* 三个平台共用同一份词库，单独发布，所以放在 platforms 之外。 */
@@ -72,4 +78,5 @@ export const fetchPlatforms = async () => {
 
 export type Platforms = z.infer<typeof platformsSchema>["platforms"];
 export type PlatformRelease = NonNullable<Platforms[DesktopPlatform]>;
+export type PreviewRelease = NonNullable<PlatformRelease["preview"]>;
 export type Dictionary = NonNullable<z.infer<typeof platformsSchema>["dictionary"]>;
