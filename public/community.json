@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-24T22:23:26.451Z",
+  "generatedAt": "2026-09-25T00:49:20.780Z",
   "totalStars": 1619,
   "repoCount": 13,
   "starHistory": [
@@ -153,7 +153,7 @@
       "login": "houko",
       "avatarUrl": "https://avatars.githubusercontent.com/u/12625278?v=4",
       "url": "https://github.com/houko",
-      "contributions": 9154,
+      "contributions": 9168,
       "repos": 13
     },
     {
@@ -169,6 +169,13 @@
       "url": "https://github.com/jsfaint",
       "contributions": 61,
       "repos": 3
+    },
+    {
+      "login": "claude",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/81847?v=4",
+      "url": "https://github.com/claude",
+      "contributions": 24,
+      "repos": 1
     },
     {
       "login": "Neptrue-Lin",
@@ -223,13 +230,6 @@
       "login": "Komeiji-Shiki",
       "avatarUrl": "https://avatars.githubusercontent.com/u/84919145?v=4",
       "url": "https://github.com/Komeiji-Shiki",
-      "contributions": 2,
-      "repos": 1
-    },
-    {
-      "login": "LilyCarry",
-      "avatarUrl": "https://avatars.githubusercontent.com/u/124147998?v=4",
-      "url": "https://github.com/LilyCarry",
       "contributions": 2,
       "repos": 1
     }
