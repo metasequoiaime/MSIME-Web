@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-09-26T07:38:01.485Z",
-  "totalStars": 1626,
+  "generatedAt": "2026-09-26T12:27:45.039Z",
+  "totalStars": 1630,
   "repoCount": 14,
   "starHistory": [
     {
@@ -145,7 +145,7 @@
     },
     {
       "month": "2026-09",
-      "stars": 1626
+      "stars": 1630
     }
   ],
   "contributors": [
@@ -153,14 +153,14 @@
       "login": "houko",
       "avatarUrl": "https://avatars.githubusercontent.com/u/12625278?v=4",
       "url": "https://github.com/houko",
-      "contributions": 9271,
+      "contributions": 9272,
       "repos": 14
     },
     {
       "login": "fanlusky",
       "avatarUrl": "https://avatars.githubusercontent.com/u/69321395?v=4",
       "url": "https://github.com/fanlusky",
-      "contributions": 1837,
+      "contributions": 1847,
       "repos": 10
     },
     {
@@ -206,6 +206,13 @@
       "repos": 2
     },
     {
+      "login": "AaGMix",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/295558529?v=4",
+      "url": "https://github.com/AaGMix",
+      "contributions": 4,
+      "repos": 1
+    },
+    {
       "login": "liumengwanlhf-design",
       "avatarUrl": "https://avatars.githubusercontent.com/u/244346592?v=4",
       "url": "https://github.com/liumengwanlhf-design",
@@ -223,15 +230,8 @@
       "login": "metasequoiaime-dev",
       "avatarUrl": "https://avatars.githubusercontent.com/u/215940592?v=4",
       "url": "https://github.com/metasequoiaime-dev",
-      "contributions": 3,
+      "contributions": 4,
       "repos": 2
-    },
-    {
-      "login": "Komeiji-Shiki",
-      "avatarUrl": "https://avatars.githubusercontent.com/u/84919145?v=4",
-      "url": "https://github.com/Komeiji-Shiki",
-      "contributions": 2,
-      "repos": 1
     }
   ]
 }
